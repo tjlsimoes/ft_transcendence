@@ -1,0 +1,21 @@
+# ===== Environment =====
+.env
+.env.local
+.env.*.local
+
+# ===== IDEs =====
+.idea/
+*.iml
+*.iws
+.vscode/
+*.sublime-workspace
+*.sublime-project
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ===== Logs =====
+*.log
+logs/
