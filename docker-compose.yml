@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: codearena-postgres
+    environment:
+      POSTGRES_DB: codearena
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - codearena-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: codearena-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - codearena-network
+
+volumes:
+  postgres_data:
+
+networks:
+  codearena-network:
+    driver: bridge
