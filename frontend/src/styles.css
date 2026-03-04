@@ -1,8 +1,9 @@
-/* You can add global styles to this file, and also import other style files */
+/* Estilos globais compartilhados por toda a aplicação. */
 
 @import "tailwindcss";
 
 :root {
+  /* Tokens de tema (cores e tipografia base). */
   --bg: #0a0a0a;
   --text: #e0e0e0;
   --text-muted: #b8b8b8;
@@ -16,6 +17,7 @@
 *,
 *::before,
 *::after {
+  /* Reset para evitar diferenças de espaçamento entre navegadores. */
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -26,6 +28,7 @@ html {
 }
 
 body {
+  /* Configuração visual principal do app (tema escuro + fonte mono). */
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-mono);
@@ -36,6 +39,7 @@ body {
 }
 
 ::selection {
+  /* Cor de seleção para manter identidade visual do projeto. */
   background: rgba(0, 255, 65, 0.25);
   color: #fff;
 }

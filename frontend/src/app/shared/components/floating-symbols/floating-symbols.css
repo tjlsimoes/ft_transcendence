@@ -1,3 +1,4 @@
+/* Canvas decorativo fixo no fundo; não deve interceptar interação do usuário. */
 .floating-canvas {
   position: fixed;
   top: 0;

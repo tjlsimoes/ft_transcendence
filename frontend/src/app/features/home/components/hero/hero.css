@@ -1,3 +1,4 @@
+/* Seção principal com centralização vertical da mensagem de valor. */
 .hero {
   position: relative;
   z-index: 1;
@@ -8,11 +9,13 @@
   padding: 120px 24px 80px;
 }
 
+/* Wrapper de conteúdo para controlar largura máxima da landing. */
 .hero-content {
   max-width: 680px;
   text-align: center;
 }
 
+/* Linha curta de contexto no topo do hero. */
 .hero-tagline {
   font-size: 0.8rem;
   font-weight: 700;
@@ -22,6 +25,7 @@
   opacity: 0.7;
 }
 
+/* Título principal da página inicial. */
 .hero-title {
   font-size: 3rem;
   font-weight: 700;
@@ -30,10 +34,12 @@
   margin: 0 0 28px;
 }
 
+/* Parte destacada do título com a cor de acento. */
 .title-accent {
   color: var(--accent);
 }
 
+/* Texto descritivo do produto/experiência. */
 .hero-description {
   font-size: 1.1rem;
   font-weight: 575;
@@ -45,10 +51,12 @@
   margin-right: auto;
 }
 
+/* Área da chamada para ação principal. */
 .hero-actions {
   margin-bottom: 56px;
 }
 
+/* Botão principal para entrada/cadastro no produto. */
 .btn-cta {
   display: inline-block;
   font-size: 0.95rem;
@@ -67,6 +75,7 @@
   border-color: var(--accent-hover);
 }
 
+/* Bloco de métricas/resumo visual da proposta. */
 .hero-stats {
   display: flex;
   align-items: center;
@@ -74,6 +83,7 @@
   gap: 32px;
 }
 
+/* Coluna individual de métrica. */
 .stat {
   display: flex;
   flex-direction: column;
@@ -81,12 +91,14 @@
   gap: 4px;
 }
 
+/* Valor da métrica. */
 .stat-value {
   font-size: 1.3rem;
   font-weight: 700;
   color: var(--accent);
 }
 
+/* Rótulo da métrica. */
 .stat-label {
   font-size: 0.7rem;
   font-weight: 600;
@@ -95,12 +107,14 @@
   letter-spacing: 1.5px;
 }
 
+/* Separador vertical entre métricas. */
 .stat-divider {
   width: 1px;
   height: 36px;
   background: var(--border);
 }
 
+/* Redução de escala tipográfica para dispositivos menores. */
 @media (max-width: 640px) {
   .hero-title {
     font-size: 2rem;

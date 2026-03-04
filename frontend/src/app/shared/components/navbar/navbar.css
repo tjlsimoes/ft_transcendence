@@ -1,3 +1,4 @@
+/* Barra de navegação fixa no topo, com efeito de vidro. */
 .navbar {
   position: fixed;
   top: 0;
@@ -9,6 +10,7 @@
   border-bottom: 1px solid var(--border-accent);
 }
 
+/* Container interno para centralizar conteúdo e controlar espaçamento. */
 .navbar-inner {
   max-width: 1200px;
   margin: 0 auto;
@@ -19,6 +21,7 @@
   justify-content: space-between;
 }
 
+/* Marca/logo textual da aplicação. */
 .navbar-logo {
   font-size: 1.35rem;
   font-weight: 700;
@@ -27,16 +30,19 @@
   letter-spacing: -0.5px;
 }
 
+/* Destaque em verde para os colchetes do logo. */
 .logo-bracket {
   color: var(--accent);
   font-weight: 400;
 }
 
+/* Grupo de links centrais do menu. */
 .navbar-links {
   display: flex;
   gap: 32px;
 }
 
+/* Estilo base dos links de navegação. */
 .nav-link {
   font-size: 0.875rem;
   font-weight: 575;
@@ -55,12 +61,14 @@
   color: var(--accent);
 }
 
+/* Grupo de botões de ação (login/registro). */
 .navbar-actions {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
+/* Botão secundário (login). */
 .btn-login {
   font-size: 0.85rem;
   font-weight: 600;
@@ -77,6 +85,7 @@
   color: var(--text);
 }
 
+/* Botão primário (registro). */
 .btn-join {
   font-size: 0.85rem;
   color: var(--bg);
@@ -94,7 +103,7 @@
   border-color: var(--accent-hover);
 }
 
-/* ── Responsivo ── */
+/* Ajustes para telas pequenas (esconde links centrais e compacta ações). */
 
 @media (max-width: 640px) {
   .navbar-links {

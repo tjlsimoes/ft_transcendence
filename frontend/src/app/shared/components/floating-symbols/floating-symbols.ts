@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
 
+// Estrutura de cada símbolo desenhado no canvas de fundo.
 interface FloatingSymbol {
   text: string;
   x: number;
@@ -10,6 +11,7 @@ interface FloatingSymbol {
   speedY: number;
 }
 
+// Camada visual decorativa com símbolos de C animados em canvas fixo.
 @Component({
   selector: 'app-floating-symbols',
   imports: [],
@@ -19,10 +21,14 @@ interface FloatingSymbol {
 export class FloatingSymbols implements AfterViewInit, OnDestroy {
   @ViewChild('canvas', { static: true }) canvasRef!: ElementRef<HTMLCanvasElement>;
 
+  // Contexto 2D usado para desenhar o conteúdo no canvas.
   private ctx!: CanvasRenderingContext2D;
+  // Coleção atual de símbolos animados.
   private symbols: FloatingSymbol[] = [];
+  // ID do requestAnimationFrame para permitir cancelamento no destroy.
   private animationId = 0;
 
+  // Vocabulário de tokens que aparecem no fundo.
   private readonly C_SYMBOLS = [
     '#include', 'int', 'char', 'void', 'return',
     'printf', 'malloc', 'free', 'sizeof', 'struct',
@@ -32,6 +38,7 @@ export class FloatingSymbols implements AfterViewInit, OnDestroy {
     'stdin', 'stdout', 'const', 'static', 'typedef',
   ];
 
+  // Inicializa canvas, símbolos e loop de animação após render da view.
   ngAfterViewInit(): void {
     const canvas = this.canvasRef.nativeElement;
     this.ctx = canvas.getContext('2d')!;
@@ -42,19 +49,23 @@ export class FloatingSymbols implements AfterViewInit, OnDestroy {
     window.addEventListener('resize', this.resizeHandler);
   }
 
+  // Limpa recursos de animação e listener ao destruir componente.
   ngOnDestroy(): void {
     cancelAnimationFrame(this.animationId);
     window.removeEventListener('resize', this.resizeHandler);
   }
 
+  // Handler de resize reaproveitado para registrar/remover listener.
   private resizeHandler = () => this.resize();
 
+  // Ajusta o tamanho do canvas para acompanhar viewport atual.
   private resize(): void {
     const canvas = this.canvasRef.nativeElement;
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
   }
 
+  // Cria lote inicial de símbolos com quantidade proporcional à largura da tela.
   private initSymbols(): void {
     const count = Math.floor(window.innerWidth / 40);
     this.symbols = [];
@@ -64,6 +75,7 @@ export class FloatingSymbols implements AfterViewInit, OnDestroy {
     }
   }
 
+  // Gera um símbolo com posição e velocidade aleatórias.
   private createSymbol(): FloatingSymbol {
     return {
       text: this.C_SYMBOLS[Math.floor(Math.random() * this.C_SYMBOLS.length)],
@@ -76,6 +88,7 @@ export class FloatingSymbols implements AfterViewInit, OnDestroy {
     };
   }
 
+  // Loop principal: atualiza posição, recicla limites e desenha todos os símbolos.
   private animate = (): void => {
     const canvas = this.canvasRef.nativeElement;
     this.ctx.clearRect(0, 0, canvas.width, canvas.height);
