@@ -1,0 +1,2 @@
+-- Initial database schema
+-- This file will be executed when the database container starts for the first time
