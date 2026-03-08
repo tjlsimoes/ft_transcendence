@@ -16,10 +16,11 @@ All services are part of a shared bridge network defined in `docker-compose.yml`
 
 ### Reverse Proxy Logic
 The `proxy` container handles all incoming traffic and routes it based on the URL path:
-- `https://localhost/` → `http://frontend:80`
-- `https://localhost/api/*` → `http://backend:8080/*`
+- `https://localhost/` → `http://frontend:80` (Angular)
+- `https://localhost/api/*` → `http://backend:8080/api/*` (REST API)
+- `https://localhost/ws/*` → `http://backend:8080/ws/*` (WebSockets)
 
-## 2. Security Configuration
+A permanent redirect from HTTP (port 80) to HTTPS (port 443) is enforced.
 
 ### HTTPS & TLS
 A self-signed certificate is generated for local development.

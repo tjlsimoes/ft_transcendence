@@ -24,10 +24,10 @@ To bring up the entire environment:
 cp .env.example .env
 
 # 2. Generate SSL certificates
-mkdir -p proxy/ssl
+mkdir -p infra/nginx/ssl
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-  -keyout proxy/ssl/localhost.key \
-  -out proxy/ssl/localhost.crt \
+  -keyout infra/nginx/ssl/localhost.key \
+  -out infra/nginx/ssl/localhost.crt \
   -subj "/C=FR/ST=Paris/L=Paris/O=42/OU=Transcendence/CN=localhost"
 
 # 3. Build and start services

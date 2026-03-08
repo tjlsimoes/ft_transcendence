@@ -31,11 +31,11 @@ The project uses specialized **Alpine-based** official images to ensure minimal 
 ## 3. Proxy (Nginx)
 - **Base Image**: `nginx:alpine`
 - **Port Mapping**:
-    - **Host 8000** → **Container 80** (Avoids host-level conflicts).
-    - **Host 443** → **Container 443**.
+    - **Host 8000** → **Container 80** (Handles HTTP -> HTTPS redirect).
+    - **Host 443** → **Container 443** (Main HTTPS entry point).
 - **Volume Mounts**:
-    - `./proxy/nginx.conf`: Main configuration.
-    - `./proxy/ssl`: TLS certificates.
+    - `./infra/nginx/nginx.conf`: Main configuration.
+    - `./infra/nginx/ssl`: TLS certificates.
 
 ## 4. Database (PostgreSQL)
 - **Image**: `postgres:15-alpine`
