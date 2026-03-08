@@ -21,3 +21,20 @@ Common issues encountered during the initial setup and their resolutions.
 **Solution**: Ensure you are using the correct protocol and port.
 - **HTTPS**: `https://localhost`
 - **HTTP**: `http://localhost:8000`
+
+## 5. Redis: "Memory overcommit must be enabled!"
+If you see this warning in the Redis logs:
+`WARNING Memory overcommit must be enabled! [...] To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf`
+
+**Resolution**:
+This is a host-level Linux kernel setting. To fix it on your host machine:
+1. Run: `sudo sysctl vm.overcommit_memory=1` (Immediate effect)
+2. To make it persistent, add `vm.overcommit_memory = 1` to `/etc/sysctl.conf`.
+3. Restart the containers: `./setup.sh` (Choose option 3).
+
+## 6. "The legacy builder is deprecated"
+If you see this warning during `docker-compose up`:
+`DEPRECATED: The legacy builder is deprecated and will be removed in a future release.`
+
+**Resolution**:
+We've updated `setup.sh` to prefer `docker compose` (v2), which uses BuildKit. Ensure you are using the `setup.sh` script instead of calling legacy `docker-compose` directly.

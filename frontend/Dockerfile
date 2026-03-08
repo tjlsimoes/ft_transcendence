@@ -1,13 +1,14 @@
 # Stage 1: Build the Angular application
-FROM node:20-alpine AS build
+FROM node:24-alpine AS build
 WORKDIR /app
 COPY package*.json ./
-RUN npm install
+# Update npm to avoid version mismatch notices during build
+RUN npm install -g npm@latest && npm install
 COPY . .
 RUN npm run build -- --configuration production
 
 # Stage 2: Serve the application using Nginx
-FROM nginx:alpine
+FROM nginx:1.28.2-alpine3.23
 COPY --from=build /app/dist/frontend/browser /usr/share/nginx/html
 # Angular 17+ uses 'browser' subfolder in 'dist'
 # If it's an older version, it might be just /app/dist/frontend

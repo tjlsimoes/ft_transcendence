@@ -94,7 +94,15 @@ fi
 
 # 5. Docker Compose Startup
 echo "🐳 Starting Docker containers..."
-docker-compose up -d --build
+
+# Strictly require Docker Compose v2+
+if ! docker compose version &> /dev/null; then
+    echo "❌ Error: 'docker compose' (v2+) is required but not found."
+    echo "💡 Please install or upgrade Docker: https://docs.docker.com/engine/install/"
+    exit 1
+fi
+
+docker compose up -d --build
 
 echo "-------------------------------------------------------"
 echo "🎉 Setup complete! Reach the platform at:"
