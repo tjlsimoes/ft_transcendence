@@ -15,23 +15,18 @@ Welcome to the internal setup and architecture documentation for the Code Arena 
 
 ---
 
-## Quick Start (Summary)
+## Quick Start (Automated)
 
-To bring up the entire environment:
+The easiest way to initialize the environment is using the interactive setup script:
 
 ```bash
-# 1. Prepare environment variables
-cp .env.example .env
-
-# 2. Generate SSL certificates
-mkdir -p infra/nginx/ssl
-openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-  -keyout infra/nginx/ssl/localhost.key \
-  -out infra/nginx/ssl/localhost.crt \
-  -subj "/C=FR/ST=Paris/L=Paris/O=42/OU=Transcendence/CN=localhost"
-
-# 3. Build and start services
-docker-compose up -d --build
+# Start the automated setup
+./setup.sh
 ```
+
+The script will:
+1. Interactively prompt for missing environment variables.
+2. Generate self-signed SSL certificates.
+3. Start all services using `docker-compose`.
 
 Access the platform at: [**https://localhost**](https://localhost)

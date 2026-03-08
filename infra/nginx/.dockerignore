@@ -1,0 +1,8 @@
+**/node_modules
+**/dist
+**/target
+**/.git
+**/.env
+docker-compose.override.yml
+documentation
+brain
