@@ -13,6 +13,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - codearena
 
   cache:
     image: redis:8.6.1-alpine3.23
@@ -22,8 +24,11 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - codearena
 
   backend:
+    image: codearena-backend:1.0
     build: 
       context: ./backend
       dockerfile: Dockerfile
@@ -39,22 +44,29 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       SPRING_DATA_REDIS_HOST: ${REDIS_HOST}
       SPRING_DATA_REDIS_PORT: ${REDIS_PORT}
+      SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD}
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
     healthcheck:
       test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:8080/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
+    networks:
+      - codearena
 
   frontend:
+    image: codearena-frontend:1.0
     build:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: codearena-frontend
     depends_on:
       - backend
+    networks:
+      - codearena
 
   proxy:
+    image: codearena-proxy:1.0
     build:
       context: ./infra/nginx
       dockerfile: Dockerfile
@@ -68,3 +80,11 @@ services:
     depends_on:
       - frontend
       - backend
+    networks:
+      - codearena
+
+
+networks:
+  codearena:
+    name: codearena
+    driver: bridge
