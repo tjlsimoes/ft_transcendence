@@ -2,6 +2,7 @@ services:
   db:
     image: postgres:18.3-alpine3.23
     container_name: codearena-db
+    restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -19,6 +20,7 @@ services:
   cache:
     image: redis:8.6.1-alpine3.23
     container_name: codearena-cache
+    restart: unless-stopped
     command: redis-server --requirepass ${REDIS_PASSWORD}
     healthcheck:
       test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
@@ -34,6 +36,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: codearena-backend
+    restart: unless-stopped
     depends_on:
       db:
         condition: service_healthy
@@ -64,6 +67,12 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: codearena-frontend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     depends_on:
       - backend
     networks:
@@ -75,6 +84,12 @@ services:
       context: ./infra/nginx
       dockerfile: Dockerfile
     container_name: codearena-proxy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--no-check-certificate", "-O", "-", "https://127.0.0.1:443"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     ports:
       - "8000:80"
       - "443:443"
