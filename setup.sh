@@ -23,7 +23,7 @@ case $setup_mode in
         echo "📝 Mode: Full Manual Configuration"
         rm -f "$ENV_FILE"
         touch "$ENV_FILE"
-        while IFS= read -u 3 -r line || [[ -n "$line" ]]; do
+        while IFS= read -r line || [[ -n "$line" ]]; do
             if [[ -z "$line" ]] || [[ "$line" == \#* ]]; then
                 echo "$line" >> "$ENV_FILE"
                 continue
@@ -31,7 +31,7 @@ case $setup_mode in
             var_name=$(echo "$line" | cut -d'=' -f1)
             read -p "Enter value for $var_name: " user_val
             echo "$var_name=$user_val" >> "$ENV_FILE"
-        done 3< "$ENV_EXAMPLE"
+        done < "$ENV_EXAMPLE"
         ;;
     2)
         echo "🔍 Mode: Supplemental Configuration"
@@ -43,7 +43,7 @@ case $setup_mode in
         temp_env=".env.tmp"
         cp "$ENV_FILE" "$temp_env"
         
-        while IFS= read -u 3 -r line || [[ -n "$line" ]]; do
+        while IFS= read -r line || [[ -n "$line" ]]; do
             if [[ -z "$line" ]] || [[ "$line" == \#* ]]; then
                 continue
             fi
@@ -60,7 +60,7 @@ case $setup_mode in
                 read -p "❓ $var_name is missing. Enter value: " user_val
                 echo "$var_name=$user_val" >> "$temp_env"
             fi
-        done 3< "$ENV_EXAMPLE"
+        done < "$ENV_EXAMPLE"
         mv "$temp_env" "$ENV_FILE"
         ;;
     3)
@@ -83,10 +83,10 @@ echo "✅ Environment configuration finalized."
 if [ ! -f "$SSL_DIR/localhost.crt" ]; then
     echo "🔐 Generating self-signed SSL certificates..."
     mkdir -p "$SSL_DIR"
-    openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+    openssl req -x509 -noenc -days 365 -newkey rsa:2048 \
       -keyout "$SSL_DIR/localhost.key" \
       -out "$SSL_DIR/localhost.crt" \
-      -subj "/C=FR/ST=Paris/L=Paris/O=42/OU=Transcendence/CN=localhost"
+      -subj "/C=PT/ST=Lisbon/L=Lisbon/O=42/OU=Transcendence/CN=localhost"
     echo "✅ SSL certificates generated in $SSL_DIR"
 else
     echo "✅ SSL certificates already exist."
