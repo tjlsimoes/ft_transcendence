@@ -12,7 +12,9 @@ Welcome to the internal setup and architecture documentation for the Code Arena 
    - HTTPS, reverse proxy logic, and Spring Security setup.
 4. [**Image Versioning (2026)**](image-versions.md)
    - Detailed strategy and specific versions of all Docker images.
-5. [**Troubleshooting**](troubleshooting.md)
+5. [**Development Workflow**](development.md)
+   - Tips for hot-reloading and hybrid setups.
+6. [**Troubleshooting**](troubleshooting.md)
    - Solutions for common startup errors and environment issues.
 
 ---
