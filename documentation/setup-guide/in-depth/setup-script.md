@@ -6,15 +6,19 @@ This document explains the logic behind `setup.sh`, the automated configuration 
 
 The script parses `.env.example` to ensure the presence of all required variables.
 
-### The File Reading Loop
+### Robust File Reading (Dynamic File Descriptors)
 ```bash
-while IFS= read -u 3 -r line || [[ -n "$line" ]]; do
+exec {conf_fd}< "$ENV_EXAMPLE"
+while IFS= read -u "$conf_fd" -r line || [[ -n "$line" ]]; do
   ...
-done 3< "$ENV_EXAMPLE"
+done
+exec {conf_fd}>&-
 ```
-- **`3< "$ENV_EXAMPLE"`**: This connects the `.env.example` file to "File Descriptor 3".
-- **`read -u 3`**: Tells the `read` command to read from descriptor 3 instead of standard input (keyboard).
-- **`|| [[ -n "$line" ]]`**: Ensures the last line of the file is processed even if it doesn't end with a newline character.
+- **`exec {conf_fd}< "$ENV_EXAMPLE"`**: This is the **"Dynamic File Descriptor Trick"**. 
+    - Instead of using a hardcoded number like `3` (which might already be in use by a parent process or library), Bash automatically finds the first available high-numbered descriptor and assigns it to the variable `conf_fd`.
+    - This is significantly safer and follows 2026 shell script best practices.
+- **`read -u "$conf_fd"`**: Tells the `read` command to use the dynamically allocated descriptor.
+- **`exec {conf_fd}>&-`**: Manually closes the descriptor after the loop is finished to prevent resource leaks.
 
 ### Filtering and Logic
 - **`if [[ -z "$line" ]] || [[ "$line" == \#* ]]; then`**:

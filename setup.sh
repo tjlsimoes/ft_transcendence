@@ -23,7 +23,8 @@ case $setup_mode in
         echo "📝 Mode: Full Manual Configuration"
         rm -f "$ENV_FILE"
         touch "$ENV_FILE"
-        while IFS= read -r line || [[ -n "$line" ]]; do
+        exec {conf_fd}< "$ENV_EXAMPLE"
+        while IFS= read -u "$conf_fd" -r line || [[ -n "$line" ]]; do
             if [[ -z "$line" ]] || [[ "$line" == \#* ]]; then
                 echo "$line" >> "$ENV_FILE"
                 continue
@@ -31,7 +32,8 @@ case $setup_mode in
             var_name=$(echo "$line" | cut -d'=' -f1)
             read -p "Enter value for $var_name: " user_val
             echo "$var_name=$user_val" >> "$ENV_FILE"
-        done < "$ENV_EXAMPLE"
+        done
+        exec {conf_fd}>&-
         ;;
     2)
         echo "🔍 Mode: Supplemental Configuration"
@@ -43,7 +45,8 @@ case $setup_mode in
         temp_env=".env.tmp"
         cp "$ENV_FILE" "$temp_env"
         
-        while IFS= read -r line || [[ -n "$line" ]]; do
+        exec {conf_fd}< "$ENV_EXAMPLE"
+        while IFS= read -u "$conf_fd" -r line || [[ -n "$line" ]]; do
             if [[ -z "$line" ]] || [[ "$line" == \#* ]]; then
                 continue
             fi
@@ -60,11 +63,12 @@ case $setup_mode in
                 read -p "❓ $var_name is missing. Enter value: " user_val
                 echo "$var_name=$user_val" >> "$temp_env"
             fi
-        done < "$ENV_EXAMPLE"
+        done
+        exec {conf_fd}>&-
         mv "$temp_env" "$ENV_FILE"
         ;;
     3)
-        echo "� Mode: Manual File Provision"
+        echo "Mode: Manual File Provision"
         if [ ! -f "$ENV_FILE" ]; then
             echo "❌ Error: $ENV_FILE not found! Please create it and run again."
             exit 1
