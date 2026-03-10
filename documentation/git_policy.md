@@ -50,7 +50,7 @@
 
 ## 2. Commit Messages
 
-We follow the **[Conventional Commits](https://www.conventionalcommits.org/)** specification.
+The project adheres to the **[Conventional Commits](https://www.conventionalcommits.org/)** specification.
 
 ### Format
 
@@ -85,7 +85,7 @@ Use the most specific scope that applies:
 - **Imperative mood** — "add endpoint" not "added endpoint"
 - **No capital letter** at the start
 - **No full stop** at the end
-- **50 characters maximum** — use the body if you need more
+- **50 characters maximum** — utilizing the body if further detail is required
 
 ### Examples
 
@@ -134,8 +134,8 @@ GitHub contribution graph, which matters for the evaluation's git history check.
 
 > One commit = one logical, self-contained change.
 
-Commit often inside your feature branch — small commits are easy to review and revert.
-Avoid mixing unrelated changes in a single commit. Branch commits get squashed on
+Commit frequently within the feature branch — small commits are easier to review and revert.
+Avoid mixing unrelated changes in a single commit.
 merge to `main` anyway, so tidiness there matters less than the final PR title.
 
 ---
@@ -197,7 +197,7 @@ Configure in **Settings → Branches → Branch protection rules → Add rule** 
 | DB schema / migrations | Tech Lead (mandatory) |
 | Auth / JWT / security logic | Tech Lead (mandatory) |
 | Judge sandbox / Docker runner | Tech Lead (mandatory) |
-| WebSocket / real-time infrastructure | Tech Lead or backend developer |
+| WebSocket / real-time infrastructure | Tech Lead or backend engineering |
 | Frontend UI only | Any peer |
 | Documentation / README only | Any peer (SM can self-merge if trivial) |
 
@@ -205,14 +205,14 @@ Configure in **Settings → Branches → Branch protection rules → Add rule** 
 
 ## 5. Pull Request Workflow
 
-### Step by step
+### Step-by-step Process
 
 ```bash
-# 1. Always start from an up-to-date main
+# 1. Start from an up-to-date main branch
 git checkout main && git pull
 
-# 2. Create your branch
-git checkout -b feature/my-feature
+# 2. Branch creation
+git checkout -b feature/feature-name
 
 # 3. Work and commit often
 git add -p                          # stage by hunk, not blindly
@@ -222,8 +222,8 @@ git commit -m "feat(scope): ..."
 git fetch origin
 git rebase origin/main
 
-# 5. Push and open PR
-git push -u origin feature/my-feature
+# 5. Push and open a Pull Request (PR)
+git push -u origin feature/feature-name
 gh pr create --fill                 # or open in browser
 ```
 
@@ -279,8 +279,8 @@ people sooner.
 
 ### Keeping PRs moving
 
-- If your PR has been open for **48h without review**, ping the reviewer in Discord with the link
-- If there are merge conflicts, **the PR author** resolves them by rebasing onto main
+- If a PR remains open for **48h without review**, notification is sent to the reviewer via Discord.
+- If merge conflicts occur, **the PR author** resolves them by rebasing onto main.
 - Do not force-push to a branch with an open PR without warning the reviewer first
 
 ---
@@ -289,7 +289,7 @@ people sooner.
 
 ### Reviewer responsibilities
 
-- **Respond within 24h** on working days — "I'll look properly tomorrow" beats silence
+- **Respond within 24h** on working days — a brief acknowledgment is preferred over silence.
 - Review against the **acceptance criteria in the linked issue**, not personal style preferences
 - Test the feature locally for non-trivial backend, security, or real-time changes
 
@@ -338,9 +338,7 @@ people sooner.
 
 ### Every piece of work needs an issue
 
-No mystery work. If you are going to spend more than an hour on something, there must
-be a GitHub Issue for it. The issue + PR trail is exactly what evaluators examine when
-checking git history and team contributions.
+Every piece of work requires an issue. If more than an hour is spent on a task, a corresponding GitHub Issue must exist. The issue and PR trail are examined during evaluation to verify git history and team contributions.
 
 ### Issue structure
 
@@ -415,10 +413,10 @@ GitHub Discussion under **Decisions**. Format:
 [What situation prompted this decision?]
 
 ## Decision
-[What did we decide?]
+[The decision made]
 
 ## Alternatives considered
-[What else did we consider, and why did we not choose it?]
+[Alternatives considered and rationale for rejection]
 
 ## Consequences
 [What does this mean for the codebase going forward?]
@@ -446,12 +444,12 @@ These are non-negotiable and enforced at code review.
 - Database credentials, JWT secrets, and third-party keys load exclusively from
   environment variables
 
-### Pre-push mental checklist
+### Pre-push checklist
 
 ```
-□ Does my diff contain any passwords, tokens, or API keys?
-□ Did I accidentally stage a .env file?
-□ Am I pushing directly to main? (Answer must be NO — always use PRs)
+□ Detection of any passwords, tokens, or API keys in the diff?
+□ Accidental staging of a .env file?
+□ Direct push to main attempted? (Answer must be NO — utilize PRs)
 ```
 
 ---
@@ -462,9 +460,9 @@ The evaluation sheet explicitly checks these git-related criteria:
 
 | Evaluation criterion | How this policy addresses it |
 |---|---|
-| Commits from all team members visible on `main` | Each person owns their issues; squash merge puts their name on every merged feature commit |
-| Commit messages are clear and meaningful | Conventional Commits required; checked at code review |
-| Work is distributed across team members | Sprint planning assigns issues individually; PM audits via `git shortlog` after each sprint |
+| Commits from all team members visible on `main` | Each person owns specific issues; squash merge associates their name with every merged feature commit |
+| Commit messages are clear and meaningful | Conventional Commits are required and verified during code review |
+| Work is distributed across team members | Sprint planning assigns issues individually; the PM audits distribution via `git shortlog` after each sprint |
 | No secrets in the repository | `.env` in `.gitignore` from day one; pre-merge checklist; dedicated audit in Sprint 4 |
 
 ### The `git shortlog` check
@@ -475,8 +473,8 @@ Run this after every sprint:
 git shortlog -sn --no-merges
 ```
 
-All four team members should appear with a reasonable number of commits. If someone
-shows zero at the end of a sprint, address it before the next one — not on evaluation day.
+All four team members should be present with a reasonable number of commits. If any member
+shows zero at the end of a sprint, the issue is addressed prior to the next one.
 
 ### Pair programming and co-author credits
 
@@ -497,17 +495,17 @@ Co-authored-by: Alice <alice@42.fr>"
 ┌─────────────────────────────────────────────────────────────────┐
 │  DAILY WORKFLOW                                                 │
 │                                                                 │
-│  git checkout main && git pull        # always start fresh     │
-│  git checkout -b feature/my-thing     # new branch             │
+│  git checkout main && git pull        # start fresh             │
+│  git checkout -b feature/feature-name # new branch             │
 │  git add -p && git commit -m "..."    # commit often           │
 │  git fetch && git rebase origin/main  # stay up to date        │
-│  git push -u origin feature/my-thing  # push and open PR       │
+│  git push -u origin feature/feature-name # push and open PR    │
 │                                                                 │
 ├─────────────────────────────────────────────────────────────────┤
 │  COMMIT FORMAT                                                  │
 │                                                                 │
-│  feat(scope): what you added                                    │
-│  fix(scope): what you fixed                                     │
+│  feat(scope): what was added                                   │
+│  fix(scope): what was fixed                                     │
 │  chore(scope): infra / deps / config                           │
 │  docs(scope): documentation only                               │
 │  refactor(scope): restructure, same behaviour                  │

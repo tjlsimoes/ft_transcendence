@@ -1,0 +1,120 @@
+services:
+  db:
+    image: postgres:18.3-alpine3.23
+    container_name: codearena-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGPORT: ${DB_PORT:-5432}
+    volumes:
+      - ./database:/docker-entrypoint-initdb.d
+      - ./database/data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -p ${DB_PORT:-5432} -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - codearena
+
+  cache:
+    image: redis:8.6.1-alpine3.23
+    container_name: codearena-cache
+    restart: unless-stopped
+    command: redis-server --requirepass ${REDIS_PASSWORD} --port ${REDIS_PORT:-6379}
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "${REDIS_PORT:-6379}", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - codearena
+
+  backend:
+    image: codearena-backend:1.0
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: codearena-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_SSL_MODE: ${DB_SSL_MODE}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      BACKEND_PROFILES: ${BACKEND_PROFILES:-prod}
+      BACKEND_PORT: ${BACKEND_PORT:-8080}
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:${BACKEND_PORT:-8080}/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - codearena
+
+  frontend:
+    image: codearena-frontend:1.0
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: codearena-frontend
+    restart: unless-stopped
+    environment:
+      FRONTEND_PORT: ${FRONTEND_PORT:-80}
+    volumes:
+      - ./frontend/nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:${FRONTEND_PORT:-80}"]
+    depends_on:
+      - backend
+    networks:
+      - codearena
+
+  proxy:
+    image: codearena-proxy:1.0
+    build:
+      context: ./infra/nginx
+      dockerfile: Dockerfile
+    container_name: codearena-proxy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--no-check-certificate", "-O", "-", "https://127.0.0.1:${PROXY_INTERNAL_HTTPS_PORT:-443}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    ports:
+      - "${HOST_TO_PROXY_HTTP_PORT:-8000}:${PROXY_INTERNAL_HTTP_PORT:-80}"
+      - "${HOST_TO_PROXY_HTTPS_PORT:-443}:${PROXY_INTERNAL_HTTPS_PORT:-443}"
+    volumes:
+      - ./infra/nginx/nginx.conf.template:/etc/nginx/templates/nginx.conf.template:ro
+      - ./infra/nginx/ssl:/etc/nginx/ssl:ro
+    environment:
+      - BACKEND_PORT=${BACKEND_PORT:-8080}
+      - FRONTEND_PORT=${FRONTEND_PORT:-80}
+      - PROXY_INTERNAL_HTTP_PORT=${PROXY_INTERNAL_HTTP_PORT:-80}
+      - PROXY_INTERNAL_HTTPS_PORT=${PROXY_INTERNAL_HTTPS_PORT:-443}
+      - HOST_TO_PROXY_HTTPS_PORT=${HOST_TO_PROXY_HTTPS_PORT:-443}
+      - NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - codearena
+
+
+networks:
+  codearena:
+    name: codearena
+    driver: bridge
