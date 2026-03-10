@@ -11,19 +11,19 @@
 
     <!-- Formulário -->
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="auth-form">
-      <!-- E-mail -->
+      <!-- Username -->
       <div class="form-group">
-        <label for="email" class="form-label">Email</label>
+        <label for="username" class="form-label">Username</label>
         <input
-          id="email"
-          type="email"
-          formControlName="email"
-          placeholder="you@email.com"
+          id="username"
+          type="text"
+          formControlName="username"
+          placeholder="Your callsign"
           class="form-input"
-          [class.input-error]="hasError('email')"
+          [class.input-error]="hasError('username')"
         />
-        @if (hasError('email')) {
-          <span class="error-msg">{{ getErrorMessage('email') }}</span>
+        @if (hasError('username')) {
+          <span class="error-msg">{{ getErrorMessage('username') }}</span>
         }
       </div>
 
@@ -65,6 +65,11 @@
         </label>
         <a routerLink="/forgot-password" class="link-subtle">Forgot password?</a>
       </div>
+
+      <!-- Erro do backend -->
+      @if (errorMessage()) {
+        <div class="error-banner">{{ errorMessage() }}</div>
+      }
 
       <!-- Submit -->
       <button type="submit" class="btn-submit" [disabled]="isLoading()">

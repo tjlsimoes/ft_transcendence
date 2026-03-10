@@ -2,6 +2,7 @@ import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../auth.service';
 
 // Componente de login: valida formulário e controla fluxo de submissão.
 @Component({
@@ -17,11 +18,13 @@ export class LoginComponent {
   isLoading = signal(false);
   // Controla exibição/ocultação da senha no input.
   showPassword = signal(false);
+  // Mensagem de erro vinda do backend.
+  errorMessage = signal('');
 
-  constructor(private fb: FormBuilder, private router: Router) {
+  constructor(private fb: FormBuilder, private router: Router, private authService: AuthService) {
     // Estrutura e validações do formulário.
     this.loginForm = this.fb.group({
-      email: ['', [Validators.required, Validators.email]],
+      username: ['', [Validators.required, Validators.minLength(3)]],
       password: ['', [Validators.required, Validators.minLength(6)]],
       rememberMe: [false],
     });
@@ -44,27 +47,28 @@ export class LoginComponent {
     if (!control || !control.errors || !control.touched) return '';
 
     if (control.errors['required']) {
-      return field === 'email' ? 'Email is required' : 'Password is required';
+      return field === 'username' ? 'Username is required' : 'Password is required';
     }
-    if (control.errors['email']) return 'Invalid email';
-    if (control.errors['minlength']) return 'Minimum 6 characters';
+    if (control.errors['minlength']) return `Minimum ${control.errors['minlength'].requiredLength} characters`;
 
     return '';
   }
 
-  // Executa submit: valida formulário, aplica loading e navega após sucesso.
-  async onSubmit(): Promise<void> {
+  // Executa submit: chama AuthService e navega após sucesso.
+  onSubmit(): void {
     this.loginForm.markAllAsTouched();
     if (this.loginForm.invalid) return;
 
     this.isLoading.set(true);
+    this.errorMessage.set('');
 
-    try {
-      // TODO: integrar com AuthService
-      console.log('Login:', this.loginForm.value);
-      await this.router.navigate(['/']);
-    } finally {
-      this.isLoading.set(false);
-    }
+    const { username, password } = this.loginForm.value;
+    this.authService.login({ username, password }).subscribe({
+      next: () => this.router.navigate(['/']),
+      error: (err) => {
+        this.errorMessage.set(err.error?.error ?? 'Login failed. Check your credentials.');
+        this.isLoading.set(false);
+      },
+    });
   }
 }

@@ -9,6 +9,7 @@ import {
   ValidationErrors,
 } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../auth.service';
 
 // Componente de cadastro: valida dados, confirma senha e envia formulário.
 @Component({
@@ -26,7 +27,10 @@ export class RegisterComponent {
   showPassword = signal(false);
   showConfirmPassword = signal(false);
 
-  constructor(private fb: FormBuilder, private router: Router) {
+  // Mensagem de erro vinda do backend.
+  errorMessage = signal('');
+
+  constructor(private fb: FormBuilder, private router: Router, private authService: AuthService) {
     // Define controles, validações e validação de grupo (senha x confirmação).
     this.registerForm = this.fb.group(
       {
@@ -94,19 +98,21 @@ export class RegisterComponent {
     return '';
   }
 
-  // Executa submit: valida formulário, controla loading e redireciona ao final.
-  async onSubmit(): Promise<void> {
+  // Executa submit: chama AuthService e redireciona após criar conta.
+  onSubmit(): void {
     this.registerForm.markAllAsTouched();
     if (this.registerForm.invalid) return;
 
     this.isLoading.set(true);
+    this.errorMessage.set('');
 
-    try {
-      // TODO: integrar com AuthService
-      console.log('Register:', this.registerForm.value);
-      await this.router.navigate(['/login']);
-    } finally {
-      this.isLoading.set(false);
-    }
+    const { name, email, password } = this.registerForm.value;
+    this.authService.register({ username: name, email, password }).subscribe({
+      next: () => this.router.navigate(['/']),
+      error: (err) => {
+        this.errorMessage.set(err.error?.error ?? 'Registration failed. Try again.');
+        this.isLoading.set(false);
+      },
+    });
   }
 }
