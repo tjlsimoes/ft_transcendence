@@ -34,7 +34,7 @@ services:
 
   backend:
     image: codearena-backend:1.0
-    build: 
+    build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: codearena-backend
