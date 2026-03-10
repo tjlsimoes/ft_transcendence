@@ -1,0 +1,126 @@
+/* Barra de navegação fixa no topo, com efeito de vidro. */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: color-mix(in srgb, var(--bg) 85%, transparent);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-accent);
+}
+
+/* Container interno para centralizar conteúdo e controlar espaçamento. */
+.navbar-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Marca/logo textual da aplicação. */
+.navbar-logo {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text);
+  text-decoration: none;
+  letter-spacing: -0.5px;
+}
+
+/* Destaque em verde para os colchetes do logo. */
+.logo-bracket {
+  color: var(--accent);
+  font-weight: 400;
+}
+
+/* Grupo de links centrais do menu. */
+.navbar-links {
+  display: flex;
+  gap: 32px;
+}
+
+/* Estilo base dos links de navegação. */
+.nav-link {
+  font-size: 0.875rem;
+  font-weight: 575;
+  color: var(--text-muted);
+  text-decoration: none;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  transition: color 0.2s ease;
+}
+
+.nav-link:hover {
+  color: var(--text);
+}
+
+.nav-link.active {
+  color: var(--accent);
+}
+
+/* Grupo de botões de ação (login/registro). */
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Botão secundário (login). */
+.btn-login {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-decoration: none;
+  padding: 6px 16px;
+  border: 1px solid var(--border);
+  letter-spacing: 0.5px;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.btn-login:hover {
+  border-color: rgba(255, 255, 255, 0.35);
+  color: var(--text);
+}
+
+/* Botão primário (registro). */
+.btn-join {
+  font-size: 0.85rem;
+  color: var(--bg);
+  background: var(--accent);
+  text-decoration: none;
+  padding: 6px 16px;
+  border: 1px solid var(--accent);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.btn-join:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+/* Ajustes para telas pequenas (esconde links centrais e compacta ações). */
+
+@media (max-width: 640px) {
+  .navbar-links {
+    display: none;
+  }
+
+  .navbar-inner {
+    padding: 0 16px;
+  }
+
+  .navbar-actions {
+    gap: 8px;
+  }
+
+  .btn-login,
+  .btn-join {
+    font-size: 0.78rem;
+    padding: 5px 12px;
+  }
+}
