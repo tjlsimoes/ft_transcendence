@@ -129,16 +129,6 @@
   color: #f44;
 }
 
-.error-banner {
-  padding: 10px 14px;
-  border-radius: 8px;
-  background: rgba(255, 68, 68, 0.12);
-  border: 1px solid rgba(255, 68, 68, 0.35);
-  color: #f66;
-  font-size: 0.85rem;
-  text-align: center;
-}
-
 /* Bloco de aceite de termos. */
 .checkbox-label {
   display: flex;
