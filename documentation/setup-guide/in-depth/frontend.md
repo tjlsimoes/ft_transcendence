@@ -7,8 +7,8 @@ The frontend also uses a multi-stage build.
 
 ### Stage 1: Build
 - **`npm install -g npm@latest && npm install`**:
-    - `npm install -g npm@latest`: This updates the `npm` package manager itself to the latest version. While modern Node.js images come with `npm` pre-installed, it is often a few versions behind. Updating it ensures you have the latest performance improvements, security patches, and bug fixes for the installation process. It's a "best practice" for stability, though not strictly required if the bundled version works for you.
-    - `npm install`: Downloads the libraries needed for the project.
+    - `npm install -g npm@latest`: Updates the `npm` package manager to the latest version. While standard Node.js images include `npm`, updating ensures the availability of recent performance improvements, security patches, and bug fixes.
+    - `npm install`: Downloads the project dependencies.
 - **`npm run build -- --configuration production`**:
     - The `--` is the **End of Options** delimiter. 
     - It tells `npm` that it should stop parsing options for itself and pass all subsequent arguments directly to the underlying script being executed (in this case, the Angular `ng build` command).
@@ -25,7 +25,7 @@ The frontend also uses a multi-stage build.
 This is a lightweight configuration to serve the static Angular files.
 
 - **`listen 80;`**: The internal port the container listens on.
-- **`root /usr/share/nginx/html;`**: The directory where Nginx looks for the files (where we copied our `dist` files).
+- **`root /usr/share/nginx/html;`**: The directory where Nginx searches for files (the destination for the `dist` directory).
 - **`location / { try_files $uri $uri/ /index.html; }`**:
     - This is critical for Single Page Applications (SPAs).
     - If a user refreshes the page on a route like `/profile`, Nginx would normally look for a file named `profile`. Since that file doesn't exist (Angular handles routing internally), `try_files` tells Nginx to serve `index.html` instead. Angular then takes over and displays the correct page.

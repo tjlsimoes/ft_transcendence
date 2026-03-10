@@ -35,13 +35,13 @@ Code Arena has characteristics that make a lightweight Scrum a natural fit:
 | Part-time, distributed team | A single weekly sync keeps everyone aligned without requiring daily availability |
 | Mandatory team-wide understanding at evaluation | Shared ceremonies keep everyone informed about the whole project, not just their slice |
 
-### What we adapt
+### Adapted Methodology
 
-Full Scrum assumes dedicated, full-time teams with separate planning, review, retro, and refinement sessions. With 8–10 hours per week per person and a single 1-hour Tuesday meeting, we adapt aggressively:
+At 8–10h/week per person, each 2-week sprint provides approximately **64–80h of total team capacity**. Four sprints total 256–320h. This is sufficient to deliver 16 module points if scope is protected sprint by sprint. The constraint is that there is almost no slack — a sprint that overruns cannot simply be absorbed by adding a fifth sprint. Scope discipline is paramount.
 
-- **All ceremonies collapse into one Tuesday hour.** Planning on Week 1 Tuesday; review + retro on Week 2 Tuesday.
-- **Standups are async** — a short Discord post, not a call.
-- **Backlog refinement is a PM solo task**, not a team ceremony, protecting everyone's limited hours.
+- **All ceremonies are consolidated into a single Tuesday hour.** Planning occurs on Week 1 Tuesday; review and retrospective occur on Week 2 Tuesday.
+- **Standups are asynchronous** — conducted via short Discord posts rather than calls.
+- **Backlog refinement is prepared by the PM**, protecting individual hours.
 - **4 sprints of 2 weeks each**, March 4 → April 29.
 
 The goal is not process purity. It is shipping 14+ validated module points and being able to defend every line of code — while respecting that everyone has other commitments.
@@ -52,13 +52,13 @@ The goal is not process purity. It is shipping 14+ validated module points and b
 
 | Person | Scrum Role | Project Role | Primary area |
 |---|---|---|---|
-| A | Product Owner | PO + Developer | Frontend |
-| B | Scrum Master / PM | PM + Developer | Backend |
-| C | Developer | Tech Lead / Architect + Developer | Backend |
-| D | Developer | Developer | Frontend |
+| A | Product Owner | PO + Engineering | Frontend |
+| B | Scrum Master / PM | PM + Engineering | Backend |
+| C | Tech Lead | Tech Lead / Architecture + Engineering | Backend |
+| D | Engineering | Engineering | Frontend |
 
 > Roles overlap by design. Role titles describe *primary responsibilities*, not exclusive domains.
-> Everyone commits code every sprint.
+> Contributions are made to the codebase every sprint.
 
 ### Product Owner (A)
 - Owns and prioritises the product backlog
@@ -79,11 +79,11 @@ The goal is not process purity. It is shipping 14+ validated module points and b
 - Records architectural decisions in GitHub Discussions so everyone can answer at evaluation
 - Pairs with teammates on difficult problems rather than solving everything alone
 
-### Developer (all four)
-- Implement features assigned at sprint planning
-- Write tests for their own work
-- Review at least one PR per sprint
-- Post async standups and keep their board issues updated
+### Engineering (all four)
+- Implement features assigned during sprint planning.
+- Create tests for assigned work.
+- Perform at least one code review per sprint.
+- Post asynchronous standups and maintain board issue status.
 
 ---
 
@@ -125,24 +125,24 @@ At 8–10h/week per person, each 2-week sprint gives roughly **64–80h of total
 | Time | Activity |
 |---|---|
 | 0–5 min | PM presents the sprint goal and pre-groomed candidate issues |
-| 5–30 min | Team reviews each issue: acceptance criteria clear? Unknowns? Dependencies? |
-| 30–50 min | Team commits to the sprint backlog — issues moved to "To Do", owners assigned |
-| 50–60 min | Flag cross-team API contracts, confirm any pair-working, note dependencies |
+| 5–30 min | The team reviews each issue: are acceptance criteria clear? Unknowns? Dependencies? |
+| 30–50 min | Commitment to the sprint backlog — issues are moved to "To Do" and owners are assigned |
+| 50–60 min | Identification of cross-team API contracts, confirmation of pair-work, and noting of dependencies |
 
 ### Tuesday Week 2 — Review + Retro (60 min)
 
 | Time | Activity |
 |---|---|
-| 0–5 min | PM updates the board live: confirmed Done vs carries over |
-| 5–30 min | Sprint Review — each developer demos their work against acceptance criteria |
-| 30–40 min | PO accepts or rejects each item (binary — "mostly done" = not done) |
-| 40–45 min | PM announces cumulative module point total |
-| 45–60 min | Retrospective — Start / Stop / Continue, max 2 action items |
+| 0–5 min | The PM updates the board live: confirmed Done vs carries over |
+| 5–30 min | Sprint Review — features are demonstrated against acceptance criteria |
+| 30–40 min | The PO accepts or rejects each item (binary — "mostly done" = not done) |
+| 40–45 min | The PM announces the cumulative module point total |
+| 45–60 min | Retrospective — Start / Stop / Continue, maximum of 2 action items |
 
 ### Keeping to 60 minutes
 
-- **No surprises at review.** If something will not be done, say so in `#standup` before Tuesday.
-- **Demos are focused.** Show the feature working against its acceptance criteria — not a code tour.
+- **No surprises at review.** If something will not be done, communicate this in `#standup` before Tuesday.
+- **Demos are focused.** Features are shown working against acceptance criteria — not a code tour.
 - **Retro is brief.** One item per person per column. Two concrete action items only.
 - **Decisions needing more than 5 minutes** are parked to a GitHub Discussion or a short separate call.
 
@@ -154,29 +154,29 @@ At 8–10h/week per person, each 2-week sprint gives roughly **64–80h of total
 
 All Scrum ceremonies fit within the single Tuesday hour because:
 
-1. The PM grooms the backlog before the meeting — planning is fast when issues are already well-defined
-2. Each developer demos their own work — no shared demo to coordinate or prepare
+1. The PM grooms the backlog prior to the meeting — planning is efficient when issues are well-defined.
+2. Individual work is demonstrated by each participant — no shared demo coordination is required.
 3. The retro is kept to its minimum viable form
 
 ### 5.2 Daily Standup (Async)
 
-**When**: Any working day you touch the project — posted in `#standup` on Discord
+**When**: Any working day the project is modified — posted in `#standup` on Discord
 **Format**: Three lines, posted before noon
 
 ```
-✅ Yesterday: [what I completed or progressed — issue # if possible]
-🔨 Today: [what I plan to work on]
-🚧 Blocked: [anything blocking me, or "nothing"]
+✅ Accomplishments: [completed or progressed tasks — issue # if applicable]
+🔨 Plans: [planned activities]
+🚧 Blockers: [any identified barriers, or "none"]
 ```
 
 **Realistic expectations for a part-time team:**
 
-- Post on days you work on the project. "No project work yesterday" is honest and fine — silence is not.
-- If you have not posted for 3+ consecutive days, a brief check-in is still appreciated.
+- Posts are made on days the project is active. "No project work recorded" is acceptable — silence should be avoided.
+- If no posts have been made for 3+ consecutive days, a brief check-in is encouraged.
 - If someone is blocked, the SM responds within 24h on working days.
 - If two or more people are blocked on the same thing, that becomes a short call — not an async thread.
 
-The standup is a **coordination tool for teammates**, not a status report.
+The standup is a **coordination tool for the team**, not a status report.
 
 ### 5.3 Backlog Refinement
 
@@ -276,7 +276,7 @@ An issue is **Done** only when all of the following are true. No partial credit.
 | Infrastructure / Docker / config | 3–6h |
 | Documentation | 1–3h |
 
-Expect **6–8 completed issues per sprint** across the whole team. Plan to that number — not to an optimistic upper bound.
+Expect **6–8 completed issues per sprint** across the team. Planning should adhere to this figure — not an optimistic upper bound.
 
 ### The 4-sprint constraint
 
@@ -316,8 +316,8 @@ With only 4 sprints, there is no sprint to "catch up" in. Every sprint that ends
 ### Every Tuesday Week 2 (review + retro day)
 
 - [ ] Before the call: update the board, calculate module points earned this sprint
-- [ ] Facilitate review (demos) and retro (Start / Stop / Continue)
-- [ ] After the call: move incomplete issues back to backlog, write retro action items into next sprint's planning notes
+- [ ] Facilitate review (demonstrations) and retrospective (Start / Stop / Continue)
+- [ ] After the call: move incomplete issues back to the backlog, record retrospective action items into the next sprint's planning notes
 
 ### Module point tracker
 
@@ -356,13 +356,13 @@ With only 4 sprints, there is no sprint to "catch up" in. Every sprint that ends
 
 ## 9. Evaluation Alignment
 
-| Evaluation check | How our process covers it |
+| Evaluation check | Process compliance |
 |---|---|
-| All members present and can explain their role | Each person owns their issues and demos their own work at sprint review |
+| All members present and can explain their role | Each person owns specific issues and demonstrates work at the sprint review |
 | README complete | README updates are part of the Definition of Done for every feature |
-| Git history shows commits from all members | Issues assigned individually at planning; PRs enforce authorship |
-| Each module demonstrated and functional | Only DoD-complete items count; PM tracks per-module status every sprint |
-| Team can explain technical choices | Decisions recorded in GitHub Discussions; everyone attends Tuesday meetings |
+| Git history shows contributions from all members | Issues are assigned individually during planning; PRs enforce authorship |
+| Each module demonstrated and functional | Only DoD-complete items are counted; the PM tracks per-module status every sprint |
+| Technical choices are explained | Decisions are recorded in GitHub Discussions; participation in Tuesday meetings is mandatory |
 | No console errors in Chrome | Part of DoD; Sprint 4 has a dedicated audit issue |
 | Single-command deployment | Part of DoD for all infra issues; Sprint 4 includes a clean-deploy smoke test |
 | Privacy Policy and Terms of Service | Explicit Sprint 4 issue — not left to the last week |

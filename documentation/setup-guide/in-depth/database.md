@@ -20,7 +20,7 @@ Redis is used as an in-memory data structure store.
 - **Security**: Access is protected by a password defined in the `.env` file (`REDIS_PASSWORD`).
 
 ## Volume Persistence
-To ensure your data isn't lost when containers are stopped or removed, the database uses a bind mount to a local directory.
+To ensure data is preserved when containers are stopped or removed, the database uses a bind mount to a local directory.
 
 - **`database/data`**: This directory is mounted to `/var/lib/postgresql/data` inside the container.
 - **Initialization Logic**:

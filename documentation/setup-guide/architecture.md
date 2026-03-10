@@ -8,8 +8,7 @@ The system consists of five main components interacting within a virtualized Doc
 
 ![Architecture Diagram](architecture.png)
 
-> [!TIP]
-> **Can't see the diagram below?** The drawing uses **Mermaid**. If you're using VS Code, install the **"Markdown Preview Mermaid Support"** extension to render diagrams directly in your Markdown preview.
+> **Mermaid Diagrams**: VS Code users should install the **"Markdown Preview Mermaid Support"** extension to render diagrams directly in the Markdown preview.
 
 ```mermaid
 graph TD

@@ -4,7 +4,7 @@ This document explains the logic behind `setup.sh`, the automated configuration 
 
 ## Configuration Logic (Prompting for Variables)
 
-The script parses `.env.example` to ensure you have all required variables.
+The script parses `.env.example` to ensure the presence of all required variables.
 
 ### The File Reading Loop
 ```bash

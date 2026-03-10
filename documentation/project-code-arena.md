@@ -1,14 +1,14 @@
 # Code Arena — PvP Code Duel with Elo Rating System
 
 > PvP platform inspired by Codewars/LeetCode with a ranked ladder for ft_transcendence.
-> Two players enter a duel, receive the same coding challenge, and the one who solves it best earns LP (League Points).
+> Players compete in duels, receive identical coding challenges, and the winner is awarded LP (League Points).
 
 ---
 
 ## 1. Concept
 
-A web platform where programmers duel in real time solving coding challenges.
-The ranking system (Elo) increases challenge difficulty as the player progresses.
+A web platform where participants duel in real time to solve coding challenges.
+The ranking system (Elo) increases challenge difficulty as progress is made.
 Inspired by Codewars, LeetCode, and the competitive systems of games like League of Legends.
 
 ---
@@ -32,15 +32,15 @@ Inspired by Codewars, LeetCode, and the competitive systems of games like League
 ## 3. Core Features
 
 ### 3.1 Matchmaking
-- User enters the ranked queue
-- System finds an opponent with similar Elo (±200 points)
-- Queue timeout: 60s → progressively expands the Elo range
+- Participation in the ranked queue is initiated.
+- The system identifies an opponent with a similar Elo (±200 points).
+- Queue timeout: 60s → the Elo range is progressively expanded.
 
 ### 3.2 Duel
-1. Both receive the **same challenge** at the same time
-2. Code editor (Monaco) with a visible timer
-3. Submission runs automated tests in a Docker sandbox
-4. Results are compared at the end (or when both submit)
+1. Both participants receive the **same challenge** simultaneously.
+2. The code editor (Monaco) features a visible timer.
+3. Submissions trigger automated tests within a Docker sandbox.
+4. Final results are compared upon completion or dual submission.
 
 ### 3.3 Time Limit by Difficulty
 
@@ -226,26 +226,26 @@ FinalScore = 0.40 * TimeScore
 | 1  | **High complexity** — sandbox + judge is heavy   | Simplified MVP: input/output tests, no Big-O analysis             |
 | 2  | **Heavy infrastructure** — Docker runner, Redis, queues | Use docker-compose, everything local, no load balancing      |
 | 3  | **Cheating** — code copying, AI solving          | MVP: ignore anti-cheat, focus on core functionality               |
-| 4  | **Development time** — a lot of work             | Divide well among the team (4-5 people), use Scrum                |
-| 5  | **Challenge bank** — need problems               | Start with 20-30 fixed challenges, manually categorized           |
+| 4  | **Development time** — intensive workload     | Adoption of Scrum methodology and efficient team allocation |
+| 5  | **Challenge bank** — requires content           | Initialization with 20-30 fixed challenges, manually categorized |
 | 6  | **Code language** — support multiple?            | MVP: support only 1-2 languages (Python + JavaScript)              |
-| 7  | **Docker-in-Docker** — containers inside compose | Use Docker socket mounting or separate runner service              |
+| 7  | **Docker-in-Docker** — containers inside compose | Utilization of Docker socket mounting or a separate runner service |
 
 ---
 
 ## 10. MVP — Minimum Viable Product (Recommended)
 
-To avoid getting lost in complexity, the MVP should focus on the essentials:
+The MVP focuses on the following essentials:
 
 ### Included in MVP
 - [x] Login/registration with JWT
-- [x] Profile with avatar and basic stats
-- [x] Friends system + online status
-- [x] Basic chat between users
+- [x] Profile with avatar and basic statistics
+- [x] Friends system and online status
+- [x] Basic chat functionality
 - [x] Elo-based matchmaking queue
-- [x] Duel with Monaco editor + timer
-- [x] Code execution in Docker container (Python only)
-- [x] Evaluation: correctness + submission time
+- [x] Duel interface with Monaco editor and timer
+- [x] Code execution in a Docker container (Python only)
+- [x] Evaluation: correctness and submission time
 - [x] Ranking ladder (leaderboard)
 - [x] Basic notifications (duel result)
 - [x] 20 initial challenges (Easy/Medium/Hard)
@@ -259,7 +259,7 @@ To avoid getting lost in complexity, the MVP should focus on the essentials:
 - [ ] Code quality analysis
 - [ ] Multiple language support
 - [ ] Anti-cheat
-- [ ] Custom challenges by users
+- [ ] Custom challenges created by participants
 - [ ] OAuth with GitHub/Google
 
 ---
@@ -270,9 +270,9 @@ To avoid getting lost in complexity, the MVP should focus on the essentials:
 |-----------------|-----------------------------------------------------------------------|
 | **PO**          | Product vision, challenge backlog, feature validation                 |
 | **Tech Lead**   | Architecture, Docker sandbox, code review, integration                |
-| **Backend Dev** | Spring Boot API, matchmaking, judge service, WebSocket                |
-| **Frontend Dev**| Angular UI, Monaco Editor, lobby, arena, ranking, profile             |
-| **Full Dev**    | Chat, notifications, user management, tests, docker-compose deploy   |
+| **Backend**     | Spring Boot API, matchmaking, judge service, WebSocket                |
+| **Frontend**    | Angular UI, Monaco Editor, lobby, arena, ranking, profile             |
+| **Full Stack**  | Chat, notifications, user management, tests, docker-compose deploy   |
 
 ---
 
@@ -335,7 +335,7 @@ code-arena/
 | **Ghost Battles**    | Fight against replays of top players' solutions                  |
 | **Code DNA**         | Coding style profile (verbose, functional, recursive, etc.)      |
 | **Speed Mode**       | Blitz coding: 2-minute problems                                  |
-| **Async Duel**       | Chess-style: solve whenever you want, system simulates winner    |
+| **Async Duel**       | Chess-style submission: winners are simulated by the system     |
 | **Replay**           | Watch recordings of past duels keystroke by keystroke             |
 
 ---
@@ -348,7 +348,7 @@ These questions should be discussed with the team before starting:
 2. **Judge**: Real Docker (recommended) or simulated with static tests?
 3. **Ranking**: Global or by classes/groups?
 4. **Languages**: Python only in MVP or start with JS as well?
-5. **Challenges**: Create our own or import from somewhere (e.g., HackerRank API)?
+5. **Challenges**: Internal creation or importation from external sources (e.g., HackerRank API)?
 
 ---
 

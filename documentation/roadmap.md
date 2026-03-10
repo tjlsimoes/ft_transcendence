@@ -1,5 +1,5 @@
 # Project Roadmap — Code Arena
-> ft_transcendence · 4 sprints · Mar 4 – Apr 29 · ~8–10h/week per person · Target: 16 module points
+> ft_transcendence · 4 sprints · Mar 4 – Apr 29 · ~8–10h/week per role · Target: 16 module points
 
 ---
 
@@ -75,14 +75,14 @@ Understanding actual capacity is the difference between a realistic roadmap and 
 | Infrastructure / Docker / config | 3–6h |
 | Documentation / README section | 1–3h |
 
-Expect **6–8 completed issues per sprint** across the whole team. Plan to that number.
+Expect **6–8 completed issues per sprint** across the team. Planning is based on this number.
 
 ### The 4-sprint constraint
 
 With only 4 sprints, there is no sprint to "catch up" in. Every sprint that ends with significant unfinished work compresses the next one. Scope discipline matters more here than in a longer project.
 
 **Rules:**
-- Leave ~20% of capacity unplanned — roughly 1–2 issues of headroom per sprint
+- Approximately 20% of capacity remains unplanned — roughly 1–2 issues of headroom per sprint.
 - Flag reduced availability at planning (exams, deadlines, personal commitments)
 - Bonus modules are only picked up after all 16 mandatory points are confirmed done
 - "Mostly done" is not done — it goes back to the backlog
@@ -141,17 +141,17 @@ Update this after every Tuesday Week 2 review:
 
 | Person | Scrum Role | Project Role | Primary area |
 |---|---|---|---|
-| A | Product Owner | PO + Developer | Frontend |
-| B | Scrum Master / PM | PM + Developer | Backend |
-| C | Developer | Tech Lead / Architect + Developer | Backend |
-| D | Developer | Developer | Frontend |
+| A | Product Owner | PO + Engineering | Frontend |
+| B | Scrum Master / PM | PM + Engineering | Backend |
+| C | Tech Lead | Tech Lead / Architecture + Engineering | Backend |
+| D | Engineering | Engineering | Frontend |
 
 ### Division principles
 
 - The frontend/backend split is **provisional and permeable**
 - Features spanning both layers (chat, notifications, gamification) are owned by whoever builds the backend, but both pairs agree on the API contract **before** either side starts building
 - The TL reviews all PRs touching the DB schema, auth, the Judge sandbox, or WebSocket infrastructure
-- By Sprint 4, every team member should understand at least one feature they didn't primarily build — evaluators check this
+- By Sprint 4, every team member should understand at least one feature they did not primarily build — evaluators check this knowledge.
 
 ### API contracts
 
@@ -360,24 +360,24 @@ After Sprint 3: **11 pts** cumulative — the critical threshold.
 | HTTPS everywhere | Nginx config + Spring Security config | — |
 | Chrome console clean | Manual walkthrough of all main user flows | — |
 
-### Oral preparation (all team members)
+### Presentation Readiness (all team members)
 
-Each person should be able to answer the following without notes:
+The following should be explainable without supplementary notes:
 
-**About their own work**
-- What is your role? What specific features did you build?
-- Walk me through one feature from DB schema to UI.
-- What was the hardest problem you solved, and how?
+**Individual Work**
+- What is the role? What specific features were built?
+- Demonstration of a feature from DB schema to UI.
+- Identification of the most significant problem solved and the implementation details of the solution.
 
-**About the project**
-- What does Code Arena do? How does a duel work end-to-end?
-- Why Angular + Spring Boot? Why PostgreSQL? Why Redis?
-- How does the Docker sandbox prevent malicious code from escaping?
-- How does the Elo ranking system work?
-- How did the team organise itself?
+**Project Knowledge**
+- Functionality of Code Arena and the end-to-end duel lifecycle.
+- Rationale for the selection of Angular, Spring Boot, PostgreSQL, and Redis.
+- Mechanism by which the Docker sandbox isolates code execution.
+- Functionality of the Elo ranking system.
+- Team organization and methodology.
 
 **About the modules**
-- Which modules did you implement? (be ready to demo each one live)
+- Which modules were implemented? (preparation for live demonstration is required)
 - How is each module justified in the README?
 
 ### Module point milestone

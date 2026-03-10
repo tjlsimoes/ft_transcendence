@@ -8,7 +8,7 @@ Common issues encountered during the initial setup and their resolutions.
 
 ## 2. Docker Compose vs Docker-Compose
 **Problem**: Command `docker compose` is not found.
-**Solution**: Depending on your Docker installation, you may need to use the legacy hyphenated command `docker-compose`. The setup has been verified with `docker-compose`.
+**Solution**: Installation of a more recent version of docker compose is required.
 
 ## 3. Backend Health "Starting" Forever
 **Problem**: The `codearena-backend` container shows `(health: starting)` and never becomes `healthy`.
@@ -18,23 +18,23 @@ Common issues encountered during the initial setup and their resolutions.
 
 ## 4. Browser "Connection Refused"
 **Problem**: Accessing `localhost` fails even if containers are running.
-**Solution**: Ensure you are using the correct protocol and port.
+**Solution**: Verification of the correct protocol and port is required.
 - **HTTPS**: `https://localhost`
 - **HTTP**: `http://localhost:8000`
 
 ## 5. Redis: "Memory overcommit must be enabled!"
-If you see this warning in the Redis logs:
+If the following warning appears in the Redis logs:
 `WARNING Memory overcommit must be enabled! [...] To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf`
 
 **Resolution**:
-This is a host-level Linux kernel setting. To fix it on your host machine:
+This is a host-level Linux kernel setting. Remediation on the host machine:
 1. Run: `sudo sysctl vm.overcommit_memory=1` (Immediate effect)
 2. To make it persistent, add `vm.overcommit_memory = 1` to `/etc/sysctl.conf`.
 3. Restart the containers: `./setup.sh` (Choose option 3).
 
 ## 6. "The legacy builder is deprecated"
-If you see this warning during `docker-compose up`:
+If the following warning appears during `docker-compose up`:
 `DEPRECATED: The legacy builder is deprecated and will be removed in a future release.`
 
 **Resolution**:
-We've updated `setup.sh` to prefer `docker compose` (v2), which uses BuildKit. Ensure you are using the `setup.sh` script instead of calling legacy `docker-compose` directly.
+The `setup.sh` script is configured to utilize `docker compose` (v2), which employs BuildKit. Utilization of the `setup.sh` script is recommended instead of direct calls to legacy `docker-compose`.

@@ -1,6 +1,6 @@
 # Setup Guide — Code Arena
 
-Welcome to the internal setup and architecture documentation for the Code Arena project.
+This documentation provides an overview of the internal setup and architecture for the Code Arena project.
 
 ## Guide Contents
 
@@ -28,9 +28,9 @@ The easiest way to initialize the environment is using the interactive setup scr
 ./setup.sh
 ```
 
-The script will:
-1. Interactively prompt for missing environment variables.
-2. Generate self-signed SSL certificates.
-3. Start all services using `docker compose` (v2+).
+The script performs the following actions:
+1. Interactively prompts for missing environment variables.
+2. Generates self-signed SSL certificates.
+3. Starts all services using `docker compose` (v2+).
 
 Access the platform at: [**https://localhost**](https://localhost)

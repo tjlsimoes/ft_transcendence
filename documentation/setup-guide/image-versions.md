@@ -16,12 +16,12 @@ This document outlines the specific versions of Docker images and runtimes used 
 ## Why these versions?
 
 ### 1. LTS-first Strategy
-We prioritize **Long-Term Support (LTS)** releases for core runtimes:
+Priority is given to **Long-Term Support (LTS)** releases for core runtimes:
 - **Node 24 (LTS)**: Entered LTS in late 2025, providing security updates until late 2028.
 - **JDK 25 (LTS)**: The current LTS for the Java ecosystem, optimized for modern Spring Boot features.
 
 ### 2. Security Patching
-We avoid using general tags like `:latest` or `:21`. Instead, we pin to specific patch releases (e.g., `25.0.1_8`) that incorporate the latest 2026 vulnerability fixes (mitigating CVEs in RMI, URI handling, etc.).
+Utilization of general tags such as `:latest` or `:21` is avoided. Runtimes are pinned to specific patch releases (e.g., `25.0.1_8`) to incorporate recent 2026 vulnerability fixes.
 
 ### 3. Alpine Linux (musl)
 All images use **Alpine Linux** (currently based on `alpine3.23`) to:

@@ -28,7 +28,7 @@ A self-signed certificate is generated for local development.
 - **Private Key**: `proxy/ssl/localhost.key`
 
 > [!WARNING]
-> Browsers will flag the self-signed certificate as untrusted. You must manually "Proceed to localhost (unsafe)" during the first visit.
+> Browsers typically flag self-signed certificates as untrusted. Manual selection of "Proceed to localhost (unsafe)" is required during the initial visit.
 
 ### Spring Security (Backend)
 The backend uses Spring Security to protect endpoints.

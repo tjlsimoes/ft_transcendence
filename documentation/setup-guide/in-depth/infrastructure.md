@@ -17,7 +17,7 @@ This document explains the orchestration of the project using Docker Compose and
 ### Database Configuration (PostgreSQL)
 - **Volumes**: 
     - `- ./database:/docker-entrypoint-initdb.d`: For initial schema loading on first run.
-    - `- ./database/data:/var/lib/postgresql/data`: A **local directory** for actual data persistence. This ensures your users and game data are kept even if you delete the containers.
+    - `- ./database/data:/var/lib/postgresql/data`: A **local directory** for actual data persistence. This ensures that user and game data are retained even if containers are deleted.
 - **Healthcheck: `pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}`**:
     - `pg_isready`: A standard PostgreSQL utility to check if the server is accepting connections.
     - `-U`: The username to connect as.
@@ -25,7 +25,7 @@ This document explains the orchestration of the project using Docker Compose and
     - **Purpose**: Ensures the database is up and the specific DB is created before the backend tries to connect.
 
 ## Volume Persistence
-To ensure your data isn't lost when containers are stopped or removed, the database uses a bind mount to a local directory.
+To ensure data is preserved when containers are stopped or removed, the database uses a bind mount to a local directory.
 
 - **`database/data`**: This local folder is mapped to `/var/lib/postgresql/data` inside the container. It stores the actual database files.
     - [!IMPORTANT]
@@ -36,8 +36,8 @@ To ensure your data isn't lost when containers are stopped or removed, the datab
 The Proxy is the "brain" of the network, handling SSL and routing traffic.
 
 ### Core Settings
-- **`include /etc/nginx/mime.types;`**: Tells Nginx where to find the mapping of file extensions (like `.html`, `.css`, `.js`) to their respective "MIME types". This is how your browser knows that a `.js` file is executable code and a `.css` file is a stylesheet.
-- **`default_type application/octet-stream;`**: The fallback type for files whose extension isn't found in `mime.types`. `application/octet-stream` is a generic "binary" type that usually triggers a download in the browser.
+- **`include /etc/nginx/mime.types;`**: Specifies the mapping of file extensions (such as `.html`, `.css`, `.js`) to their respective MIME types. This allows browsers to identify and process different file types correctly.
+- **`default_type application/octet-stream;`**: The fallback type for files with unrecognized extensions.
 - **`sendfile on;`**: A performance optimization. It allows Nginx to use a kernel-level system call (`sendfile`) to copy files directly from the disk to the network socket, bypassing the step of loading them into the application's memory buffer first.
 - **`keepalive_timeout 65;`**: Keeps the TCP connection between the client and the server open for 65 seconds after a request. This allows the browser to reuse the same connection for multiple assets (images, scripts), significantly speeding up the page load.
 
