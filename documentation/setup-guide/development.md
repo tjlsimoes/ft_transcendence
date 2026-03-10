@@ -67,6 +67,21 @@ Add `@CrossOrigin("http://localhost:${FRONTEND_PORT:-80}")` to the controllers o
     - Changes to processed `.conf` files inside containers will be overwritten on the next startup as `envsubst` runs.
     - If you add a new environment variable to a template, ensure it is also added to the `environment` block of the respective service in `docker-compose.yml`.
 
+## 4. Cloud Database Integration (Neon)
+
+If you prefer using a managed cloud database like **Neon**, follow these steps:
+
+1.  **Update `.env`**:
+    - `DB_HOST`: Set to your Neon hostname (e.g., `ep-pretty-dawn-123.us-east-2.aws.neon.tech`).
+    - `DB_PORT`: `5432`.
+    - `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`: Use your Neon credentials.
+    - `DB_SSL_MODE`: `require` (Neon requires SSL).
+2.  **Disable Local DB**:
+    - To save resources, you don't need the local `codearena-db` container.
+    - Stop it specifically: `docker compose stop db`.
+    - Or keep it down permanently: `docker compose up -d --scale db=0`.
+3.  **Inheritance**: The Backend will automatically pick up these variables and connect to the cloud instead of the local network.
+
 ---
 
 ## 3. Remote Database Integration (Neon)

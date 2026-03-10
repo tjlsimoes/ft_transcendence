@@ -13,7 +13,7 @@ http {
     server {
         listen ${PROXY_INTERNAL_HTTP_PORT};
         server_name localhost;
-        return 301 https://$host$request_uri;
+        return 301 https://$host:${HOST_TO_PROXY_HTTPS_PORT}$request_uri;
     }
 
     server {

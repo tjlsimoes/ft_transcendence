@@ -8,7 +8,7 @@ COPY . .
 RUN npm run build -- --configuration production
 
 # Stage 2: Serve the application using Nginx
-FROM nginx:1.27.4-alpine3.21-slim
+FROM nginx:1.28.2-alpine3.23-slim
 WORKDIR /usr/share/nginx/html
 COPY --from=build /app/dist/frontend/browser .
 CMD ["nginx", "-g", "daemon off;"]

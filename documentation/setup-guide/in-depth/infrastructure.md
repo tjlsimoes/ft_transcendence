@@ -27,7 +27,7 @@ This document explains the orchestration of the project using Docker Compose and
 ## Volume Persistence
 To ensure data is preserved when containers are stopped or removed, the database uses a bind mount to a local directory.
 
-- **`database/data`**: This local folder is mapped to `/var/lib/postgresql/data` inside the container. It stores the actual database files.
+- **`database/data`**: This local folder is mapped to `/var/lib/postgresql` inside the container. It contains version-specific subdirectories (e.g., `18/main`) as required by PostgreSQL 18+.
     - [!IMPORTANT]
     - If this folder is **empty**, PostgreSQL will execute `init.sql`.
     - If it **already contains data**, PostgreSQL skips the initialization and loads the existing state.

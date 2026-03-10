@@ -40,7 +40,7 @@ The project uses specialized **Alpine-based** official images to ensure minimal 
 
 ## 4. Database (PostgreSQL)
 - **Image**: `postgres:18.3-alpine3.23`
-- **Persistence**: Initialized via `./database/init.sql`.
+    - `./database/data:/var/lib/postgresql`: Mapped for version-specific data storage (PostgreSQL 18+).
 - **Health Check**:
     - `pg_isready -U \${POSTGRES_USER} -d \${POSTGRES_DB}`.
 
