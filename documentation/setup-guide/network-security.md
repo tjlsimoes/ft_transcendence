@@ -6,21 +6,21 @@ This document covers the networking layout, HTTPS configuration, and security me
 
 All services are part of a shared bridge network defined in `docker-compose.yml`:
 
-| Service | Hostname | Internal Port | Accessible from Host? |
-|---------|----------|---------------|-----------------------|
-| Proxy | `proxy` | 80, 443 | **Yes** (8000, 443) |
-| Frontend | `frontend` | 80 | No |
-| Backend | `backend` | 8080 | No |
-| Database | `db` | 5432 | No |
-| Cache | `cache` | 6379 | No |
+| Service | Hostname | Internal Port Variable | Host Bridge Variable |
+|---------|----------|------------------------|----------------------|
+| Proxy | `proxy` | `PROXY_INTERNAL_*` | `HOST_TO_PROXY_*` |
+| Frontend | `frontend` | `FRONTEND_PORT` | - |
+| Backend | `backend` | `BACKEND_PORT` | - |
+| Database | `db` | `DB_PORT` | - |
+| Cache | `cache` | `REDIS_PORT` | - |
 
 ### Reverse Proxy Logic
-The `proxy` container handles all incoming traffic and routes it based on the URL path:
-- `https://localhost/` → `http://frontend:80` (Angular)
-- `https://localhost/api/*` → `http://backend:8080/api/*` (REST API)
-- `https://localhost/ws/*` → `http://backend:8080/ws/*` (WebSockets)
+The `proxy` container handles all incoming traffic and routes it dynamically:
+- `https://localhost/` → `http://frontend:\${FRONTEND_PORT}` (Angular)
+- `https://localhost/api/*` → `http://backend:\${BACKEND_PORT}/api/*` (REST API)
+- `https://localhost/ws/*` → `http://backend:\${BACKEND_PORT}/ws/*` (WebSockets)
 
-A permanent redirect from HTTP (port 80) to HTTPS (port 443) is enforced.
+A permanent redirect from HTTP to HTTPS is enforced based on the `PROXY_INTERNAL_*` ports.
 
 ### HTTPS & TLS
 A self-signed certificate is generated for local development.

@@ -18,8 +18,7 @@ The project uses specialized **Alpine-based** official images to ensure minimal 
     - Runs `npm install` and `npm run build -- --configuration production`.
 - **Runtime Stage**:
     - Serves static files from `/usr/share/nginx/html`.
-- **Key Options**:
-    - `nginx.conf`: Custom configuration to handle SPA routing.
+    - **Dynamic Configuration**: Uses `nginx.conf.template` and `envsubst` to listen on `${FRONTEND_PORT}`.
 
 ## 2. Backend (Spring Boot)
 - **Base Image**: `maven:3.9.6-eclipse-temurin-21` (Build) / `eclipse-temurin:21-jre-alpine` (Runtime)

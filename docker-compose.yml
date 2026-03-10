@@ -53,9 +53,10 @@ services:
       REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT}
       REDIS_PASSWORD: ${REDIS_PASSWORD}
-      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      BACKEND_PROFILES: ${BACKEND_PROFILES:-prod}
+      BACKEND_PORT: ${BACKEND_PORT:-8080}
     healthcheck:
-      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:8080/api/health"]
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:${BACKEND_PORT:-8080}/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -69,11 +70,12 @@ services:
       dockerfile: Dockerfile
     container_name: codearena-frontend
     restart: unless-stopped
+    environment:
+      FRONTEND_PORT: ${FRONTEND_PORT:-80}
+    volumes:
+      - ./frontend/nginx.conf.template:/etc/nginx/templates/nginx.conf.template:ro
     healthcheck:
-      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:80"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:${FRONTEND_PORT:-80}"]
     depends_on:
       - backend
     networks:
@@ -87,16 +89,21 @@ services:
     container_name: codearena-proxy
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "-q", "--no-check-certificate", "-O", "-", "https://127.0.0.1:443"]
+      test: ["CMD", "wget", "-q", "--no-check-certificate", "-O", "-", "https://127.0.0.1:${PROXY_INTERNAL_HTTPS_PORT:-443}"]
       interval: 30s
       timeout: 10s
       retries: 3
     ports:
-      - "8000:80"
-      - "443:443"
+      - "${HOST_TO_PROXY_HTTP_PORT:-8000}:${PROXY_INTERNAL_HTTP_PORT:-80}"
+      - "${HOST_TO_PROXY_HTTPS_PORT:-443}:${PROXY_INTERNAL_HTTPS_PORT:-443}"
     volumes:
-      - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./infra/nginx/nginx.conf.template:/etc/nginx/templates/nginx.conf.template:ro
       - ./infra/nginx/ssl:/etc/nginx/ssl:ro
+    environment:
+      - BACKEND_PORT=${BACKEND_PORT:-8080}
+      - FRONTEND_PORT=${FRONTEND_PORT:-80}
+      - PROXY_INTERNAL_HTTP_PORT=${PROXY_INTERNAL_HTTP_PORT:-80}
+      - PROXY_INTERNAL_HTTPS_PORT=${PROXY_INTERNAL_HTTPS_PORT:-443}
     depends_on:
       - frontend
       - backend

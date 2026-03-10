@@ -12,9 +12,9 @@ The system consists of five main components interacting within a virtualized Doc
 
 ```mermaid
 graph TD
-    User([User's Browser]) -- HTTPS:443 --> Proxy[Nginx Proxy]
-    Proxy -- HTTP:80 --> Frontend[Angular SPA]
-    Proxy -- HTTP:8080 --> Backend[Spring Boot API]
+    User([User's Browser]) -- \${HOST_TO_PROXY_HTTPS_PORT} --> Proxy[Nginx Proxy]
+    Proxy -- \${FRONTEND_PORT} --> Frontend[Angular SPA]
+    Proxy -- \${BACKEND_PORT} --> Backend[Spring Boot API]
     Backend -- JDBC --> DB[(PostgreSQL)]
     Backend -- RESP --> Cache[(Redis)]
 ```
@@ -37,6 +37,7 @@ graph TD
 ### 3. Spring Boot Backend (`backend`)
 - **Role**: Core business logic, authentication, and service orchestration.
 - **Framework**: Spring Boot 4.0.3 (Java 25).
+- **Dynamic Port**: Listens on `\${BACKEND_PORT}`.
 - **Connectivity**: Maintains persistent connections to PostgreSQL and Redis.
 - **Integration**: Exposes a RESTful API and WebSocket endpoints (planned).
 

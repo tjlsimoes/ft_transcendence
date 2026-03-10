@@ -37,24 +37,24 @@ chmod u+x mvnw
 # Load .env and run
 export $(grep -v '^#' ../.env | xargs) && ./mvnw spring-boot:run
 ```
-*Access at: http://localhost:8080*
+*Access at: http://localhost:${BACKEND_PORT:-8080}*
 
 ---
 
 ## 3. Dealing with CORS
 
-When the Nginx proxy is omitted, the Frontend (`:4200`) and Backend (`:8080`) operate on different ports. This triggers **CORS** (Cross-Origin Resource Sharing) security.
+When the Nginx proxy is omitted, the Frontend (`:${FRONTEND_PORT:-80}`) and Backend (`:${BACKEND_PORT:-8080}`) operate on different ports. This triggers **CORS** (Cross-Origin Resource Sharing) security.
 
 ### Choice A: Angular Proxy (Recommended)
 Configure the Angular CLI to proxy `/api` requests to the backend during development.
 1. Create `frontend/proxy.conf.json`:
    ```json
-   { "/api": { "target": "http://localhost:8080", "secure": false } }
+   { "/api": { "target": "http://localhost:${BACKEND_PORT:-8080}", "secure": false } }
    ```
 2. Run with: `ng serve --proxy-config proxy.conf.json`.
 
 ### Choice B: Spring Boot CORS
-Add `@CrossOrigin("http://localhost:4200")` to the controllers or apply a global configuration in Java.
+Add `@CrossOrigin("http://localhost:${FRONTEND_PORT:-80}")` to the controllers or apply a global configuration in Java.
 
 ---
 
@@ -62,6 +62,10 @@ Add `@CrossOrigin("http://localhost:4200")` to the controllers or apply a global
 - **Linting**: Utilize the provided ESLint and Prettier configurations within the IDE.
 - **Hot Reload**: Both Angular and Spring Boot (via devtools) support hot-reloading. Restarting is not required for most changes.
 - **Database Migrations**: SQL scripts should be added to `database/init.sql`. Docker executes these automatically upon the clearance of the `database-data` volume.
+- **Nginx Templating**: 
+    - Always edit the `.template` files in `infra/nginx/` or `frontend/`. 
+    - Changes to processed `.conf` files inside containers will be overwritten on the next startup as `envsubst` runs.
+    - If you add a new environment variable to a template, ensure it is also added to the `environment` block of the respective service in `docker-compose.yml`.
 
 ---
 
