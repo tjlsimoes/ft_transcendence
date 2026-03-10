@@ -36,19 +36,19 @@ graph TD
 
 ### 3. Spring Boot Backend (`backend`)
 - **Role**: Core business logic, authentication, and service orchestration.
-- **Framework**: Spring Boot 4.0.3.
+- **Framework**: Spring Boot 4.0.3 (Java 25).
 - **Connectivity**: Maintains persistent connections to PostgreSQL and Redis.
 - **Integration**: Exposes a RESTful API and WebSocket endpoints (planned).
 
 ### 4. PostgreSQL Database (`db`)
 - **Role**: Persistent storage for user profiles, match history, and challenges.
-- **Version**: 15-alpine.
+- **Version**: 18.3-alpine (Postgres 18).
 - **Initial Setup**: Uses `init.sql` for schema bootstrapping.
 
 ### 5. Redis Cache (`cache`)
 - **Role**: Real-time data management.
 - **Use Cases**: Matchmaking queue, session caching, and performance optimization.
-- **Version**: 7-alpine.
+- **Version**: 8.6.1-alpine (Redis 8).
 
 ## Networking
 

@@ -6,9 +6,9 @@ This document outlines the specific configuration and Docker setup for each serv
 
 ### Base Image Strategy
 The project uses specialized **Alpine-based** official images to ensure minimal overhead and small image sizes:
-- **Frontend**: Uses `node:20-alpine` for building and `nginx:alpine` for serving.
-- **Backend**: Uses `maven:3.9.6-eclipse-temurin-21` for building and `eclipse-temurin:21-jre-alpine` for runtime (as it requires a JRE).
-- **Proxy**: Uses `nginx:alpine`.
+- **Frontend**: Uses `node:21-alpine` for building and `nginx:1.27.4-alpine-slim` for serving.
+- **Backend**: Uses `maven:3.9.12-eclipse-temurin-25` for building and `eclipse-temurin:25.0.1_8-jre-alpine` for runtime.
+- **Proxy**: Uses `nginx:1.28.2-alpine-slim`.
 
 ---
 
@@ -29,22 +29,24 @@ The project uses specialized **Alpine-based** official images to ensure minimal 
     - Uses `wget` to probe `http://localhost:8080/api/health`.
 
 ## 3. Proxy (Nginx)
-- **Base Image**: `nginx:alpine`
-- **Port Mapping**:
-    - **Host 8000** → **Container 80** (Handles HTTP -> HTTPS redirect).
-    - **Host 443** → **Container 443** (Main HTTPS entry point).
+- **Base Image**: `nginx:1.28.2-alpine-slim`
+- **Dynamic Port Mapping**:
+    - **Host `${HOST_TO_PROXY_HTTP_PORT}`** → **Container `${PROXY_INTERNAL_HTTP_PORT}`**.
+    - **Host `${HOST_TO_PROXY_HTTPS_PORT}`** → **Container `${PROXY_INTERNAL_HTTPS_PORT}`**.
+- **Configuration**:
+    - Uses `envsubst` to dynamically set up upstream routing for `${BACKEND_PORT}` and `${FRONTEND_PORT}`.
 - **Volume Mounts**:
-    - `./infra/nginx/nginx.conf`: Main configuration.
+    - `./infra/nginx/nginx.conf.template`: Source for dynamic config.
     - `./infra/nginx/ssl`: TLS certificates.
 
 ## 4. Database (PostgreSQL)
-- **Image**: `postgres:15-alpine`
+- **Image**: `postgres:18.3-alpine3.23`
 - **Persistence**: Initialized via `./database/init.sql`.
 - **Health Check**:
-    - `pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}`.
+    - `pg_isready -U \${POSTGRES_USER} -d \${POSTGRES_DB}`.
 
 ## 5. Cache (Redis)
-- **Image**: `redis:7-alpine`
-- **Persistence**: Ephemeral by default for the setup phase.
+- **Image**: `redis:8.6.1-alpine3.23`
+- **Security**: Enforced via `--requirepass \${REDIS_PASSWORD}`.
 - **Health Check**:
-    - `redis-cli ping`.
+    - `redis-cli -a \${REDIS_PASSWORD} ping`.
