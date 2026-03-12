@@ -12,13 +12,13 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api")
 public class HealthController {
-    
+
     @GetMapping("/health")
     public ResponseEntity<Map<String, Object>> health() {
         Map<String, Object> response = new HashMap<>();
         response.put("status", "UP");
         response.put("timestamp", LocalDateTime.now());
-        response.put("message", "Code Arena Backend is running! 🚀");
+        response.put("message", "Code Arena Backend is running!");
         return ResponseEntity.ok(response);
     }
 }

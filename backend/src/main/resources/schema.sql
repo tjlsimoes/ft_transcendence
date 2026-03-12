@@ -1,6 +1,4 @@
--- Initial database schema
--- This file will be executed when the database container starts for the first time
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id          BIGSERIAL    PRIMARY KEY,
     username    VARCHAR(255) NOT NULL UNIQUE,
     email       VARCHAR(255) NOT NULL UNIQUE,
