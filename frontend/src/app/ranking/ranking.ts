@@ -7,22 +7,6 @@ import { Component } from '@angular/core';
   styleUrl: './ranking.css',
 })
 export class Ranking {
-  protected readonly featuredLegend = {
-    rank: 1,
-    name: 'NyxCipher',
-    league: 'Legend',
-    tone: 'league-legend',
-    mark: 'L',
-    elo: 4215,
-    tagline: 'Top 1% player controlling the ladder with ruthless consistency.',
-    weeklyStats: [
-      { label: 'Weekly win rate', value: '81%' },
-      { label: 'LP this week', value: '+148' },
-      { label: 'Duels played', value: '26' },
-    ],
-    recentMatches: ['W', 'W', 'L'],
-  };
-
   protected readonly topPlayers = [
     {
       rank: 1,

@@ -1,68 +1,20 @@
 <div class="ranking-page">
-	<section class="ranking-hero">
-		<article class="legend-panel">
-			<div class="legend-copy">
-				<p class="panel-kicker">Number 1 Player</p>
-				<h2>#{{ featuredLegend.rank }} {{ featuredLegend.name }}</h2>
-				<p>{{ featuredLegend.tagline }}</p>
-
-				<div class="legend-elo">
-					<span class="elo-label">Current ELO</span>
-					<strong>{{ featuredLegend.elo }}</strong>
-				</div>
-			</div>
-
-			<div class="legend-badge {{ featuredLegend.tone }}">
-				<div class="league-emblem ranking-emblem" aria-hidden="true">
-					<span class="league-aura"></span>
-					<span class="league-wing league-wing-left"></span>
-					<span class="league-wing league-wing-right"></span>
-					<span class="league-crown"></span>
-					<span class="league-stars"></span>
-					<div class="emblem-frame">
-						<div class="emblem-core">{{ featuredLegend.mark }}</div>
-					</div>
-				</div>
-			</div>
-
-			<div class="legend-mini-sections">
-				<div class="mini-panel">
-					<p class="mini-title">Last 3 matches</p>
-					<div class="recent-strip">
-						@for (result of featuredLegend.recentMatches; track $index) {
-							<span class="result-pill" [class.loss]="result === 'L'">{{ result }}</span>
-						}
-					</div>
-				</div>
-
-				<div class="mini-panel stats-panel">
-					@for (stat of featuredLegend.weeklyStats; track stat.label) {
-						<div>
-							<span>{{ stat.label }}</span>
-							<strong>{{ stat.value }}</strong>
-						</div>
-					}
-				</div>
-			</div>
-		</article>
-	</section>
-
 	<section class="leaderboard-section">
 		<div class="section-heading">
-			<p class="section-kicker">Legend Ladder</p>
+			<h1 class="section-kicker">LEADERBOARD</h1>
 		</div>
 
 		<div class="leaderboard-grid">
 			@for (player of topPlayers; track player.rank) {
 				<article class="player-card" [class]="player.tone">
 					<div class="player-head">
-						<div>
+						<div class="player-name-wrap">
 							<p class="rank-label">#{{ player.rank }}</p>
-							<h3>{{ player.name }}</h3>
+							<h3 class="player-name">{{ player.name }}</h3>
 						</div>
 
 						<div class="player-meta">
-							<strong>{{ player.elo }} ELO</strong>
+							<strong class="player-elo">{{ player.elo }} ELO</strong>
 						</div>
 					</div>
 
@@ -80,22 +32,27 @@
 							</div>
 						</div>
 
-						<div class="player-details">
-							<div class="detail-block">
-								<p class="mini-title">Last 3 matches</p>
-								<div class="recent-strip">
-									@for (result of player.recentMatches; track $index) {
-										<span class="result-pill" [class.loss]="result === 'L'">{{ result }}</span>
-									}
-								</div>
-							</div>
+						<div class="weekly-line" aria-label="Weekly stats">
+							@for (stat of player.weeklyStats; track stat.label) {
+								<span class="weekly-item">
+									<span class="weekly-label">{{ stat.label }}:</span>
+									<strong
+										[class.lp-positive]="stat.label === 'LP' && stat.value && stat.value.charAt(0) === '+'"
+										[class.lp-negative]="stat.label === 'LP' && stat.value && stat.value.charAt(0) !== '+'">
+										{{ stat.value }}
+									</strong>
+								</span>
+								@if ($index < player.weeklyStats.length - 1) {
+									<span class="dot">·</span>
+								}
+							}
+						</div>
 
-							<div class="detail-block weekly-grid">
-								@for (stat of player.weeklyStats; track stat.label) {
-									<div class="stat-box">
-										<span>{{ stat.label }}</span>
-										<strong>{{ stat.value }}</strong>
-									</div>
+						<div class="match-history-block">
+							<p class="mini-title">Match history</p>
+							<div class="recent-strip">
+								@for (result of player.recentMatches; track $index) {
+									<span class="result-pill" [class.loss]="result === 'L'">{{ result }}</span>
 								}
 							</div>
 						</div>
