@@ -56,6 +56,9 @@ services:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       BACKEND_PROFILES: ${BACKEND_PROFILES:-prod}
       BACKEND_PORT: ${BACKEND_PORT:-8080}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-3600000}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
     healthcheck:
       test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:${BACKEND_PORT:-8080}/api/health"]
       interval: 30s

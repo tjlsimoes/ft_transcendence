@@ -22,49 +22,49 @@ import java.time.LocalDateTime;
 @ToString(exclude = "password")
 @EqualsAndHashCode(exclude = "password")
 public class User {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
     @Column(unique = true, nullable = false)
     private String username;
-    
+
     @Column(unique = true, nullable = false)
     private String email;
-    
+
     @Column(nullable = false)
     @JsonIgnore
     private String password;
-    
+
     private String avatar;
-    
+
     @Column(nullable = false)
-    private Integer elo = 1000; // Starting ELO
-    
+    private Integer elo = 0; // Starting ELO
+
     @Column(nullable = false)
     private Integer wins = 0;
-    
+
     @Column(nullable = false)
     private Integer losses = 0;
-    
+
     @Column(nullable = false)
     private Integer winStreak = 0;
-    
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private League league = League.BRONZE;
-    
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private UserStatus status = UserStatus.OFFLINE;
-    
+
     @CreationTimestamp
     private LocalDateTime createdAt;
-    
+
     @UpdateTimestamp
     private LocalDateTime updatedAt;
-    
+
     public enum League {
         BRONZE,   // 0-999
         SILVER,   // 1000-1999
@@ -72,7 +72,7 @@ public class User {
         MASTER,   // 3000-3999
         LEGEND    // Top 1%
     }
-    
+
     public enum UserStatus {
         ONLINE,
         OFFLINE,

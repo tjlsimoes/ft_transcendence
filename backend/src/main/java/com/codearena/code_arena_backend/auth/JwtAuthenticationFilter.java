@@ -1,12 +1,14 @@
 package com.codearena.code_arena_backend.auth;
 
 import com.codearena.code_arena_backend.auth.service.JwtService;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -65,7 +67,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // Strip the "Bearer " prefix (7 characters) to get the raw token.
         final String jwt = authHeader.substring(7);
-        final String username = jwtService.extractUsername(jwt);
+        final String username;
+        try {
+            username = jwtService.extractUsername(jwt);
+        } catch (JwtException e) {
+            // Malformed, expired, or tampered token — reject with 401.
+            response.sendError(HttpStatus.UNAUTHORIZED.value(), "Invalid or expired JWT");
+            return;
+        }
 
         // Only authenticate if not already authenticated in this request context.
         // SecurityContextHolder stores auth info per thread (request-scoped).
