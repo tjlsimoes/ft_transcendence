@@ -1,5 +1,7 @@
 package com.codearena.code_arena_backend.user.service;
 
+import com.codearena.code_arena_backend.user.dto.ProfileResponse;
+import com.codearena.code_arena_backend.user.dto.UpdateProfileRequest;
 import com.codearena.code_arena_backend.user.entity.User;
 import com.codearena.code_arena_backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -64,6 +66,48 @@ public class UserService implements UserDetailsService {
 
     public User save(User user) {
         return userRepository.save(user);
+    }
+
+    public ProfileResponse getCurrentUserProfile(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+        return ProfileResponse.from(user);
+    }
+
+    public ProfileResponse updateCurrentUserProfile(String username, UpdateProfileRequest request) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+
+        if (request.getUsername() != null) {
+            String newUsername = request.getUsername().trim();
+            if (newUsername.isEmpty()) {
+                throw new IllegalArgumentException("Username cannot be blank");
+            }
+            if (!newUsername.equals(user.getUsername()) && userRepository.existsByUsername(newUsername)) {
+                throw new IllegalArgumentException("Username already taken");
+            }
+            user.setUsername(newUsername);
+        }
+
+        if (request.getEmail() != null) {
+            String newEmail = request.getEmail().trim().toLowerCase();
+            if (newEmail.isEmpty()) {
+                throw new IllegalArgumentException("Email cannot be blank");
+            }
+            userRepository.findByEmail(newEmail)
+                    .filter(existingUser -> !existingUser.getId().equals(user.getId()))
+                    .ifPresent(existingUser -> {
+                        throw new IllegalArgumentException("Email already registered");
+                    });
+            user.setEmail(newEmail);
+        }
+
+        if (request.getAvatar() != null) {
+            user.setAvatar(request.getAvatar().trim());
+        }
+
+        User savedUser = userRepository.save(user);
+        return ProfileResponse.from(savedUser);
     }
 
     // ------------------------------------------------------------------ //
