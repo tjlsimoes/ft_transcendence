@@ -6,7 +6,7 @@ CREATE TABLE users (
     email       VARCHAR(255) NOT NULL UNIQUE,
     password    VARCHAR(255) NOT NULL,
     avatar      VARCHAR(255),
-    elo         INTEGER      NOT NULL DEFAULT 1000,
+    elo         INTEGER      NOT NULL DEFAULT 0,
     wins        INTEGER      NOT NULL DEFAULT 0,
     losses      INTEGER      NOT NULL DEFAULT 0,
     win_streak  INTEGER      NOT NULL DEFAULT 0,
