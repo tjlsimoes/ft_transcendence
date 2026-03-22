@@ -1,11 +1,22 @@
-import { Component } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { Router, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { filter, map } from 'rxjs';
 
-// Navbar fixa do site com links de navegação e ações de autenticação.
 @Component({
   selector: 'app-navbar',
   imports: [RouterLink, RouterLinkActive],
   templateUrl: './navbar.html',
   styleUrl: './navbar.css',
 })
-export class Navbar {}
+export class Navbar {
+  private router = inject(Router);
+
+  isLobby = toSignal(
+    this.router.events.pipe(
+      filter((e): e is NavigationEnd => e instanceof NavigationEnd),
+      map(e => e.urlAfterRedirects.startsWith('/lobby'))
+    ),
+    { initialValue: this.router.url.startsWith('/lobby') }
+  );
+}

@@ -1,17 +1,48 @@
-<nav class="navbar">
-  <div class="navbar-inner">
-    <a class="navbar-logo" routerLink="/">
-      <span class="logo-bracket">&lt;</span>CodeArena<span class="logo-bracket">/&gt;</span>
-    </a>
+@if (isLobby()) {
+  <nav class="navbar lobby-nav">
+    <div class="navbar-inner navbar-inner--wide">
+      <a class="navbar-logo" routerLink="/lobby">
+        <span class="logo-bracket">&lt;</span>CodeArena<span class="logo-bracket">/&gt;</span>
+      </a>
 
-    <div class="navbar-links">
-      <a class="nav-link" routerLink="/ranking" routerLinkActive="active">Ranking</a>
-      <a class="nav-link" routerLink="/about" routerLinkActive="active">About</a>
-    </div>
+      <div class="navbar-links">
+        <a class="nav-link" routerLink="/lobby" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Lobby</a>
+        <a class="nav-link" routerLink="/ranking" routerLinkActive="active">Ranking</a>
+        <a class="nav-link" routerLink="/challenges" routerLinkActive="active">Challenges</a>
+        <a class="nav-link" routerLink="/friends" routerLinkActive="active">Friends</a>
+        <a class="nav-link" routerLink="/profile" routerLinkActive="active">Profile</a>
+      </div>
 
-    <div class="navbar-actions">
-      <a class="btn-login" routerLink="/login">Log in</a>
-      <a class="btn-join" routerLink="/register">Register</a>
+      <div class="navbar-user">
+        <div class="user-info">
+          <span class="user-name">NULL_POINTER</span>
+          <span class="user-rank">GOLD II // 2350 LP</span>
+        </div>
+        <div class="user-avatar">
+          <span class="avatar-letter">N</span>
+        </div>
+        <button class="btn-notification">
+          <span class="bell-icon">&#128276;</span>
+        </button>
+      </div>
     </div>
-  </div>
-</nav>
+  </nav>
+} @else {
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a class="navbar-logo" routerLink="/">
+        <span class="logo-bracket">&lt;</span>CodeArena<span class="logo-bracket">/&gt;</span>
+      </a>
+
+      <div class="navbar-links">
+        <a class="nav-link" routerLink="/ranking" routerLinkActive="active">Ranking</a>
+        <a class="nav-link" routerLink="/about" routerLinkActive="active">About</a>
+      </div>
+
+      <div class="navbar-actions">
+        <a class="btn-login" routerLink="/login">Log in</a>
+        <a class="btn-join" routerLink="/register">Register</a>
+      </div>
+    </div>
+  </nav>
+}

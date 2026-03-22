@@ -1,0 +1,159 @@
+.friends-panel {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+  padding: 20px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.section-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 1.5px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+}
+
+.title-bar {
+  width: 3px;
+  height: 14px;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+
+.friends-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.friend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 6px;
+  transition: background 0.15s ease;
+}
+
+.friend-item:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.friend-avatar {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.avatar-letter {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text);
+  font-family: var(--font-mono);
+}
+
+.status-indicator {
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 9px;
+  height: 9px;
+  border: 2px solid #0a0a0a;
+}
+
+.status-indicator.online {
+  background: var(--accent);
+}
+
+.status-indicator.in-duel {
+  background: #ffa502;
+}
+
+.status-indicator.offline {
+  background: #555;
+}
+
+.friend-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.friend-name {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.friend-status-text {
+  font-size: 0.6rem;
+  letter-spacing: 0.8px;
+  font-weight: 575;
+}
+
+.online-text {
+  color: var(--accent);
+}
+
+.duel-text {
+  color: #ffa502;
+}
+
+.offline-text {
+  color: #555;
+}
+
+.btn-invite {
+  font-size: 0.6rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--accent);
+  background: transparent;
+  border: 1px solid rgba(0, 255, 65, 0.3);
+  padding: 4px 10px;
+  cursor: pointer;
+  letter-spacing: 0.8px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.btn-invite:hover {
+  background: rgba(0, 255, 65, 0.08);
+  border-color: var(--accent);
+}
+
+.status-badge {
+  font-size: 0.58rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  letter-spacing: 0.8px;
+  padding: 3px 8px;
+  flex-shrink: 0;
+}
+
+.status-badge.duel {
+  color: #ffa502;
+  border: 1px solid rgba(255, 165, 2, 0.3);
+}
+
+.status-badge.offline {
+  color: #555;
+  border: 1px solid rgba(85, 85, 85, 0.3);
+}
