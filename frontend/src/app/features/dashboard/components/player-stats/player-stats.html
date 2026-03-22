@@ -1,0 +1,26 @@
+<section class="player-stats">
+  <h2 class="section-title">
+    <span class="title-bar"></span>
+    PLAYER STATISTICS
+  </h2>
+
+  <div class="stats-top">
+    <div class="stat-box">
+      <span class="stat-label">TOTAL DUELS</span>
+      <span class="stat-value">{{ stats.totalDuels }}</span>
+    </div>
+    <div class="stat-box">
+      <span class="stat-label">WIN RATE</span>
+      <span class="stat-value accent">{{ stats.winRate }}</span>
+    </div>
+  </div>
+
+  <div class="stats-list">
+    @for (row of stats.rows; track row.label) {
+    <div class="stat-row">
+      <span class="stat-row-label">{{ row.label }}</span>
+      <span class="stat-row-value" [class.streak]="row.accent">{{ row.value }}</span>
+    </div>
+    }
+  </div>
+</section>
