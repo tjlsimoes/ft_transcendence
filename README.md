@@ -92,3 +92,13 @@ erDiagram
 
 - Tool: Flyway
 - Baseline migration: [backend/src/main/resources/db/migration/V1__init.sql](backend/src/main/resources/db/migration/V1__init.sql)
+
+## Local Reset Helper
+
+If local startup fails due to reused Postgres state (roles/schema mismatch), run this from the repository root to reset local data and recreate containers:
+
+```bash
+docker compose down && rm -rf database/data && echo "3" | ./setup.sh
+```
+
+This removes local database files and should only be used for local development.
