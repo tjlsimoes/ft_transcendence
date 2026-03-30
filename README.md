@@ -1,104 +1,49 @@
 # Code Arena
 
-Core docs live in [documentation/setup-guide/README.md](documentation/setup-guide/README.md).
+Code Arena is a competitive programming platform providing a real-time environment for coding duels and challenges. The system is architected as a set of distributed services including an Angular frontend, a Spring Boot backend, and PostgreSQL/Redis infrastructure.
 
-## Database ERD (MVP)
+## Deployment Guide
 
-```mermaid
-erDiagram
-    USERS {
-        bigint id PK
-        string login
-        string email
-        string password_hash
-        string avatar_url
-        int elo
-        timestamp created_at
-    }
+The platform is designed to be deployed using Docker and Docker Compose, ensuring consistency across environments.
 
-    FRIENDSHIPS {
-        bigint user_id PK, FK
-        bigint friend_id PK, FK
-        string status
-    }
+### Prerequisites
 
-    CHALLENGES {
-        bigint id PK
-        string title
-        string description
-        string difficulty
-        int time_limit_secs
-        jsonb test_cases
-    }
+-   Docker and Docker Compose (v2.x recommended)
+-   Properly configured environment variables in a `.env` file
 
-    DUELS {
-        bigint id PK
-        bigint challenger_id FK
-        bigint opponent_id FK
-        bigint challenge_id FK
-        string status
-        timestamp started_at
-        timestamp ended_at
-    }
+### Standard Deployment
 
-    SUBMISSIONS {
-        bigint id PK
-        bigint duel_id FK
-        bigint user_id FK
-        string language
-        text code
-        int score
-        timestamp submitted_at
-    }
+To deploy the full application stack (Frontend, Backend, Proxy, Database, and Cache):
 
-    RANKINGS {
-        bigint user_id PK, FK
-        int elo
-        string league
-        int win_streak
-    }
+1.  **Environment Configuration**: Ensure the `.env` file is present and populated with the required secrets and configurations.
+2.  **System Initialization**: Execute the setup script to prepare the environment (e.g., generating SSL certificates if required):
+    ```bash
+    ./setup.sh
+    ```
+3.  **Service Orchestration**: Launch all services in detached mode:
+    ```bash
+    docker compose up -d
+    ```
 
-    NOTIFICATIONS {
-        bigint id PK
-        bigint user_id FK
-        string type
-        jsonb payload
-        boolean read
-        timestamp created_at
-    }
+The application will be accessible via the endpoint defined in the `proxy` service configuration.
 
-    MESSAGES {
-        bigint id PK
-        bigint sender_id FK
-        bigint recipient_id FK
-        text content
-        timestamp created_at
-    }
+---
 
-    USERS ||--o{ FRIENDSHIPS : user
-    USERS ||--o{ FRIENDSHIPS : friend
-    USERS ||--o{ DUELS : challenger
-    USERS ||--o{ DUELS : opponent
-    CHALLENGES ||--o{ DUELS : challenge
-    DUELS ||--o{ SUBMISSIONS : has
-    USERS ||--o{ SUBMISSIONS : author
-    USERS ||--|| RANKINGS : has
-    USERS ||--o{ NOTIFICATIONS : receives
-    USERS ||--o{ MESSAGES : sends
-    USERS ||--o{ MESSAGES : receives
-```
+## Documentation
 
-## Migrations
+Comprehensive project documentation is maintained in the `documentation/` directory for various functional areas:
 
-- Tool: Flyway
-- Baseline migration: [backend/src/main/resources/db/migration/V1__init.sql](backend/src/main/resources/db/migration/V1__init.sql)
+-   **Architecture & Design**: Detailed overview of the system [architecture](documentation/database/architecture.md).
+-   **Database Operations**: Procedures for [persistence and migrations](documentation/database/operations.md).
+-   **Development Workflow**: Instructions for [local development and hot-reloading](documentation/setup-guide/development.md).
+-   **Project Roadmap**: Current status and [future milestones](documentation/roadmap.md).
 
-## Local Reset Helper
+## Development and Maintenance
 
-If local startup fails due to reused Postgres state (roles/schema mismatch), run this from the repository root to reset local data and recreate containers:
+### Local Development
 
-```bash
-docker compose down && rm -rf database/data && echo "3" | ./setup.sh
-```
+For developers requiring hot-reloading capabilities and IDE integration, a "Hybrid" workflow is supported. Refer to the [Development Workflow Guide](documentation/setup-guide/development.md) for detailed setup instructions.
 
-This removes local database files and should only be used for local development.
+### Database Operations
+
+The database schema is managed via **Flyway** migrations. Detailed operational procedures, including backup and restore logic, are documented in the [Database Operations Guide](documentation/database/operations.md).
