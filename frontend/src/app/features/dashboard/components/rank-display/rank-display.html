@@ -1,38 +1,28 @@
-<section class="rank-display">
-  <div class="rank-season">RANKED SEASON 04</div>
-
-  <div class="rank-diamond-wrapper">
-    <div class="rank-diamond">
-      <span class="rank-text">G2</span>
+<article class="rank-panel">
+  <div class="rank-card">
+    <div class="rank-emblem">
+      <div class="rank-emblem-inner">
+        <span>{{ rank().tierCode }}</span>
+      </div>
     </div>
-    <div class="diamond-glow"></div>
-  </div>
 
-  <h1 class="rank-title">GOLD LEAGUE</h1>
+    <p class="rank-league">{{ rank().leagueName }}</p>
+    <h1 class="rank-season">{{ rank().seasonLabel }}</h1>
+    <p class="rank-series">{{ rank().recentResults }}</p>
 
-  <div class="recent-results">
-    <span class="result win">W</span>
-    <span class="result win">W</span>
-    <span class="result loss">L</span>
-    <span class="result win">W</span>
-    <span class="result win">W</span>
-  </div>
-
-  <div class="progress-section">
-    <div class="progress-label">
-      <span>PROGRESS TO PLATINUM</span>
-      <span class="progress-lp">2350 / 3000 LP</span>
+    <div class="rank-progress">
+      <div class="progress-head">
+        <span>{{ rank().progressLabel }}</span>
+        <span>{{ rank().currentLp }} / {{ rank().targetLp }} LP</span>
+      </div>
+      <div class="progress-track" role="progressbar" [attr.aria-valuenow]="rank().currentLp" [attr.aria-valuemin]="0" [attr.aria-valuemax]="rank().targetLp">
+        <span class="progress-fill" [style.width.%]="rank().progressPercent"></span>
+      </div>
     </div>
-    <div class="progress-track">
-      <div class="progress-fill" style="width: 78.3%"></div>
+
+    <div class="rank-actions">
+      <button class="btn-rank btn-rank--primary" type="button">{{ rank().primaryAction }}</button>
+      <button class="btn-rank btn-rank--ghost" type="button">{{ rank().secondaryAction }}</button>
     </div>
   </div>
-
-  <div class="action-buttons">
-    <button class="btn-ranked">
-      <span class="btn-icon">&#9654;</span>
-      ENTER RANKED QUEUE
-    </button>
-    <button class="btn-practice">PRACTICE</button>
-  </div>
-</section>
+</article>

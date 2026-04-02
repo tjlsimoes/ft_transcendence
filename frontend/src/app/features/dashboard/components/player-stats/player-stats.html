@@ -1,26 +1,48 @@
-<section class="player-stats">
-  <h2 class="section-title">
-    <span class="title-bar"></span>
-    PLAYER STATISTICS
-  </h2>
+<article class="stats-panel">
+  <header class="panel-header">
+    <h2>Player Statistics</h2>
+  </header>
 
-  <div class="stats-top">
-    <div class="stat-box">
-      <span class="stat-label">TOTAL DUELS</span>
-      <span class="stat-value">{{ stats.totalDuels }}</span>
+  <div class="stat-kpis">
+    <div class="kpi-card">
+      <span class="kpi-label">Total Duels</span>
+      <strong class="kpi-value">{{ stats().totalDuels }}</strong>
     </div>
-    <div class="stat-box">
-      <span class="stat-label">WIN RATE</span>
-      <span class="stat-value accent">{{ stats.winRate }}</span>
+
+    <div class="kpi-card kpi-card--accent">
+      <span class="kpi-label">Win Rate</span>
+      <strong class="kpi-value">{{ stats().winRate }}</strong>
     </div>
   </div>
 
-  <div class="stats-list">
-    @for (row of stats.rows; track row.label) {
-    <div class="stat-row">
-      <span class="stat-row-label">{{ row.label }}</span>
-      <span class="stat-row-value" [class.streak]="row.accent">{{ row.value }}</span>
-    </div>
+  <ul class="overview-list">
+    <li>
+      <span>Wins</span>
+      <strong>{{ stats().wins }}</strong>
+    </li>
+    <li>
+      <span>Losses</span>
+      <strong>{{ stats().losses }}</strong>
+    </li>
+    <li>
+      <span>Win Streak</span>
+      <strong class="accent">{{ stats().winStreak }} HOT</strong>
+    </li>
+  </ul>
+
+  <div class="skill-section">
+    <h3>Skill Distribution</h3>
+
+    @for (skill of stats().skills; track skill.label) {
+      <div class="skill-item">
+        <div class="skill-head">
+          <span>{{ skill.label }}</span>
+          <span>{{ skill.value }}%</span>
+        </div>
+        <div class="skill-track">
+          <span class="skill-fill" [style.width.%]="skill.value"></span>
+        </div>
+      </div>
     }
   </div>
-</section>
+</article>

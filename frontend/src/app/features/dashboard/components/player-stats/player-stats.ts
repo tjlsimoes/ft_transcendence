@@ -1,26 +1,18 @@
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 
-export type PlayerStatRow = {
+export interface SkillItem {
   label: string;
-  value: string;
-  accent?: boolean;
-};
+  value: number;
+}
 
-export type PlayerStatsViewModel = {
+export interface PlayerStatsData {
   totalDuels: string;
   winRate: string;
-  rows: PlayerStatRow[];
-};
-
-export const MOCK_PLAYER_STATS: PlayerStatsViewModel = {
-  totalDuels: '1,284',
-  winRate: '64.2%',
-  rows: [
-    { label: 'Wins', value: '824' },
-    { label: 'Losses', value: '460' },
-    { label: 'Win Streak', value: '7', accent: true },
-  ],
-};
+  wins: string;
+  losses: string;
+  winStreak: string;
+  skills: SkillItem[];
+}
 
 @Component({
   selector: 'app-player-stats',
@@ -28,5 +20,5 @@ export const MOCK_PLAYER_STATS: PlayerStatsViewModel = {
   styleUrl: './player-stats.css',
 })
 export class PlayerStats {
-  @Input() stats: PlayerStatsViewModel = MOCK_PLAYER_STATS;
+  stats = input.required<PlayerStatsData>();
 }

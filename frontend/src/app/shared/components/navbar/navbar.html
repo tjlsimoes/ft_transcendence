@@ -8,18 +8,17 @@
       <div class="navbar-links">
         <a class="nav-link" routerLink="/lobby" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Lobby</a>
         <a class="nav-link" routerLink="/ranking" routerLinkActive="active">Ranking</a>
-        <a class="nav-link" routerLink="/challenges" routerLinkActive="active">Challenges</a>
         <a class="nav-link" routerLink="/friends" routerLinkActive="active">Friends</a>
         <a class="nav-link" routerLink="/profile" routerLinkActive="active">Profile</a>
       </div>
 
       <div class="navbar-user">
         <div class="user-info">
-          <span class="user-name">NULL_POINTER</span>
-          <span class="user-rank">GOLD II // 2350 LP</span>
+          <span class="user-name">{{ lobbyUser.name }}</span>
+          <span class="user-rank">{{ lobbyUser.rank }}</span>
         </div>
         <div class="user-avatar">
-          <span class="avatar-letter">N</span>
+          <span class="avatar-letter">{{ lobbyUser.avatarLetter }}</span>
         </div>
         <button class="btn-notification">
           <span class="bell-icon">&#128276;</span>

@@ -1,194 +1,179 @@
-.rank-display {
+:host {
+  display: block;
+}
+
+.rank-panel {
+  background: color-mix(in srgb, var(--bg) 94%, #151515);
+  border: 1px solid var(--border);
+  padding: 22px;
+  animation: rankEnter 420ms ease both;
+}
+
+.rank-card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 32px 20px;
-  gap: 16px;
-  flex: 1;
+  gap: 12px;
+  text-align: center;
+}
+
+.rank-emblem {
+  width: 130px;
+  height: 130px;
+  border: 2px solid rgba(0, 243, 61, 0.7);
+  transform: rotate(45deg);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 0 28px rgba(0, 243, 61, 0.2);
+  margin-top: 4px;
+}
+
+.rank-emblem-inner {
+  transform: rotate(-45deg);
+  display: grid;
+  place-items: center;
+}
+
+.rank-emblem-inner span {
+  font-size: 2.8rem;
+  color: rgba(236, 236, 236, 0.92);
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.rank-league {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--accent);
+  background: rgba(0, 243, 61, 0.08);
+  border: 1px solid rgba(0, 243, 61, 0.28);
+  padding: 4px 10px;
 }
 
 .rank-season {
-  font-size: 0.65rem;
-  color: var(--text-muted);
-  letter-spacing: 2px;
-  font-weight: 575;
-  font-family: var(--font-mono);
-}
-
-.rank-diamond-wrapper {
-  position: relative;
-  width: 130px;
-  height: 130px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 8px 0;
-}
-
-.rank-diamond {
-  width: 90px;
-  height: 90px;
-  border: 2px solid var(--accent);
-  transform: rotate(45deg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 255, 65, 0.05);
-  position: relative;
-  z-index: 2;
-}
-
-.rank-text {
-  transform: rotate(-45deg);
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: var(--accent);
-  font-family: var(--font-mono);
-  letter-spacing: 2px;
-}
-
-.diamond-glow {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle, rgba(0, 255, 65, 0.12) 0%, transparent 70%);
-  z-index: 1;
-}
-
-.rank-title {
-  font-size: 1.6rem;
-  font-weight: 700;
+  font-size: clamp(1.4rem, 2.3vw, 2rem);
+  text-transform: uppercase;
+  letter-spacing: 1.7px;
   color: var(--text);
-  letter-spacing: 4px;
-  font-family: var(--font-mono);
 }
 
-.recent-results {
-  display: flex;
-  gap: 8px;
-  margin: 4px 0;
-}
-
-.result {
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.72rem;
-  font-weight: 700;
-  font-family: var(--font-mono);
-}
-
-.result.win {
+.rank-series {
+  font-size: 0.9rem;
+  letter-spacing: 3px;
   color: var(--accent);
-  background: rgba(0, 255, 65, 0.1);
-  border: 1px solid rgba(0, 255, 65, 0.25);
+  font-weight: 700;
 }
 
-.result.loss {
-  color: #ff4757;
-  background: rgba(255, 71, 87, 0.1);
-  border: 1px solid rgba(255, 71, 87, 0.25);
+.rank-progress {
+  width: min(100%, 620px);
+  margin-top: 10px;
 }
 
-.progress-section {
-  width: 100%;
-  max-width: 380px;
-  margin-top: 8px;
-}
-
-.progress-label {
+.progress-head {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  font-size: 0.62rem;
+  gap: 12px;
+  margin-bottom: 7px;
+  font-size: 0.73rem;
+  text-transform: uppercase;
+  letter-spacing: 1.4px;
   color: var(--text-muted);
-  letter-spacing: 1px;
-  margin-bottom: 8px;
-  font-weight: 575;
-  font-family: var(--font-mono);
 }
 
-.progress-lp {
+.progress-head span:last-child {
   color: var(--accent);
+  font-weight: 700;
 }
 
 .progress-track {
-  width: 100%;
-  height: 8px;
-  background: rgba(255, 255, 255, 0.08);
-  overflow: hidden;
+  height: 11px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(0, 0, 0, 0.45);
+  position: relative;
 }
 
 .progress-fill {
+  display: block;
   height: 100%;
-  background: var(--accent);
-  transition: width 0.6s ease;
-  box-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+  background: linear-gradient(90deg, rgba(0, 243, 61, 0.6), var(--accent));
+  box-shadow: 0 0 16px rgba(0, 243, 61, 0.35);
+  transition: width 420ms ease;
 }
 
-.action-buttons {
-  display: flex;
+.rank-actions {
+  width: min(100%, 620px);
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 12px;
-  margin-top: 12px;
-  width: 100%;
-  max-width: 380px;
 }
 
-.btn-ranked {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px 20px;
+.btn-rank {
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 1.7px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  padding: 14px 18px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: transform 200ms ease, background 200ms ease, border-color 200ms ease, color 200ms ease;
+}
+
+.btn-rank:hover {
+  transform: translateY(-1px);
+}
+
+.btn-rank--primary {
   background: var(--accent);
   color: var(--bg);
-  border: 1px solid var(--accent);
-  font-size: 0.75rem;
-  font-weight: 700;
-  font-family: var(--font-mono);
-  letter-spacing: 1px;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  border-color: var(--accent);
+  box-shadow: 0 0 24px rgba(0, 243, 61, 0.25);
 }
 
-.btn-ranked:hover {
+.btn-rank--primary:hover {
   background: var(--accent-hover);
   border-color: var(--accent-hover);
-  box-shadow: 0 0 20px rgba(0, 255, 65, 0.2);
 }
 
-.btn-icon {
-  font-size: 0.65rem;
-}
-
-.btn-practice {
-  padding: 12px 24px;
+.btn-rank--ghost {
   background: transparent;
   color: var(--text);
-  border: 1px solid var(--border);
-  font-size: 0.75rem;
-  font-weight: 700;
-  font-family: var(--font-mono);
-  letter-spacing: 1px;
-  cursor: pointer;
-  transition: all 0.2s ease;
 }
 
-.btn-practice:hover {
-  border-color: rgba(255, 255, 255, 0.35);
-  color: var(--text);
+.btn-rank--ghost:hover {
+  color: var(--accent);
+  border-color: rgba(0, 243, 61, 0.45);
+  background: rgba(0, 243, 61, 0.06);
 }
 
-@media (max-width: 480px) {
-  .rank-title {
-    font-size: 1.2rem;
-    letter-spacing: 2px;
+@keyframes rankEnter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 760px) {
+  .rank-panel {
+    padding: 18px 14px;
   }
 
-  .action-buttons {
-    flex-direction: column;
+  .rank-emblem {
+    width: 108px;
+    height: 108px;
+  }
+
+  .rank-emblem-inner span {
+    font-size: 2.2rem;
+  }
+
+  .rank-actions {
+    grid-template-columns: 1fr;
   }
 }

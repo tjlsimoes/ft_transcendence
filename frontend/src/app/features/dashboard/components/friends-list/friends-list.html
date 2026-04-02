@@ -1,68 +1,21 @@
-<section class="friends-panel">
-  <h2 class="section-title">
-    <span class="title-bar"></span>
-    NEURAL NETWORK [FRIENDS]
-  </h2>
+<article class="friends-panel">
+  <header class="panel-header">
+    <h2>Neural Network [friends]</h2>
+  </header>
 
-  <div class="friends-list">
-    <div class="friend-item">
-      <div class="friend-avatar">
-        <span class="avatar-letter">M</span>
-        <span class="status-indicator online"></span>
-      </div>
-      <div class="friend-info">
-        <span class="friend-name">Maria_Dev</span>
-        <span class="friend-status-text online-text">ONLINE</span>
-      </div>
-      <button class="btn-invite">INVITE</button>
-    </div>
+  <ul class="friends-list">
+    @for (friend of friends(); track friend.nickname) {
+      <li class="friend-item">
+        <div class="friend-main">
+          <span class="status-dot" [class.status-dot--duel]="friend.status === 'in-duel'" [class.status-dot--offline]="friend.status === 'offline'"></span>
+          <span class="friend-name">{{ friend.nickname }}</span>
+        </div>
 
-    <div class="friend-item">
-      <div class="friend-avatar">
-        <span class="avatar-letter">A</span>
-        <span class="status-indicator in-duel"></span>
-      </div>
-      <div class="friend-info">
-        <span class="friend-name">Alex_Cipher</span>
-        <span class="friend-status-text duel-text">IN DUEL</span>
-      </div>
-      <span class="status-badge duel">IN DUEL</span>
-    </div>
-
-    <div class="friend-item">
-      <div class="friend-avatar">
-        <span class="avatar-letter">B</span>
-        <span class="status-indicator online"></span>
-      </div>
-      <div class="friend-info">
-        <span class="friend-name">ByteMaster</span>
-        <span class="friend-status-text online-text">ONLINE</span>
-      </div>
-      <button class="btn-invite">INVITE</button>
-    </div>
-
-    <div class="friend-item">
-      <div class="friend-avatar">
-        <span class="avatar-letter">G</span>
-        <span class="status-indicator offline"></span>
-      </div>
-      <div class="friend-info">
-        <span class="friend-name">Ghost_User</span>
-        <span class="friend-status-text offline-text">OFFLINE</span>
-      </div>
-      <span class="status-badge offline">OFFLINE</span>
-    </div>
-
-    <div class="friend-item">
-      <div class="friend-avatar">
-        <span class="avatar-letter">R</span>
-        <span class="status-indicator offline"></span>
-      </div>
-      <div class="friend-info">
-        <span class="friend-name">RootAccess</span>
-        <span class="friend-status-text offline-text">OFFLINE</span>
-      </div>
-      <span class="status-badge offline">OFFLINE</span>
-    </div>
-  </div>
-</section>
+        <div class="friend-meta">
+          <span class="friend-status" [class.friend-status--online]="friend.status === 'online'" [class.friend-status--duel]="friend.status === 'in-duel'">{{ statusLabel(friend.status) }}</span>
+          <button class="friend-action" type="button" [disabled]="friend.status !== 'online'">{{ friend.actionLabel }}</button>
+        </div>
+      </li>
+    }
+  </ul>
+</article>
