@@ -1,5 +1,10 @@
 :host {
   display: block;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
 }
 
 .status-bar {
@@ -34,8 +39,12 @@
   flex-shrink: 0;
 }
 
-.status-left span:nth-child(3) {
+
+/* make the ms unit green */
+.ms {
   color: var(--accent);
+  font-weight: 700;
+  margin-left: 4px;
 }
 
 .status-right span:last-child {

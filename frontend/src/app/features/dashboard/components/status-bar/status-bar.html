@@ -3,7 +3,7 @@
     <span class="dot"></span>
     <span>Server: {{ status().server }}</span>
     <span>[{{ status().onlineStatus }}]</span>
-    <span>Latency: {{ status().latency }}</span>
+    <span>Latency: <span class="ms">{{ status().latency }}</span></span>
   </div>
 
   <div class="status-right">
