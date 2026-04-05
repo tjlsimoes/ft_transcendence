@@ -4,75 +4,94 @@
 }
 
 .activity-panel {
-  background: color-mix(in srgb, var(--bg) 94%, #131313);
+  background: var(--bg-subtle);
   border: 1px solid var(--border);
-  padding: 16px;
+  border-radius: var(--radius-md);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
   min-height: 100%;
   animation: panelEnter 420ms ease both;
   animation-delay: 160ms;
 }
 
 .panel-header {
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
 .panel-header h2 {
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   letter-spacing: 2px;
   text-transform: uppercase;
   color: var(--text-muted);
+  font-weight: 600;
 }
 
 .log-list {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   max-height: 100%;
   overflow: auto;
   padding-right: 4px;
 }
 
 .log-list::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
+}
+
+.log-list::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .log-list::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 2px;
+}
+
+.log-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.22);
 }
 
 .log-item {
-  border-left: 2px solid rgba(255, 255, 255, 0.18);
-  padding: 8px 0 8px 10px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  background: var(--surface);
   transition: border-color 200ms ease, background 200ms ease;
 }
 
 .log-item:hover {
-  border-left-color: rgba(0, 243, 61, 0.45);
-  background: rgba(255, 255, 255, 0.01);
+  border-color: var(--border-strong);
+  border-left-color: var(--border-strong);
+  background: var(--surface-elevated);
 }
 
 .log-item--success {
-  border-left-color: rgba(0, 243, 61, 0.8);
+  border-left-color: var(--accent) !important;
+  background: rgba(0, 229, 58, 0.03);
 }
 
 .log-item--warning {
-  border-left-color: #ff960c;
+  border-left-color: #ffaa40 !important;
+  background: rgba(255, 170, 64, 0.03);
 }
 
 .log-time {
   display: block;
   font-size: 0.68rem;
-  color: rgba(184, 184, 184, 0.9);
+  color: var(--text-dim);
   letter-spacing: 1.2px;
-  margin-bottom: 2px;
+  margin-bottom: 3px;
+  font-weight: 500;
 }
 
 .log-title {
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   text-transform: uppercase;
-  letter-spacing: 1.1px;
-  margin-bottom: 3px;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
   color: var(--text);
   font-weight: 700;
 }
@@ -82,13 +101,13 @@
 }
 
 .log-item--warning .log-title {
-  color: #ff960c;
+  color: #ffaa40;
 }
 
 .log-message {
-  font-size: 0.86rem;
+  font-size: 0.83rem;
   color: var(--text-muted);
-  line-height: 1.45;
+  line-height: 1.5;
 }
 
 @keyframes panelEnter {

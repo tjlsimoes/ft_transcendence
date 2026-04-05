@@ -8,16 +8,16 @@
   min-height: 100vh;
   max-width: 1600px;
   margin: 0 auto;
-  padding: 80px 24px 20px;
+  padding: 84px 28px 28px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
 }
 
 .lobby-grid {
   display: grid;
-  grid-template-columns: minmax(270px, 320px) minmax(0, 1fr) minmax(290px, 340px);
-  gap: 14px;
+  grid-template-columns: minmax(280px, 320px) minmax(0, 1fr) minmax(300px, 340px);
+  gap: 16px;
   flex: 1;
 }
 
@@ -26,14 +26,16 @@
 .lobby-right {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
   min-height: 0;
 }
 
 .lobby-panel {
-  background: color-mix(in srgb, var(--bg) 94%, #141414);
+  background: var(--bg-subtle);
   border: 1px solid var(--border);
-  padding: 16px;
+  border-radius: var(--radius-md);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
   animation: panelEnter 420ms ease both;
 }
 
@@ -47,25 +49,27 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 18% 8%, rgba(0, 243, 61, 0.1), transparent 44%);
+  background: radial-gradient(circle at 15% 0%, rgba(0, 229, 58, 0.07), transparent 50%);
   pointer-events: none;
+  border-radius: inherit;
 }
 
 .panel-header {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
   position: relative;
   z-index: 1;
 }
 
 .panel-title {
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
-  letter-spacing: 2.2px;
+  letter-spacing: 2px;
   color: var(--text-muted);
+  font-weight: 600;
 }
 
 .panel-meta {
@@ -73,6 +77,10 @@
   color: var(--accent);
   text-transform: uppercase;
   letter-spacing: 1.4px;
+  font-weight: 600;
+  background: var(--accent-dim);
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
 }
 
 .transmissions-grid {
@@ -85,15 +93,16 @@
 
 .duel-card {
   border: 1px solid var(--border);
-  padding: 12px;
-  background: color-mix(in srgb, var(--bg) 96%, #111111);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  background: var(--surface);
   transition: transform 220ms ease, border-color 220ms ease, box-shadow 220ms ease;
 }
 
 .duel-card:hover {
   transform: translateY(-2px);
-  border-color: rgba(0, 243, 61, 0.35);
-  box-shadow: 0 0 0 1px rgba(0, 243, 61, 0.14);
+  border-color: var(--border-accent);
+  box-shadow: 0 4px 16px rgba(0, 229, 58, 0.1), 0 0 0 1px rgba(0, 229, 58, 0.1);
 }
 
 .duel-top {
@@ -101,20 +110,23 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .duel-mode {
-  font-size: 0.66rem;
+  font-size: 0.68rem;
   text-transform: uppercase;
   letter-spacing: 1.3px;
-  color: var(--text-muted);
+  color: var(--text-dim);
 }
 
 .duel-timer {
   font-size: 0.78rem;
-  color: #ffa12e;
+  color: #ffaa40;
   font-weight: 700;
+  background: rgba(255, 170, 64, 0.1);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
 }
 
 .duel-vs {
@@ -126,7 +138,7 @@
 }
 
 .duel-player {
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   color: var(--text);
   font-weight: 600;
   white-space: nowrap;
@@ -139,21 +151,23 @@
 }
 
 .duel-divider {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   text-transform: uppercase;
   letter-spacing: 1.1px;
-  color: rgba(184, 184, 184, 0.75);
+  color: var(--text-dim);
+  font-weight: 700;
 }
 
 .duel-watch {
   width: 100%;
   background: transparent;
   border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   color: var(--text-muted);
   padding: 8px;
   text-transform: uppercase;
   letter-spacing: 1.4px;
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   font-weight: 700;
   font-family: var(--font-mono);
   cursor: pointer;
@@ -161,15 +175,15 @@
 }
 
 .duel-watch:hover {
-  border-color: rgba(0, 243, 61, 0.45);
+  border-color: var(--border-accent);
   color: var(--accent);
-  background: rgba(0, 243, 61, 0.06);
+  background: var(--accent-dim);
 }
 
 @keyframes panelEnter {
   from {
     opacity: 0;
-    transform: translateY(9px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -189,7 +203,7 @@
 
 @media (max-width: 960px) {
   .lobby-shell {
-    padding: 72px 16px 16px;
+    padding: 76px 18px 18px;
   }
 
   .lobby-grid {

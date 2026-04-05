@@ -5,15 +5,16 @@
   left: 0;
   right: 0;
   z-index: 100;
-  background: color-mix(in srgb, var(--bg) 85%, transparent);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border-accent);
+  background: rgba(8, 12, 10, 0.88);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border-bottom: 1px solid var(--border);
 }
 
 .navbar-inner {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 28px;
   height: 64px;
   display: flex;
   align-items: center;
@@ -34,6 +35,11 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  transition: opacity 0.2s ease;
+}
+
+.navbar-logo:hover {
+  opacity: 0.85;
 }
 
 .logo-bracket {
@@ -53,6 +59,7 @@
   font-size: 0.85rem;
   font-weight: 700;
   font-family: var(--font-mono);
+  border-radius: var(--radius-sm);
 }
 
 .logo-text {
@@ -66,73 +73,83 @@
 /* ===== Navbar links ===== */
 .navbar-links {
   display: flex;
-  gap: 32px;
+  gap: 4px;
 }
 
 .nav-link {
   font-size: 0.8rem;
-  font-weight: 575;
+  font-weight: 500;
   color: var(--text-muted);
   text-decoration: none;
   letter-spacing: 0.8px;
   text-transform: uppercase;
-  transition: color 0.2s ease;
+  transition: color 0.2s ease, background 0.2s ease;
   font-family: var(--font-mono);
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  position: relative;
 }
 
 .nav-link:hover {
   color: var(--text);
+  background: var(--surface);
 }
 
 .nav-link.active {
   color: var(--accent);
+  background: var(--accent-dim);
 }
 
 /* ===== Default actions (login/register) ===== */
 .navbar-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .btn-login {
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 600;
   color: var(--text-muted);
   text-decoration: none;
-  padding: 6px 16px;
+  padding: 7px 18px;
   border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   letter-spacing: 0.5px;
-  transition: border-color 0.2s ease, color 0.2s ease;
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
 }
 
 .btn-login:hover {
-  border-color: rgba(255, 255, 255, 0.35);
+  border-color: var(--border-strong);
   color: var(--text);
+  background: var(--surface);
 }
 
 .btn-join {
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   color: var(--bg);
   background: var(--accent);
   text-decoration: none;
-  padding: 6px 16px;
+  padding: 7px 18px;
   border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
   font-weight: 700;
   letter-spacing: 0.5px;
-  transition: background 0.2s ease, border-color 0.2s ease;
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 0 18px var(--accent-glow);
 }
 
 .btn-join:hover {
   background: var(--accent-hover);
   border-color: var(--accent-hover);
+  box-shadow: 0 0 28px var(--accent-glow);
 }
 
 /* ===== Lobby user section ===== */
 .navbar-user {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .user-info {
@@ -143,7 +160,7 @@
 }
 
 .user-name {
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 700;
   color: var(--text);
   letter-spacing: 0.5px;
@@ -151,25 +168,27 @@
 }
 
 .user-rank {
-  font-size: 0.6rem;
+  font-size: 0.65rem;
   color: var(--accent);
   letter-spacing: 0.8px;
-  font-weight: 575;
+  font-weight: 600;
   font-family: var(--font-mono);
 }
 
 .user-avatar {
-  width: 34px;
-  height: 34px;
-  background: rgba(0, 255, 65, 0.1);
-  border: 1px solid rgba(0, 255, 65, 0.3);
+  width: 36px;
+  height: 36px;
+  background: var(--accent-dim);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 0 12px rgba(0, 229, 58, 0.1);
 }
 
 .avatar-letter {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 700;
   color: var(--accent);
   font-family: var(--font-mono);
@@ -177,21 +196,23 @@
 
 .btn-notification {
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border);
   color: var(--text-muted);
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
   font-size: 0.9rem;
 }
 
 .btn-notification:hover {
-  border-color: rgba(255, 255, 255, 0.25);
+  border-color: var(--border-strong);
   color: var(--text);
+  background: var(--surface);
 }
 
 .bell-icon {
@@ -205,7 +226,7 @@
   }
 
   .navbar-inner {
-    padding: 0 16px;
+    padding: 0 18px;
   }
 
   .navbar-actions {
@@ -214,8 +235,8 @@
 
   .btn-login,
   .btn-join {
-    font-size: 0.78rem;
-    padding: 5px 12px;
+    font-size: 0.76rem;
+    padding: 6px 13px;
   }
 }
 

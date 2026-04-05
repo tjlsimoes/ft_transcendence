@@ -13,9 +13,11 @@
 .auth-card {
   width: 100%;
   max-width: 420px;
-  background: color-mix(in srgb, var(--bg) 92%, #1a1a1a);
+  background: var(--bg-subtle);
   border: 1px solid var(--border);
+  border-radius: var(--radius-md);
   padding: 40px 36px;
+  box-shadow: var(--shadow-lg);
   animation: fadeIn 0.35s ease-out;
 }
 
@@ -43,11 +45,12 @@
   font-weight: 700;
   color: var(--text);
   margin: 20px 0 8px;
+  letter-spacing: -0.3px;
 }
 
 .auth-subtitle {
-  font-size: 0.85rem;
-  font-weight: 575;
+  font-size: 0.875rem;
+  font-weight: 400;
   color: var(--text-muted);
 }
 
@@ -65,36 +68,38 @@
 }
 
 .form-label {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
 }
 
 .form-input {
   width: 100%;
-  padding: 10px 14px;
-  background: var(--bg);
+  padding: 11px 14px;
+  background: rgba(0, 0, 0, 0.3);
   border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   color: var(--text);
   font-family: var(--font-mono);
   font-size: 0.9rem;
-  font-weight: 575;
+  font-weight: 400;
   outline: none;
-  transition: border-color 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .form-input::placeholder {
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.2);
 }
 
 .form-input:focus {
   border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(0, 229, 58, 0.08);
 }
 
 .form-input.input-error {
-  border-color: #f44;
+  border-color: #f55;
 }
 
 /* Wrapper para posicionar botão de mostrar/ocultar senha. */
@@ -113,20 +118,20 @@
   transform: translateY(-50%);
   background: none;
   border: none;
-  color: var(--text-muted);
+  color: var(--text-dim);
   cursor: pointer;
   padding: 2px;
   transition: color 0.2s ease;
 }
 
 .toggle-pw:hover {
-  color: var(--text);
+  color: var(--text-muted);
 }
 
 .error-msg {
   font-size: 0.75rem;
   font-weight: 600;
-  color: #f44;
+  color: #f55;
 }
 
 /* Linha auxiliar de opções (lembrar + recuperação de senha). */
@@ -140,8 +145,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.8rem;
-  font-weight: 575;
+  font-size: 0.82rem;
+  font-weight: 400;
   color: var(--text-muted);
   cursor: pointer;
 }
@@ -154,8 +159,8 @@
 }
 
 .link-subtle {
-  font-size: 0.8rem;
-  font-weight: 575;
+  font-size: 0.82rem;
+  font-weight: 500;
   color: var(--text-muted);
   text-decoration: none;
   transition: color 0.2s ease;
@@ -172,26 +177,30 @@
   justify-content: center;
   gap: 8px;
   width: 100%;
-  padding: 12px;
+  padding: 13px;
   background: var(--accent);
   color: var(--bg);
   border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
   font-family: var(--font-mono);
   font-size: 0.9rem;
   font-weight: 700;
   letter-spacing: 0.5px;
   cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease;
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 0 20px var(--accent-glow);
 }
 
 .btn-submit:hover:not(:disabled) {
   background: var(--accent-hover);
   border-color: var(--accent-hover);
+  box-shadow: 0 0 32px var(--accent-glow);
 }
 
 .btn-submit:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+  box-shadow: none;
 }
 
 .spinner {
@@ -207,8 +216,8 @@
 .auth-footer {
   text-align: center;
   margin-top: 24px;
-  font-size: 0.85rem;
-  font-weight: 575;
+  font-size: 0.875rem;
+  font-weight: 400;
   color: var(--text-muted);
 }
 
@@ -224,7 +233,7 @@
 
 /* Animações utilitárias da tela. */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-12px); }
+  from { opacity: 0; transform: translateY(-10px); }
   to { opacity: 1; transform: translateY(0); }
 }
 

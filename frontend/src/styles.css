@@ -4,13 +4,26 @@
 
 :root {
   /* Tokens de tema (cores e tipografia base). */
-  --bg: #0a0a0a;
-  --text: #e0e0e0;
-  --text-muted: #b8b8b8;
-  --accent: #00f33d;
-  --accent-hover: #00cc33;
-  --border: rgba(255, 255, 255, 0.15);
-  --border-accent: rgba(0, 255, 65, 0.08);
+  --bg: #080c0a;
+  --bg-subtle: #0d120f;
+  --text: #e8e8e8;
+  --text-muted: #9ca3a0;
+  --text-dim: #6b7280;
+  --accent: #00e53a;
+  --accent-hover: #00c832;
+  --accent-dim: rgba(0, 229, 58, 0.12);
+  --accent-glow: rgba(0, 229, 58, 0.25);
+  --border: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.18);
+  --border-accent: rgba(0, 229, 58, 0.2);
+  --surface: rgba(255, 255, 255, 0.025);
+  --surface-elevated: rgba(255, 255, 255, 0.05);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.6);
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
   --font-mono: 'Courier New', Courier, monospace;
 }
 
@@ -30,6 +43,9 @@ html {
 body {
   /* Configuração visual principal do app (tema escuro + fonte mono). */
   background: var(--bg);
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0, 229, 58, 0.06), transparent),
+    radial-gradient(ellipse 60% 40% at 80% 100%, rgba(0, 100, 30, 0.04), transparent);
   color: var(--text);
   font-family: var(--font-mono);
   min-height: 100vh;
@@ -40,6 +56,6 @@ body {
 
 ::selection {
   /* Cor de seleção para manter identidade visual do projeto. */
-  background: rgba(0, 255, 65, 0.25);
+  background: rgba(0, 229, 58, 0.3);
   color: #fff;
 }
