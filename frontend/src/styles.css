@@ -1,5 +1,6 @@
 /* Estilos globais compartilhados por toda a aplicação. */
 
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 :root {
@@ -32,6 +33,7 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-mono);
+  font-weight: 450;
   min-height: 100vh;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;

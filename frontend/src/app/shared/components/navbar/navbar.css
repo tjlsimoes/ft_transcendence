@@ -10,6 +10,10 @@
   border-bottom: 1px solid var(--border-accent);
 }
 
+.lobby-nav {
+  right: 70px;
+}
+
 .navbar-inner {
   max-width: 1200px;
   margin: 0 auto;
@@ -21,12 +25,13 @@
 }
 
 .navbar-inner--wide {
-  max-width: 1600px;
+  max-width: none;
+  margin: 0;
 }
 
 /* ===== Default Logo ===== */
 .navbar-logo {
-  font-size: 1.35rem;
+  font-size: 1.4rem;
   font-weight: 700;
   color: var(--text);
   text-decoration: none;
@@ -38,7 +43,7 @@
 
 .logo-bracket {
   color: var(--accent);
-  font-weight: 400;
+  font-weight: 500;
 }
 
 /* ===== Lobby Logo ===== */
@@ -50,13 +55,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 700;
   font-family: var(--font-mono);
 }
 
 .logo-text {
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 700;
   letter-spacing: 1.5px;
   color: var(--text);
@@ -70,8 +75,8 @@
 }
 
 .nav-link {
-  font-size: 0.8rem;
-  font-weight: 575;
+  font-size: 0.85rem;
+  font-weight: 600;
   color: var(--text-muted);
   text-decoration: none;
   letter-spacing: 0.8px;
@@ -96,11 +101,11 @@
 }
 
 .btn-login {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--text-muted);
   text-decoration: none;
-  padding: 6px 16px;
+  padding: 8px 18px;
   border: 1px solid var(--border);
   letter-spacing: 0.5px;
   transition: border-color 0.2s ease, color 0.2s ease;
@@ -112,11 +117,11 @@
 }
 
 .btn-join {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   color: var(--bg);
   background: var(--accent);
   text-decoration: none;
-  padding: 6px 16px;
+  padding: 8px 18px;
   border: 1px solid var(--accent);
   font-weight: 700;
   letter-spacing: 0.5px;
@@ -139,11 +144,11 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 1px;
+  gap: 2px;
 }
 
 .user-name {
-  font-size: 0.78rem;
+  font-size: 0.9rem;
   font-weight: 700;
   color: var(--text);
   letter-spacing: 0.5px;
@@ -151,16 +156,16 @@
 }
 
 .user-rank {
-  font-size: 0.6rem;
+  font-size: 0.7rem;
   color: var(--accent);
   letter-spacing: 0.8px;
-  font-weight: 575;
+  font-weight: 600;
   font-family: var(--font-mono);
 }
 
 .user-avatar {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   background: rgba(0, 255, 65, 0.1);
   border: 1px solid rgba(0, 255, 65, 0.3);
   display: flex;
@@ -169,37 +174,18 @@
 }
 
 .avatar-letter {
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   font-weight: 700;
   color: var(--accent);
   font-family: var(--font-mono);
 }
 
-.btn-notification {
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: var(--text-muted);
-  width: 34px;
-  height: 34px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 0.9rem;
-}
-
-.btn-notification:hover {
-  border-color: rgba(255, 255, 255, 0.25);
-  color: var(--text);
-}
-
-.bell-icon {
-  font-size: 0.85rem;
-}
-
 /* ===== Responsive ===== */
 @media (max-width: 900px) {
+  .lobby-nav {
+    right: 60px;
+  }
+
   .navbar-links {
     display: none;
   }
@@ -214,12 +200,16 @@
 
   .btn-login,
   .btn-join {
-    font-size: 0.78rem;
-    padding: 5px 12px;
+    font-size: 0.85rem;
+    padding: 6px 14px;
   }
 }
 
 @media (max-width: 640px) {
+  .lobby-nav {
+    right: 0;
+  }
+
   .user-info {
     display: none;
   }
