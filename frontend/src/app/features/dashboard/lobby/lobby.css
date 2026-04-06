@@ -1,17 +1,52 @@
-/* ===== Lobby page layout ===== */
-:host {
-  display: block;
-  padding-right: 70px;
+/* ===== Lobby Container ===== */
+.lobby-container {
+  display: flex;
+  gap: 24px;
+  padding: 24px;
+  min-height: calc(100vh - 80px);
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
+/* ===== Left Column (Player Panel) ===== */
+.lobby-left {
+  flex-shrink: 0;
+  position: sticky;
+  top: 104px;
+  height: fit-content;
+}
+
+/* ===== Center Column (Matchmaking) ===== */
+.lobby-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 40px;
+}
+
+/* ===== Responsive ===== */
 @media (max-width: 900px) {
-  :host {
-    padding-right: 60px;
+  .lobby-container {
+    flex-direction: column;
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .lobby-left {
+    position: static;
+    width: 100%;
+  }
+
+  .lobby-center {
+    padding-top: 20px;
   }
 }
 
 @media (max-width: 640px) {
-  :host {
-    padding-right: 0;
+  .lobby-container {
+    padding: 12px;
+    gap: 12px;
   }
 }

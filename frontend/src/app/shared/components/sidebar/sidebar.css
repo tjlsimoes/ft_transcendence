@@ -14,7 +14,7 @@
 }
 
 .sidebar:hover {
-  width: 300px;
+  width: 350px;
 }
 
 /* ===== Collapsed view ===== */
@@ -42,7 +42,7 @@
   position: absolute;
   top: 0;
   left: 0;
-  width: 300px;
+  width: 350px;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -358,7 +358,7 @@
   }
 
   .sidebar:hover {
-    width: 280px;
+    width: 350px;
   }
 
   .sidebar-collapsed {
@@ -367,7 +367,7 @@
   }
 
   .sidebar-expanded {
-    width: 280px;
+    width: 350px;
   }
 
   .sidebar-btn {

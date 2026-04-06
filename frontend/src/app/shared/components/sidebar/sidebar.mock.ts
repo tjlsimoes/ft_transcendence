@@ -26,14 +26,14 @@ export const LOBBY_NAVBAR_USER_MOCK: LobbyUser = {
   name: 'NULL_POINTER',
   rank: 'GOLD II // 2350 LP',
   avatarLetter: 'N',
-  avatar: 'https://i.pravatar.cc/150?img=68',
+  avatar: '',
 };
 
 export const FRIENDS_MOCK: Friend[] = [
   {
     id: '1',
     name: 'ByteKnight',
-    avatar: 'https://i.pravatar.cc/150?img=12',
+    avatar: '',
     avatarLetter: 'B',
     status: 'online',
     rank: 'PLATINUM I',
@@ -41,7 +41,7 @@ export const FRIENDS_MOCK: Friend[] = [
   {
     id: '2',
     name: 'CodeSlayer',
-    avatar: 'https://i.pravatar.cc/150?img=33',
+    avatar: '',
     avatarLetter: 'C',
     status: 'in-game',
     rank: 'GOLD III',
@@ -49,7 +49,7 @@ export const FRIENDS_MOCK: Friend[] = [
   {
     id: '3',
     name: 'StackOverflow',
-    avatar: 'https://i.pravatar.cc/150?img=45',
+    avatar: '',
     avatarLetter: 'S',
     status: 'online',
     rank: 'DIAMOND II',
@@ -57,7 +57,7 @@ export const FRIENDS_MOCK: Friend[] = [
   {
     id: '4',
     name: 'NullRef',
-    avatar: 'https://i.pravatar.cc/150?img=51',
+    avatar: '',
     avatarLetter: 'N',
     status: 'offline',
     rank: 'SILVER I',
