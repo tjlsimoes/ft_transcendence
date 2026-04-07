@@ -1,0 +1,145 @@
+:host {
+	display: flex;
+	flex: 2;
+	min-height: 0;
+	min-width: 0;
+}
+
+.pane {
+	border: 1px solid rgba(255, 255, 255, 0.12);
+	background: rgba(6, 7, 9, 0.975);
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+
+.editor-pane {
+	flex: 1;
+	min-height: 0;
+}
+
+.pane-header {
+	min-height: 34px;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+	background: rgba(13, 15, 17, 0.985);
+	display: flex;
+	align-items: center;
+	padding: 0 12px;
+	gap: 8px;
+}
+
+.pane-tab {
+	color: var(--text-muted);
+	font-size: 0.7rem;
+	letter-spacing: 0.5px;
+}
+
+.pane-content {
+	flex: 1;
+	overflow-y: auto;
+	padding: 14px;
+}
+
+.profile-shell {
+	max-width: 620px;
+	margin: 0 auto;
+	min-height: 100%;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	gap: 14px;
+	padding: 8px 10px 14px;
+}
+
+.rank-emblem {
+	width: 102px;
+	height: 102px;
+	margin: 0 auto;
+	border: 2px solid var(--accent);
+	transform: rotate(45deg);
+	display: grid;
+	place-items: center;
+}
+
+.rank-emblem-text {
+	transform: rotate(-45deg);
+	font-size: 2rem;
+	font-weight: 700;
+	font-style: italic;
+	letter-spacing: 1px;
+	color: var(--text);
+}
+
+.rank-league {
+	margin: 0 auto;
+	padding: 2px 12px;
+	border: 1px solid rgba(255, 255, 255, 0.25);
+	font-size: 0.68rem;
+	letter-spacing: 1.2px;
+	text-transform: uppercase;
+	color: var(--text);
+}
+
+.season-title {
+	margin: 4px 0 0;
+	text-align: center;
+	font-size: clamp(1.45rem, 2vw, 2rem);
+	letter-spacing: 1.4px;
+	color: var(--text);
+}
+
+.progress-row {
+	margin-top: 16px;
+	display: flex;
+	justify-content: space-between;
+	gap: 14px;
+	font-size: 0.72rem;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	color: var(--text-muted);
+}
+
+.progress-track {
+	height: 8px;
+	border: 1px solid rgba(255, 255, 255, 0.45);
+	background: rgba(255, 255, 255, 0.06);
+}
+
+.progress-fill {
+	height: 100%;
+	background: var(--accent);
+	transition: width 0.35s ease;
+}
+
+@media (max-width: 700px) {
+	.profile-shell {
+		padding: 10px 4px 12px;
+	}
+
+	.rank-emblem {
+		width: 88px;
+		height: 88px;
+	}
+
+	.rank-emblem-text {
+		font-size: 1.7rem;
+	}
+}
+
+.editor-dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+}
+
+.editor-dot.red {
+	background: #e36258;
+}
+
+.editor-dot.amber {
+	background: #e7ad45;
+}
+
+.editor-dot.green {
+	background: #3abf66;
+}

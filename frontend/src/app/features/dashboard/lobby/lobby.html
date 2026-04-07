@@ -1,0 +1,38 @@
+<section class="lobby-shell" aria-label="Lobby workspace">
+	<div class="workspace-frame">
+		<header class="workspace-topbar">
+			<div class="workspace-tabs" aria-label="Abas do lobby">
+				@for (tab of tabs; track tab.id) {
+					<button class="tab-item" [class.active]="tab.active" type="button">{{ tab.label }}</button>
+				}
+			</div>
+		</header>
+
+		<div class="workspace-main">
+			<aside class="stats-column" aria-label="Coluna de stats">
+				<div class="queue-wrapper" [class.is-active]="isQueueing()">
+					<button class="queue-action-btn" type="button" (click)="toggleQueue()">
+						{{ isQueueing() ? 'CANCEL' : 'FIND MATCH' }}
+					</button>
+
+					<div class="queue-status">
+						<span class="queue-timer">{{ queueTime() }}</span>
+						<span class="queue-label">Searching...</span>
+					</div>
+				</div>
+
+				<app-player-stats />
+			</aside>
+
+			<section class="editor-terminal-split" aria-label="Editor e Terminal">
+
+				<!-- Editor de Arquivos: Vazio por enquanto -->
+				<app-profile-data />
+
+				<!-- Terminal: Histórico de Partidas e Eventos da Fila -->
+				<app-terminal-history [matchHistory]="matchHistory" />
+
+			</section>
+		</div>
+	</div>
+</section>

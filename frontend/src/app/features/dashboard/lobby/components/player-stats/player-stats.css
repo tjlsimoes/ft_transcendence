@@ -1,0 +1,111 @@
+.player-stats-panel {
+  width: min(100%, 360px);
+  background: #060708;
+  border: 1px solid rgba(230, 230, 230, 0.16);
+  padding: 14px 14px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.panel-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.title-accent {
+  width: 3px;
+  height: 14px;
+  background: #12e051;
+}
+
+.panel-title {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: #d5d8dc;
+  font-weight: 500;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.summary-card {
+  border: 1px solid rgba(248, 248, 248, 0.55);
+  min-height: 92px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 12px;
+  background: #08090a;
+}
+
+.summary-label {
+  font-size: 0.64rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #b3b7bd;
+  font-weight: 500;
+}
+
+.summary-value {
+  font-size: 2rem;
+  color: #e9edf1;
+  line-height: 1;
+  font-weight: 540;
+}
+
+.summary-value.highlight {
+  color: #12e051;
+}
+
+.record-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.record-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.record-label {
+  color: #d5d8dc;
+  font-size: 1.32rem;
+  line-height: 1;
+  font-weight: 400;
+}
+
+.record-value {
+  color: #f1f3f4;
+  font-size: 1.34rem;
+  font-weight: 510;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.record-value.accent {
+  color: #11de50;
+}
+
+.streak-icon {
+  width: 15px;
+  height: 15px;
+  color: #ef8a33;
+}
+
+@media (max-width: 900px) {
+  .player-stats-panel {
+    width: 100%;
+    max-width: none;
+  }
+}
