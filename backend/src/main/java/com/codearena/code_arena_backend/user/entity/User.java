@@ -37,7 +37,7 @@ public class User {
     @JsonIgnore
     private String password;
 
-    @Column(name = "avatar_url")
+    @Column(name = "avatar_url", length = 2048)
     private String avatar;
 
     @Column(nullable = false)
@@ -52,16 +52,16 @@ public class User {
     @Column(name = "win_streak", nullable = false)
     private Integer winStreak = 0;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     @Enumerated(EnumType.STRING)
     private League league = League.BRONZE;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     @Enumerated(EnumType.STRING)
     private UserStatus status = UserStatus.OFFLINE;
 
     @CreationTimestamp
-    @Column(name = "created_at")
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
