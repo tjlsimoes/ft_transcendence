@@ -1,18 +1,33 @@
 /* Estilos globais compartilhados por toda a aplicação. */
 
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 :root {
-  /* Tokens de tema (cores e tipografia base). */
+  /* ── Core palette ── */
   --bg: #0a0a0a;
+  --bg-panel: rgba(6, 7, 9, 0.975);
+  --bg-header: rgba(13, 15, 17, 0.985);
+
   --text: #e0e0e0;
   --text-muted: #b8b8b8;
+  --text-dim: #A0A0A0;
+
   --accent: #00f33d;
-  --accent-hover: #00cc33;
+  --accent-hover: #14f55a;
+  --accent-glow: rgba(0, 243, 61, 0.4);
+
+  /* ── Result colors ── */
+  --color-victory: #22c55e;
+  --color-defeat: #ef4444;
+
+  /* ── Borders ── */
   --border: rgba(255, 255, 255, 0.15);
+  --border-light: rgba(255, 255, 255, 0.12);
   --border-accent: rgba(0, 255, 65, 0.08);
-  --font-mono: 'Courier New', Courier, monospace;
+
+  /* ── Typography ── */
+  --font-mono: 'JetBrains Mono', 'Courier New', Courier, monospace;
+  --font-system: 'Space Mono', monospace;
 }
 
 *,
@@ -33,7 +48,7 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-mono);
-  font-weight: 450;
+  font-weight: 400;
   min-height: 100vh;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
@@ -44,4 +59,17 @@ body {
   /* Cor de seleção para manter identidade visual do projeto. */
   background: rgba(0, 255, 65, 0.25);
   color: #fff;
+}
+
+/* ── Utility: screen-reader only ── */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }

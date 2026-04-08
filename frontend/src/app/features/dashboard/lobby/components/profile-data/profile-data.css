@@ -6,8 +6,8 @@
 }
 
 .pane {
-	border: 1px solid rgba(255, 255, 255, 0.12);
-	background: rgba(6, 7, 9, 0.975);
+	border: 1px solid var(--border-light);
+	background: var(--bg-panel);
 	display: flex;
 	flex-direction: column;
 	overflow: hidden;
@@ -21,7 +21,7 @@
 .pane-header {
 	min-height: 34px;
 	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-	background: rgba(13, 15, 17, 0.985);
+	background: var(--bg-header);
 	display: flex;
 	align-items: center;
 	padding: 0 12px;
@@ -29,7 +29,7 @@
 }
 
 .pane-tab {
-	color: var(--text-muted);
+	color: var(--text-dim);
 	font-size: 0.7rem;
 	letter-spacing: 0.5px;
 }
@@ -96,7 +96,7 @@
 	font-size: 0.72rem;
 	letter-spacing: 1px;
 	text-transform: uppercase;
-	color: var(--text-muted);
+	color: var(--text-dim);
 }
 
 .progress-track {

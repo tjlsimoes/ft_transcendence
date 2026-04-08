@@ -1,11 +1,5 @@
 import { Component, input } from '@angular/core';
-
-export interface TerminalMatchHistory {
-  result: 'VICTORY' | 'DEFEAT';
-  lpChange: number;
-  opponent: string;
-  date: string;
-}
+import type { TerminalMatchHistory } from '../../../../../shared/models/lobby.model';
 
 @Component({
   selector: 'app-terminal-history',

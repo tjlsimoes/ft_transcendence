@@ -1,35 +1,36 @@
 <section class="lobby-shell" aria-label="Lobby workspace">
+	<h1 class="sr-only">Code Arena Lobby</h1>
 	<div class="workspace-frame">
 		<header class="workspace-topbar">
-			<div class="workspace-tabs" aria-label="Abas do lobby">
+			<div class="workspace-tabs" aria-label="Workspace tabs">
 				@for (tab of tabs; track tab.id) {
-					<button class="tab-item" [class.active]="tab.active" type="button">{{ tab.label }}</button>
+				<button class="tab-item" [class.active]="tab.active" type="button">{{ tab.label }}</button>
 				}
 			</div>
 		</header>
 
 		<div class="workspace-main">
-			<aside class="stats-column" aria-label="Coluna de stats">
-				<div class="queue-wrapper" [class.is-active]="isQueueing()">
-					<button class="queue-action-btn" type="button" (click)="toggleQueue()">
-						{{ isQueueing() ? 'CANCEL' : 'FIND MATCH' }}
-					</button>
+			<aside class="stats-column" aria-label="Player stats column">
+				<!-- Player Identity Card -->
+				<app-identity-card
+					[username]="player.username"
+					[league]="player.league"
+					[avatarUrl]="player.avatarUrl"
+					[isOnline]="player.isOnline" />
 
-					<div class="queue-status">
-						<span class="queue-timer">{{ queueTime() }}</span>
-						<span class="queue-label">Searching...</span>
-					</div>
-				</div>
+				<!-- Matchmaking Queue -->
+				<app-queue-panel />
 
+				<!-- Player Statistics -->
 				<app-player-stats />
 			</aside>
 
-			<section class="editor-terminal-split" aria-label="Editor e Terminal">
+			<section class="editor-terminal-split" aria-label="Editor and Terminal">
 
-				<!-- Editor de Arquivos: Vazio por enquanto -->
+				<!-- Profile Data (rank display) -->
 				<app-profile-data />
 
-				<!-- Terminal: Histórico de Partidas e Eventos da Fila -->
+				<!-- Terminal: Match History and Queue Events -->
 				<app-terminal-history [matchHistory]="matchHistory" />
 
 			</section>

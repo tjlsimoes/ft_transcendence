@@ -1,87 +1,31 @@
-import { Component, OnDestroy, signal } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { Title } from '@angular/platform-browser';
 import { PlayerStats } from './components/player-stats/player-stats';
-import { ProfileData } from './components/player-stats/profile-data/profile-data';
-import { TerminalHistory, TerminalMatchHistory } from './components/player-stats/terminal-history/terminal-history';
-
-interface LobbyTab {
-  id: string;
-  label: string;
-  active?: boolean;
-}
-
-interface LobbyEvent {
-  id: string;
-  type: 'system' | 'queue' | 'match';
-  text: string;
-}
+import { ProfileData } from './components/profile-data/profile-data';
+import { TerminalHistory } from './components/terminal-history/terminal-history';
+import { IdentityCard } from './components/identity-card/identity-card';
+import { QueuePanel } from './components/queue-panel/queue-panel';
+import {
+  LOBBY_TABS,
+  MOCK_MATCH_HISTORY,
+  MOCK_PLAYER_IDENTITY,
+} from '../../../shared/models/lobby.mock';
+import type { LobbyTab, TerminalMatchHistory } from '../../../shared/models/lobby.model';
 
 @Component({
   selector: 'app-lobby',
-  imports: [PlayerStats, ProfileData, TerminalHistory],
+  imports: [PlayerStats, ProfileData, TerminalHistory, IdentityCard, QueuePanel],
   templateUrl: './lobby.html',
   styleUrl: './lobby.css',
 })
-export class Lobby implements OnDestroy {
-  isQueueing = signal(false);
-  queueTime = signal('00:00');
-  private queueInterval: ReturnType<typeof setInterval> | null = null;
+export class Lobby implements OnInit {
+  tabs: LobbyTab[] = LOBBY_TABS;
+  matchHistory: TerminalMatchHistory[] = MOCK_MATCH_HISTORY;
+  player = MOCK_PLAYER_IDENTITY;
 
-  // Mock data for Detailed Stats
-  currentLeague = 'GOLD II';
-  currentLp = 2350;
-  nextRankLp = 2400;
-  winRate = 64.2;
+  constructor(private titleService: Title) {}
 
-  get lpProgress() {
-    return (this.currentLp / this.nextRankLp) * 100;
+  ngOnInit(): void {
+    this.titleService.setTitle('Lobby — Code Arena');
   }
-
-  matchHistory: TerminalMatchHistory[] = [
-    { result: 'VICTORY', lpChange: 24, opponent: 'xSniper99', date: '2 mins ago' },
-    { result: 'DEFEAT', lpChange: -15, opponent: 'leet_coder', date: '1 hr ago' },
-    { result: 'VICTORY', lpChange: 20, opponent: 'algo_master', date: 'Yesterday' },
-    { result: 'DEFEAT', lpChange: -10, opponent: 'pro_gamer', date: '2 days ago' },
-    { result: 'VICTORY', lpChange: 18, opponent: 'championX', date: '3 days ago' },
-  ];
-
-  tabs: LobbyTab[] = [
-    { id: 'lobby', label: 'lobby.html', active: true },
-    { id: 'styles', label: 'lobby.css' },
-  ];
-
-  toggleQueue() {
-    this.isQueueing.set(!this.isQueueing());
-    if (this.isQueueing()) {
-      let seconds = 0;
-      this.queueInterval = setInterval(() => {
-        seconds++;
-        const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
-        const secs = (seconds % 60).toString().padStart(2, '0');
-        this.queueTime.set(`${mins}:${secs}`);
-      }, 1000);
-    } else {
-      this.clearQueueInterval();
-    }
-  }
-
-  // Limpa o intervalo de queue para evitar memory leak.
-  private clearQueueInterval(): void {
-    if (this.queueInterval !== null) {
-      clearInterval(this.queueInterval);
-      this.queueInterval = null;
-    }
-    this.queueTime.set('00:00');
-  }
-
-  // Limpa recursos ao destruir o componente.
-  ngOnDestroy(): void {
-    this.clearQueueInterval();
-  }
-
-  quickCommands: string[] = [
-    '/queue ranked',
-    '/queue classic',
-    '/profile open',
-    '/history latest',
-  ];
 }

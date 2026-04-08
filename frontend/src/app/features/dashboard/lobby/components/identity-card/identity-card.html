@@ -1,0 +1,13 @@
+<div class="identity-card" aria-label="Player identity">
+	<div class="avatar-frame">
+		<img [src]="avatarUrl()" [alt]="username() + ' avatar'" class="avatar-img"
+			(error)="onAvatarError($event)" />
+		<div class="status-indicator" [class.online]="isOnline()"
+			[attr.aria-label]="isOnline() ? 'Online' : 'Offline'">
+		</div>
+	</div>
+	<div class="identity-info">
+		<h2 class="identity-name">{{ username() }}</h2>
+		<div class="identity-rank">{{ league() }}</div>
+	</div>
+</div>

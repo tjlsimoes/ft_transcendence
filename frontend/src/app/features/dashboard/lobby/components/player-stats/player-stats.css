@@ -1,7 +1,7 @@
 .player-stats-panel {
   width: min(100%, 360px);
-  background: #060708;
-  border: 1px solid rgba(230, 230, 230, 0.16);
+  background: var(--bg-panel, rgba(6, 7, 9, 0.975));
+  border: 1px solid var(--border-light);
   padding: 14px 14px 20px;
   display: flex;
   flex-direction: column;
@@ -17,14 +17,14 @@
 .title-accent {
   width: 3px;
   height: 14px;
-  background: #12e051;
+  background: var(--accent);
 }
 
 .panel-title {
   font-size: 0.78rem;
   text-transform: uppercase;
   letter-spacing: 3px;
-  color: #d5d8dc;
+  color: var(--text-muted);
   font-weight: 500;
 }
 
@@ -49,19 +49,19 @@
   font-size: 0.64rem;
   text-transform: uppercase;
   letter-spacing: 1.5px;
-  color: #b3b7bd;
+  color: var(--text-dim);
   font-weight: 500;
 }
 
 .summary-value {
   font-size: 2rem;
-  color: #e9edf1;
+  color: var(--text);
   line-height: 1;
   font-weight: 540;
 }
 
 .summary-value.highlight {
-  color: #12e051;
+  color: var(--accent);
 }
 
 .record-list {
@@ -78,14 +78,14 @@
 }
 
 .record-label {
-  color: #d5d8dc;
+  color: var(--text-muted);
   font-size: 1.32rem;
   line-height: 1;
   font-weight: 400;
 }
 
 .record-value {
-  color: #f1f3f4;
+  color: var(--text);
   font-size: 1.34rem;
   font-weight: 510;
   display: inline-flex;
@@ -94,7 +94,7 @@
 }
 
 .record-value.accent {
-  color: #11de50;
+  color: var(--accent);
 }
 
 .streak-icon {

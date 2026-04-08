@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { MOCK_PROFILE_DATA } from '../../../../../shared/models/lobby.mock';
 
 @Component({
   selector: 'app-profile-data',
@@ -7,16 +8,15 @@ import { Component } from '@angular/core';
   styleUrl: './profile-data.css',
 })
 export class ProfileData {
-  rankTier = 'G2';
-  leagueName = 'GOLD LEAGUE';
-  seasonLabel = '04';
-  currentLp = 2350;
-  targetLp = 3000;
-  nextLeague = 'PLATINUM';
+  rankTier = MOCK_PROFILE_DATA.rankTier;
+  leagueName = MOCK_PROFILE_DATA.leagueName;
+  seasonLabel = MOCK_PROFILE_DATA.seasonLabel;
+  currentLp = MOCK_PROFILE_DATA.currentLp;
+  targetLp = MOCK_PROFILE_DATA.targetLp;
+  nextLeague = MOCK_PROFILE_DATA.nextLeague;
 
   get lpProgress(): number {
     const progress = (this.currentLp / this.targetLp) * 100;
     return Math.max(0, Math.min(100, progress));
   }
 }
-

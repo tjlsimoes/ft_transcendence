@@ -6,8 +6,8 @@
 }
 
 .pane {
-	border: 1px solid rgba(255, 255, 255, 0.12);
-	background: rgba(6, 7, 9, 0.975);
+	border: 1px solid var(--border-light);
+	background: var(--bg-panel);
 	display: flex;
 	flex-direction: column;
 	overflow: hidden;
@@ -21,7 +21,7 @@
 .pane-header {
 	min-height: 34px;
 	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-	background: rgba(13, 15, 17, 0.985);
+	background: var(--bg-header);
 	display: flex;
 	align-items: center;
 	padding: 0 12px;
@@ -29,7 +29,7 @@
 }
 
 .pane-tab {
-	color: var(--text-muted);
+	color: var(--text-dim);
 	font-size: 0.7rem;
 	letter-spacing: 0.5px;
 }
@@ -89,7 +89,7 @@
 
 .history-table th {
 	text-align: left;
-	color: var(--text-muted);
+	color: var(--text-dim);
 	font-weight: normal;
 	padding-bottom: 12px;
 	border-bottom: 1px dashed rgba(255, 255, 255, 0.25);
@@ -106,19 +106,24 @@
 }
 
 .history-result.victory {
-	color: #22c55e;
+	color: var(--color-victory, #22c55e) !important;
 }
 
 .history-result.defeat {
-	color: #ef4444;
+	color: var(--color-defeat, #ef4444) !important;
 }
 
 .history-lp.positive {
-	color: #22c55e;
+	color: var(--color-victory, #22c55e) !important;
 }
 
 .history-lp.negative {
-	color: #ef4444;
+	color: var(--color-defeat, #ef4444) !important;
+}
+
+.lp-indicator {
+	font-size: 0.65rem;
+	margin-right: 2px;
 }
 
 .terminal-input {
@@ -136,20 +141,17 @@
 	font-size: 0.82rem;
 }
 
-.prompt-text {
-	color: #d9dde2;
+.prompt-input {
+	flex: 1;
+	background: transparent;
+	border: none;
+	color: var(--text);
 	font-size: 0.8rem;
+	font-family: inherit;
+	outline: none;
+	caret-color: var(--accent);
 }
 
-.prompt-cursor {
-	width: 5px;
-	height: 16px;
-	background: rgba(0, 243, 61, 0.8);
-	animation: cursor-blink 1s step-end infinite;
-}
-
-@keyframes cursor-blink {
-	50% {
-		opacity: 0;
-	}
+.prompt-input::placeholder {
+	color: rgba(255, 255, 255, 0.45);
 }

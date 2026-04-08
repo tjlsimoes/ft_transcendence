@@ -1,0 +1,13 @@
+<div class="queue-wrapper" [class.is-active]="isQueueing()">
+	<button class="queue-action-btn" type="button"
+		[attr.aria-pressed]="isQueueing()"
+		[attr.aria-label]="isQueueing() ? 'Cancel matchmaking' : 'Start matchmaking'"
+		(click)="toggleQueue()">
+		{{ isQueueing() ? 'CANCEL' : 'FIND MATCH' }}
+	</button>
+
+	<div class="queue-status" aria-live="polite">
+		<span class="queue-timer">{{ queueTime() }}</span>
+		<span class="queue-label">Searching...</span>
+	</div>
+</div>
