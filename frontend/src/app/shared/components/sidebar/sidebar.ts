@@ -1,8 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
-import { Router, NavigationEnd } from '@angular/router';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { filter, map } from 'rxjs';
-import { LOBBY_NAVBAR_USER_MOCK, FRIENDS_MOCK, Friend } from './sidebar.mock';
+import { RouteStateService } from '../../../core/services/route-state.service';
+import { LOBBY_USER_MOCK, FRIENDS_MOCK, Friend } from '../../models/user.mock';
 
 @Component({
   selector: 'app-sidebar',
@@ -11,20 +9,15 @@ import { LOBBY_NAVBAR_USER_MOCK, FRIENDS_MOCK, Friend } from './sidebar.mock';
   styleUrl: './sidebar.css',
 })
 export class Sidebar {
-  private router = inject(Router);
+  private routeState = inject(RouteStateService);
 
-  user = LOBBY_NAVBAR_USER_MOCK;
+  user = LOBBY_USER_MOCK;
   friends: Friend[] = FRIENDS_MOCK;
-  
+
   activeTab = signal<'friends' | 'notifications'>('friends');
 
-  isLobby = toSignal(
-    this.router.events.pipe(
-      filter((e): e is NavigationEnd => e instanceof NavigationEnd),
-      map(e => e.urlAfterRedirects.startsWith('/lobby'))
-    ),
-    { initialValue: this.router.url.startsWith('/lobby') }
-  );
+  // Delegado ao serviço compartilhado para evitar duplicação de lógica de rota.
+  isLobby = this.routeState.isLobby;
 
   setActiveTab(tab: 'friends' | 'notifications'): void {
     this.activeTab.set(tab);

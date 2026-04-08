@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, OnDestroy, signal } from '@angular/core';
 import { PlayerStats } from './components/player-stats/player-stats';
 import { ProfileData } from './components/player-stats/profile-data/profile-data';
 import { TerminalHistory, TerminalMatchHistory } from './components/player-stats/terminal-history/terminal-history';
@@ -21,10 +21,10 @@ interface LobbyEvent {
   templateUrl: './lobby.html',
   styleUrl: './lobby.css',
 })
-export class Lobby {
+export class Lobby implements OnDestroy {
   isQueueing = signal(false);
   queueTime = signal('00:00');
-  queueInterval: any;
+  private queueInterval: ReturnType<typeof setInterval> | null = null;
 
   // Mock data for Detailed Stats
   currentLeague = 'GOLD II';
@@ -60,9 +60,22 @@ export class Lobby {
         this.queueTime.set(`${mins}:${secs}`);
       }, 1000);
     } else {
-      clearInterval(this.queueInterval);
-      this.queueTime.set('00:00');
+      this.clearQueueInterval();
     }
+  }
+
+  // Limpa o intervalo de queue para evitar memory leak.
+  private clearQueueInterval(): void {
+    if (this.queueInterval !== null) {
+      clearInterval(this.queueInterval);
+      this.queueInterval = null;
+    }
+    this.queueTime.set('00:00');
+  }
+
+  // Limpa recursos ao destruir o componente.
+  ngOnDestroy(): void {
+    this.clearQueueInterval();
   }
 
   quickCommands: string[] = [

@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 
 export interface TerminalMatchHistory {
   result: 'VICTORY' | 'DEFEAT';
@@ -14,5 +14,6 @@ export interface TerminalMatchHistory {
   styleUrl: './terminal-history.css',
 })
 export class TerminalHistory {
-  @Input({ required: true }) matchHistory: TerminalMatchHistory[] = [];
+  // Signal-based input (Angular 17+). Substitui o decorador @Input legado.
+  matchHistory = input.required<TerminalMatchHistory[]>();
 }

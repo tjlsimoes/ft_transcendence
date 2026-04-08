@@ -1,34 +1,14 @@
-export interface LobbyUser {
-  name: string;
-  rank: string;
-  avatarLetter: string;
-  avatar?: string;
-}
+import { LobbyUser, Friend, Notification } from './user.model';
 
-export interface Friend {
-  id: string;
-  name: string;
-  avatar?: string;
-  avatarLetter: string;
-  status: 'online' | 'offline' | 'in-game';
-  rank?: string;
-}
-
-export interface Notification {
-  id: string;
-  type: 'friend_request' | 'game_invite' | 'achievement';
-  message: string;
-  timestamp: Date;
-  read: boolean;
-}
-
-export const LOBBY_NAVBAR_USER_MOCK: LobbyUser = {
+// Mock do usuário logado, compartilhado entre Navbar e Sidebar.
+export const LOBBY_USER_MOCK: LobbyUser = {
   name: 'NULL_POINTER',
   rank: 'GOLD II // 2350 LP',
   avatarLetter: 'N',
-  avatar: '',
+  avatar: 'https://i.pravatar.cc/150?img=68',
 };
 
+// Mock da lista de amigos exibida na Sidebar.
 export const FRIENDS_MOCK: Friend[] = [
   {
     id: '1',
@@ -64,4 +44,8 @@ export const FRIENDS_MOCK: Friend[] = [
   },
 ];
 
+// Mock de notificações (vazio por padrão).
 export const NOTIFICATIONS_MOCK: Notification[] = [];
+
+// Re-exporta tipos do model para conveniência.
+export type { LobbyUser, Friend, Notification } from './user.model';

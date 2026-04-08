@@ -14,7 +14,7 @@
 					</tr>
 				</thead>
 				<tbody>
-					@for (match of matchHistory; track match.date) {
+					@for (match of matchHistory(); track match.date) {
 										<tr>
 											<td
 												class="history-result"

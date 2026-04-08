@@ -15,7 +15,7 @@ import { Router, RouterLink } from '@angular/router';
   selector: 'app-register',
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './register.html',
-  styleUrls: ['./register.css'],
+  styleUrls: ['../auth-shared.css', './register.css'],
 })
 export class RegisterComponent {
   // FormGroup principal com dados necessários para criação de conta.
