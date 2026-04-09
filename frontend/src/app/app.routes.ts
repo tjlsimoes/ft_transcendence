@@ -28,6 +28,11 @@ export const routes: Routes = [
     path: 'lobby',
     loadComponent: () => import('./features/dashboard/lobby/lobby').then(m => m.Lobby),
   },
+  // Configurações de perfil do jogador.
+  {
+    path: 'profile',
+    loadComponent: () => import('./features/dashboard/profile-settings/profile-settings').then(m => m.ProfileSettings),
+  },
   // Fallback: rota desconhecida redireciona para home.
   { path: '**', redirectTo: '' },
 ];
