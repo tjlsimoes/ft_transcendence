@@ -7,6 +7,9 @@ import com.codearena.code_arena_backend.user.entity.User;
 import com.codearena.code_arena_backend.user.service.UserService;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
+
+import java.util.Date;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -39,6 +42,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
+    private final TokenBlacklistService tokenBlacklistService;
 
     /** JWT lifetime in ms – injected to calculate 'expiresIn' seconds. */
     @Value("${jwt.expiration}")
@@ -76,14 +80,13 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
         userService.save(user);
-
         // Sync league from elo and set status to ONLINE.
         userService.goOnline(user);
-
-        // Generate JWT immediately — user is logged in after registration.
+        // Generate tokens immediately — user is logged in after registration.
         UserDetails userDetails = userService.loadUserByUsername(user.getUsername());
-        String token = jwtService.generateToken(userDetails);
-        return buildResponse(token);
+        String accessToken = jwtService.generateToken(userDetails);
+        String refreshToken = jwtService.generateRefreshToken(userDetails);
+        return buildResponse(accessToken, refreshToken);
     }
 
     /**
@@ -98,35 +101,120 @@ public class AuthService {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getUsername(),
-                        request.getPassword()
-                )
-        );
+                        request.getPassword()));
 
         // Sync league from elo and set status to ONLINE.
         userService.findByUsername(request.getUsername())
                 .ifPresent(userService::goOnline);
 
         UserDetails userDetails = userService.loadUserByUsername(request.getUsername());
-        String token = jwtService.generateToken(userDetails);
-        return buildResponse(token);
+        String accessToken = jwtService.generateToken(userDetails);
+        String refreshToken = jwtService.generateRefreshToken(userDetails);
+        return buildResponse(accessToken, refreshToken);
     }
 
     /**
-     * Marks the user as OFFLINE in the database.
+     * Refreshes the access token using a valid refresh token.
+     *
+     * @param refreshToken the refresh token string
+     * @return a new AuthResponse with access and refresh tokens
+     * @throws IllegalArgumentException if the token is invalid or expired
      */
-    @Transactional
-    public void logout(String username) {
-        userService.findByUsername(username)
-                .ifPresent(userService::goOffline);
+    public AuthResponse refreshToken(String refreshToken) {
+        String username;
+        String jti;
+        try {
+            username = jwtService.extractUsername(refreshToken);
+            jti = jwtService.extractJti(refreshToken);
+        } catch (io.jsonwebtoken.JwtException e) {
+            throw new IllegalArgumentException("Invalid or expired refresh token");
+        }
+
+        if (username == null || jti == null) {
+            throw new IllegalArgumentException("Invalid refresh token");
+        }
+
+        // Check if this specific refresh token hash (jti) has been revoked.
+        if (tokenBlacklistService.isBlacklisted(jti)) {
+            throw new IllegalArgumentException("Refresh token has been revoked");
+        }
+
+        UserDetails userDetails = userService.loadUserByUsername(username);
+        if (!jwtService.isTokenValid(refreshToken, userDetails, "refresh")) {
+            throw new IllegalArgumentException("Invalid or expired refresh token");
+        }
+
+        // ROTATION: Issue new tokens and blacklist the old refresh token jti
+        // immediately.
+        String newAccessToken = jwtService.generateToken(userDetails);
+        String newRefreshToken = jwtService.generateRefreshToken(userDetails);
+
+        Date expiration = jwtService.extractExpiration(refreshToken);
+        long diff = expiration.getTime() - System.currentTimeMillis();
+        tokenBlacklistService.blacklistToken(jti, java.time.Duration.ofMillis(diff));
+
+        return buildResponse(newAccessToken, newRefreshToken);
     }
+
+    /**
+     * Logs out the user by blacklisting their access token and optionally their
+     * refresh token.
+     *
+     * @param accessToken  the Bearer access token string
+     * @param refreshToken (optional) the refresh token string
+     */
+    public void logout(String accessToken, String refreshToken) {
+		String username = null;
+
+        // 1. Blacklist Access Token (by full string)
+        if (accessToken != null && accessToken.startsWith("Bearer ")) {
+            String jwt = accessToken.substring(7);
+            try {
+                username = jwtService.extractUsername(jwt);
+                Date expiration = jwtService.extractExpiration(jwt);
+                long diff = expiration.getTime() - System.currentTimeMillis();
+                if (diff > 0) {
+                    tokenBlacklistService.blacklistToken(jwt, java.time.Duration.ofMillis(diff));
+                }
+            } catch (Exception e) {
+                // Token might be expired or malformed — we continue to try and get username
+                // from refresh token if possible, but we don't blacklist if we can't parse
+                // expiration.
+            }
+        }
+
+        // 2. Blacklist Refresh Token (by jti for efficiency)
+        if (refreshToken != null) {
+            try {
+                if (username == null) {
+                    username = jwtService.extractUsername(refreshToken);
+                }
+                String jti = jwtService.extractJti(refreshToken);
+                Date expiration = jwtService.extractExpiration(refreshToken);
+                long diff = expiration.getTime() - System.currentTimeMillis();
+                if (jti != null && diff > 0) {
+                    tokenBlacklistService.blacklistToken(jti, java.time.Duration.ofMillis(diff));
+                }
+            } catch (Exception e) {
+                // Ignore errors during refresh token extraction (e.g. malformed)
+            }
+        }
+
+        // 3. Set user status to OFFLINE
+        if (username != null) {
+            userService.findByUsername(username).ifPresent(userService::goOffline);
+        }
+    }
+
 
     // ------------------------------------------------------------------ //
     //  Private helpers                                                     //
     // ------------------------------------------------------------------ //
 
-    private AuthResponse buildResponse(String token) {
+    private AuthResponse buildResponse(String accessToken, String refreshToken) {
         return AuthResponse.builder()
-                .token(token)
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
                 .tokenType("Bearer")
                 .expiresIn(jwtExpirationMs / 1000) // convert ms → seconds
                 .build();

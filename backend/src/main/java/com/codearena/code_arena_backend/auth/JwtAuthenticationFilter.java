@@ -1,6 +1,8 @@
 package com.codearena.code_arena_backend.auth;
 
 import com.codearena.code_arena_backend.auth.service.JwtService;
+import com.codearena.code_arena_backend.auth.service.TokenBlacklistService;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -36,6 +38,12 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
+    private final TokenBlacklistService tokenBlacklistService;
+
+    /**
+     * UserDetailsService is implemented by UserService (see user package).
+     * Spring injects it here by type.
+     */
     private final UserDetailsService userDetailsService;
 
     @Override
@@ -61,16 +69,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-                if (jwtService.isTokenValid(jwt, userDetails)) {
-                    UsernamePasswordAuthenticationToken authToken =
-                            new UsernamePasswordAuthenticationToken(
-                                    userDetails,
-                                    null,
-                                    userDetails.getAuthorities()
-                            );
-                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
-                }
+				if (jwtService.isTokenValid(jwt, userDetails) && !tokenBlacklistService.isBlacklisted(jwt)) {
+					// Build a Spring Security authentication token (no credentials needed
+					// because we already verified the JWT signature).
+					UsernamePasswordAuthenticationToken authToken =
+							new UsernamePasswordAuthenticationToken(
+									userDetails,
+									null,                        // credentials – not needed post-auth
+									userDetails.getAuthorities()
+							);
+
+					// Attach request metadata (IP, session) to the auth object.
+					authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+					// Store in the SecurityContext so downstream code can call
+					// SecurityContextHolder.getContext().getAuthentication() to get the user.
+					SecurityContextHolder.getContext().setAuthentication(authToken);
+				}
             }
         } catch (Exception e) {
             // Token processing failed (expired, malformed, user not found, etc.).
