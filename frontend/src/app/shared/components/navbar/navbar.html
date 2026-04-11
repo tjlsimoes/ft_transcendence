@@ -1,17 +1,40 @@
-<nav class="navbar">
-  <div class="navbar-inner">
-    <a class="navbar-logo" routerLink="/">
-      <span class="logo-bracket">&lt;</span>CodeArena<span class="logo-bracket">/&gt;</span>
-    </a>
+@if (isLobby()) {
+  <nav class="navbar lobby-nav">
+    <div class="navbar-inner navbar-inner--wide">
+      <a class="navbar-logo" routerLink="/lobby">
+        <span class="logo-bracket">&lt;</span>CodeArena<span class="logo-bracket">/&gt;</span>
+      </a>
 
-    <div class="navbar-links">
-      <a class="nav-link" routerLink="/ranking" routerLinkActive="active">Ranking</a>
-      <a class="nav-link" routerLink="/about" routerLinkActive="active">About</a>
-    </div>
+      <div class="navbar-links">
+        <a class="nav-link" routerLink="/ranking" routerLinkActive="active">Ranking</a>
+      </div>
 
-    <div class="navbar-actions">
-      <a class="btn-login" routerLink="/login">Log in</a>
-      <a class="btn-join" routerLink="/register">Register</a>
+      <div class="navbar-user">
+        <div class="user-info">
+          <span class="user-name">{{ lobbyUser.name }}</span>
+        </div>
+        <div class="user-avatar">
+          <span class="avatar-letter">{{ lobbyUser.avatarLetter }}</span>
+        </div>
+      </div>
     </div>
-  </div>
-</nav>
+  </nav>
+} @else {
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a class="navbar-logo" routerLink="/">
+        <span class="logo-bracket">&lt;</span>CodeArena<span class="logo-bracket">/&gt;</span>
+      </a>
+
+      <div class="navbar-links">
+        <a class="nav-link" routerLink="/ranking" routerLinkActive="active">Ranking</a>
+        <a class="nav-link" routerLink="/about" routerLinkActive="active">About</a>
+      </div>
+
+      <div class="navbar-actions">
+        <a class="btn-login" routerLink="/login">Log in</a>
+        <a class="btn-join" routerLink="/register">Register</a>
+      </div>
+    </div>
+  </nav>
+}

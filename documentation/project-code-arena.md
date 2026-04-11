@@ -348,7 +348,6 @@ These questions should be discussed with the team before starting:
 2. **Judge**: Real Docker (recommended) or simulated with static tests?
 3. **Ranking**: Global or by classes/groups?
 4. **Languages**: Python only in MVP or start with JS as well?
-5. **Challenges**: Internal creation or importation from external sources (e.g., HackerRank API)?
 
 ---
 

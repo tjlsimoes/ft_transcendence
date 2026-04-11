@@ -1,4 +1,4 @@
-/* Barra de navegação fixa no topo, com efeito de vidro. */
+/* ===== Base navbar ===== */
 .navbar {
   position: fixed;
   top: 0;
@@ -10,7 +10,10 @@
   border-bottom: 1px solid var(--border-accent);
 }
 
-/* Container interno para centralizar conteúdo e controlar espaçamento. */
+.lobby-nav {
+  right: 70px;
+}
+
 .navbar-inner {
   max-width: 1200px;
   margin: 0 auto;
@@ -21,36 +24,65 @@
   justify-content: space-between;
 }
 
-/* Marca/logo textual da aplicação. */
+.navbar-inner--wide {
+  max-width: none;
+  margin: 0;
+}
+
+/* ===== Default Logo ===== */
 .navbar-logo {
-  font-size: 1.35rem;
+  font-size: 1.4rem;
   font-weight: 700;
   color: var(--text);
   text-decoration: none;
   letter-spacing: -0.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-/* Destaque em verde para os colchetes do logo. */
 .logo-bracket {
   color: var(--accent);
-  font-weight: 400;
+  font-weight: 500;
 }
 
-/* Grupo de links centrais do menu. */
+/* ===== Lobby Logo ===== */
+.logo-badge {
+  width: 28px;
+  height: 28px;
+  background: var(--accent);
+  color: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+
+.logo-text {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--text);
+  font-family: var(--font-mono);
+}
+
+/* ===== Navbar links ===== */
 .navbar-links {
   display: flex;
   gap: 32px;
 }
 
-/* Estilo base dos links de navegação. */
 .nav-link {
-  font-size: 0.875rem;
-  font-weight: 575;
+  font-size: 0.85rem;
+  font-weight: 600;
   color: var(--text-muted);
   text-decoration: none;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
   text-transform: uppercase;
   transition: color 0.2s ease;
+  font-family: var(--font-mono);
 }
 
 .nav-link:hover {
@@ -61,20 +93,19 @@
   color: var(--accent);
 }
 
-/* Grupo de botões de ação (login/registro). */
+/* ===== Default actions (login/register) ===== */
 .navbar-actions {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-/* Botão secundário (login). */
 .btn-login {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--text-muted);
   text-decoration: none;
-  padding: 6px 16px;
+  padding: 8px 18px;
   border: 1px solid var(--border);
   letter-spacing: 0.5px;
   transition: border-color 0.2s ease, color 0.2s ease;
@@ -85,13 +116,12 @@
   color: var(--text);
 }
 
-/* Botão primário (registro). */
 .btn-join {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   color: var(--bg);
   background: var(--accent);
   text-decoration: none;
-  padding: 6px 16px;
+  padding: 8px 18px;
   border: 1px solid var(--accent);
   font-weight: 700;
   letter-spacing: 0.5px;
@@ -103,9 +133,59 @@
   border-color: var(--accent-hover);
 }
 
-/* Ajustes para telas pequenas (esconde links centrais e compacta ações). */
+/* ===== Lobby user section ===== */
+.navbar-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 
-@media (max-width: 640px) {
+.user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.user-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.5px;
+  font-family: var(--font-mono);
+}
+
+.user-rank {
+  font-size: 0.7rem;
+  color: var(--accent);
+  letter-spacing: 0.8px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  background: rgba(0, 255, 65, 0.1);
+  border: 1px solid rgba(0, 255, 65, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-letter {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--accent);
+  font-family: var(--font-mono);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 900px) {
+  .lobby-nav {
+    right: 60px;
+  }
+
   .navbar-links {
     display: none;
   }
@@ -120,7 +200,21 @@
 
   .btn-login,
   .btn-join {
-    font-size: 0.78rem;
-    padding: 5px 12px;
+    font-size: 0.85rem;
+    padding: 6px 14px;
+  }
+}
+
+@media (max-width: 640px) {
+  .lobby-nav {
+    right: 0;
+  }
+
+  .user-info {
+    display: none;
+  }
+
+  .navbar-inner {
+    height: 56px;
   }
 }

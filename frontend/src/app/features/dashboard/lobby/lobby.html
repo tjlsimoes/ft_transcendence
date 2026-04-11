@@ -1,0 +1,39 @@
+<section class="lobby-shell" aria-label="Lobby workspace">
+	<h1 class="sr-only">Code Arena Lobby</h1>
+	<div class="workspace-frame">
+		<header class="workspace-topbar">
+			<div class="workspace-tabs" aria-label="Workspace tabs">
+				@for (tab of tabs; track tab.id) {
+				<button class="tab-item" [class.active]="tab.active" type="button">{{ tab.label }}</button>
+				}
+			</div>
+		</header>
+
+		<div class="workspace-main">
+			<aside class="stats-column" aria-label="Player stats column">
+				<!-- Player Identity Card -->
+				<app-identity-card
+					[username]="player.username"
+					[league]="player.league"
+					[avatarUrl]="player.avatarUrl"
+					[isOnline]="player.isOnline" />
+
+				<!-- Matchmaking Queue -->
+				<app-queue-panel />
+
+				<!-- Player Statistics -->
+				<app-player-stats />
+			</aside>
+
+			<section class="editor-terminal-split" aria-label="Editor and Terminal">
+
+				<!-- Profile Data (rank display) -->
+				<app-profile-data />
+
+				<!-- Terminal: Match History and Queue Events -->
+				<app-terminal-history [matchHistory]="matchHistory" />
+
+			</section>
+		</div>
+	</div>
+</section>
