@@ -2,6 +2,8 @@ package com.codearena.code_arena_backend.challenge.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -34,7 +36,8 @@ public class Challenge {
     private String description;
 
     @Column(nullable = false, length = 20)
-    private String difficulty;
+    @Enumerated(EnumType.STRING)
+    private ChallengeDifficulty difficulty;
 
     @Column(name = "time_limit_secs", nullable = false)
     private Integer timeLimitSecs;

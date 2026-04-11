@@ -248,7 +248,7 @@ The MVP focuses on the following essentials:
 - [x] Evaluation: correctness and submission time
 - [x] Ranking ladder (leaderboard)
 - [x] Basic notifications (duel result)
-- [x] 20 initial challenges (Easy/Medium/Hard)
+- [x] 20 initial challenges (Easy/Medium/Hard/Insane)
 - [x] WebSocket for real-time duel
 
 ### Outside MVP (phase 2)
