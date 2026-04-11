@@ -60,6 +60,10 @@ public class User {
     @Enumerated(EnumType.STRING)
     private UserStatus status = UserStatus.OFFLINE;
 
+    @Column(nullable = false, length = 50)
+    @Enumerated(EnumType.STRING)
+    private Role role = Role.USER;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -81,5 +85,10 @@ public class User {
         OFFLINE,
         IN_QUEUE,
         IN_DUEL
+    }
+
+    public enum Role {
+        USER,
+        ADMIN
     }
 }

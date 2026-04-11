@@ -1,5 +1,6 @@
 package com.codearena.code_arena_backend.challenge.service;
 
+import com.codearena.code_arena_backend.challenge.dto.ChallengeUpsertRequest;
 import com.codearena.code_arena_backend.challenge.entity.Challenge;
 import com.codearena.code_arena_backend.challenge.entity.ChallengeDifficulty;
 import com.codearena.code_arena_backend.challenge.repository.ChallengeRepository;
@@ -9,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.Locale;
+import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
@@ -29,5 +31,34 @@ public class ChallengeService {
         }
 
         return challengeRepository.findByDifficulty(parsedDifficulty, pageable);
+    }
+
+    public Challenge createChallenge(ChallengeUpsertRequest request) {
+        Challenge challenge = new Challenge();
+        applyUpsert(challenge, request);
+        return challengeRepository.save(challenge);
+    }
+
+    public Challenge updateChallenge(Long id, ChallengeUpsertRequest request) {
+        Challenge challenge = challengeRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Challenge not found: " + id));
+
+        applyUpsert(challenge, request);
+        return challengeRepository.save(challenge);
+    }
+
+    public void deleteChallenge(Long id) {
+        if (!challengeRepository.existsById(id)) {
+            throw new NoSuchElementException("Challenge not found: " + id);
+        }
+        challengeRepository.deleteById(id);
+    }
+
+    private void applyUpsert(Challenge challenge, ChallengeUpsertRequest request) {
+        challenge.setTitle(request.getTitle().trim());
+        challenge.setDescription(request.getDescription());
+        challenge.setDifficulty(request.getDifficulty());
+        challenge.setTimeLimitSecs(request.getDifficulty().getDefaultTimeLimitSecs());
+        challenge.setTestCases(request.getTestCases());
     }
 }

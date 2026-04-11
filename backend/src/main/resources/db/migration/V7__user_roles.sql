@@ -1,0 +1,19 @@
+ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS role VARCHAR(50);
+
+UPDATE users
+SET role = 'USER'
+WHERE role IS NULL;
+
+ALTER TABLE users
+    ALTER COLUMN role SET DEFAULT 'USER';
+
+ALTER TABLE users
+    ALTER COLUMN role SET NOT NULL;
+
+ALTER TABLE users
+    DROP CONSTRAINT IF EXISTS chk_users_role;
+
+ALTER TABLE users
+    ADD CONSTRAINT chk_users_role
+        CHECK (role IN ('USER', 'ADMIN'));

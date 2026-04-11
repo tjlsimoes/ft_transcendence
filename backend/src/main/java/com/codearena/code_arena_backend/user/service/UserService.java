@@ -3,6 +3,7 @@ package com.codearena.code_arena_backend.user.service;
 import com.codearena.code_arena_backend.user.entity.User;
 import com.codearena.code_arena_backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -74,16 +75,15 @@ public class UserService implements UserDetailsService {
      * Converts our User entity into a Spring Security UserDetails.
      *
      * We use the built-in org.springframework.security.core.userdetails.User
-     * builder. At this stage there are no roles; an empty authorities list
-     * is fine — roles will be added in the authorisation issue.
+     * builder and expose the persisted role as a Spring authority
+     * (e.g. USER -> ROLE_USER, ADMIN -> ROLE_ADMIN).
      */
     private UserDetails toUserDetails(User user) {
+        String authority = "ROLE_" + user.getRole().name();
         return org.springframework.security.core.userdetails.User.builder()
                 .username(user.getUsername())
                 .password(user.getPassword()) // already BCrypt-hashed
-                // Explicit typed list avoids the ambiguous varargs overload.
-                // Roles/authorities will be added in the authorisation issue.
-                .authorities(List.<GrantedAuthority>of())
+            .authorities(List.<GrantedAuthority>of(new SimpleGrantedAuthority(authority)))
                 .build();
     }
 }
