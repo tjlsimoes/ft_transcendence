@@ -27,16 +27,17 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false)
+    @Column(name = "login", unique = true, nullable = false)
     private String username;
 
     @Column(unique = true, nullable = false)
     private String email;
 
-    @Column(nullable = false)
+    @Column(name = "password_hash", nullable = false)
     @JsonIgnore
     private String password;
 
+    @Column(name = "avatar_url", length = 2048)
     private String avatar;
 
     @Column(nullable = false)
@@ -48,21 +49,23 @@ public class User {
     @Column(nullable = false)
     private Integer losses = 0;
 
-    @Column(nullable = false)
+    @Column(name = "win_streak", nullable = false)
     private Integer winStreak = 0;
 
+    @Column(nullable = false, length = 50)
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private League league = League.BRONZE;
 
+    @Column(nullable = false, length = 50)
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private UserStatus status = UserStatus.OFFLINE;
 
     @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
     public enum League {
