@@ -58,7 +58,14 @@ public class ChallengeService {
         challenge.setTitle(request.getTitle().trim());
         challenge.setDescription(request.getDescription());
         challenge.setDifficulty(request.getDifficulty());
-        challenge.setTimeLimitSecs(request.getDifficulty().getDefaultTimeLimitSecs());
+        challenge.setTimeLimitSecs(resolveTimeLimitFromSettings(request.getDifficulty()));
         challenge.setTestCases(request.getTestCases());
+    }
+
+    private Integer resolveTimeLimitFromSettings(ChallengeDifficulty difficulty) {
+        return challengeRepository.findConfiguredTimeLimitByDifficulty(difficulty.name())
+                .orElseThrow(() -> new IllegalStateException(
+                        "Missing difficulty settings for: " + difficulty.name()
+                ));
     }
 }

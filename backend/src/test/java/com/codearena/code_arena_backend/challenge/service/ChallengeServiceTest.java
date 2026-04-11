@@ -97,15 +97,17 @@ class ChallengeServiceTest {
     }
 
     @Test
-    @DisplayName("createChallenge sets time limit from difficulty")
+    @DisplayName("createChallenge sets time limit from DB difficulty settings")
     void createChallenge_setsTimeFromDifficulty() {
         ChallengeUpsertRequest request = new ChallengeUpsertRequest(
                 "ft_split",
                 "desc",
                 ChallengeDifficulty.INSANE,
-            JsonNodeFactory.instance.arrayNode()
+                JsonNodeFactory.instance.arrayNode()
         );
 
+        when(challengeRepository.findConfiguredTimeLimitByDifficulty("INSANE"))
+                .thenReturn(Optional.of(1800));
         when(challengeRepository.save(org.mockito.ArgumentMatchers.any(Challenge.class)))
                 .thenAnswer(inv -> inv.getArgument(0));
 
@@ -114,7 +116,26 @@ class ChallengeServiceTest {
         assertThat(created.getDifficulty()).isEqualTo(ChallengeDifficulty.INSANE);
         assertThat(created.getTimeLimitSecs()).isEqualTo(1800);
         assertThat(created.getTitle()).isEqualTo("ft_split");
+        verify(challengeRepository).findConfiguredTimeLimitByDifficulty("INSANE");
         verify(challengeRepository).save(org.mockito.ArgumentMatchers.any(Challenge.class));
+    }
+
+    @Test
+    @DisplayName("createChallenge throws when DB settings for difficulty are missing")
+    void createChallenge_missingDifficultySettings_throws() {
+        ChallengeUpsertRequest request = new ChallengeUpsertRequest(
+                "ft_split",
+                "desc",
+                ChallengeDifficulty.INSANE,
+                JsonNodeFactory.instance.arrayNode()
+        );
+
+        when(challengeRepository.findConfiguredTimeLimitByDifficulty("INSANE"))
+                .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> challengeService.createChallenge(request))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("INSANE");
     }
 
     @Test
@@ -133,9 +154,11 @@ class ChallengeServiceTest {
                 "new-title",
                 "new-desc",
                 ChallengeDifficulty.HARD,
-            expectedTestCases
+                expectedTestCases
         );
 
+        when(challengeRepository.findConfiguredTimeLimitByDifficulty("HARD"))
+                .thenReturn(Optional.of(1200));
         when(challengeRepository.findById(3L)).thenReturn(Optional.of(existing));
         when(challengeRepository.save(existing)).thenReturn(existing);
 
@@ -146,6 +169,7 @@ class ChallengeServiceTest {
         assertThat(updated.getDifficulty()).isEqualTo(ChallengeDifficulty.HARD);
         assertThat(updated.getTimeLimitSecs()).isEqualTo(1200);
         assertThat(updated.getTestCases()).isEqualTo(expectedTestCases);
+        verify(challengeRepository).findConfiguredTimeLimitByDifficulty("HARD");
     }
 
     @Test
@@ -155,7 +179,7 @@ class ChallengeServiceTest {
                 "title",
                 null,
                 ChallengeDifficulty.MEDIUM,
-            JsonNodeFactory.instance.arrayNode()
+                JsonNodeFactory.instance.arrayNode()
         );
 
         when(challengeRepository.findById(99L)).thenReturn(Optional.empty());
