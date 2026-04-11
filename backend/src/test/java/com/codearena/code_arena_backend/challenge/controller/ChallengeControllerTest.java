@@ -1,5 +1,6 @@
 package com.codearena.code_arena_backend.challenge.controller;
 
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.codearena.code_arena_backend.challenge.dto.ChallengeListItemResponse;
 import com.codearena.code_arena_backend.challenge.dto.ChallengeUpsertRequest;
 import com.codearena.code_arena_backend.challenge.entity.Challenge;
@@ -39,7 +40,14 @@ class ChallengeControllerTest {
     @DisplayName("listChallenges maps service page to response DTO page")
     void listChallenges_mapsToDtoPage() {
         Pageable pageable = PageRequest.of(0, 10);
-        Challenge challenge = new Challenge(7L, "ft_atoi", "desc", ChallengeDifficulty.MEDIUM, 600, "[]");
+        Challenge challenge = new Challenge(
+            7L,
+            "ft_atoi",
+            "desc",
+            ChallengeDifficulty.MEDIUM,
+            600,
+            JsonNodeFactory.instance.arrayNode()
+        );
         Page<Challenge> servicePage = new PageImpl<>(List.of(challenge), pageable, 1);
         when(challengeService.listChallenges("MEDIUM", pageable)).thenReturn(servicePage);
 
@@ -75,9 +83,16 @@ class ChallengeControllerTest {
                 "new",
                 "desc",
                 ChallengeDifficulty.HARD,
-                "[]"
+            JsonNodeFactory.instance.arrayNode()
         );
-        Challenge created = new Challenge(11L, "new", "desc", ChallengeDifficulty.HARD, 1200, "[]");
+        Challenge created = new Challenge(
+            11L,
+            "new",
+            "desc",
+            ChallengeDifficulty.HARD,
+            1200,
+            JsonNodeFactory.instance.arrayNode()
+        );
         when(challengeService.createChallenge(request)).thenReturn(created);
 
         ResponseEntity<com.codearena.code_arena_backend.challenge.dto.ChallengeAdminResponse> response =
@@ -96,9 +111,16 @@ class ChallengeControllerTest {
                 "updated",
                 "desc",
                 ChallengeDifficulty.MEDIUM,
-                "[]"
+            JsonNodeFactory.instance.arrayNode()
         );
-        Challenge updated = new Challenge(9L, "updated", "desc", ChallengeDifficulty.MEDIUM, 600, "[]");
+        Challenge updated = new Challenge(
+            9L,
+            "updated",
+            "desc",
+            ChallengeDifficulty.MEDIUM,
+            600,
+            JsonNodeFactory.instance.arrayNode()
+        );
         when(challengeService.updateChallenge(9L, request)).thenReturn(updated);
 
         ResponseEntity<com.codearena.code_arena_backend.challenge.dto.ChallengeAdminResponse> response =

@@ -1,5 +1,6 @@
 package com.codearena.code_arena_backend.challenge.service;
 
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.codearena.code_arena_backend.challenge.dto.ChallengeUpsertRequest;
 import com.codearena.code_arena_backend.challenge.entity.Challenge;
 import com.codearena.code_arena_backend.challenge.entity.ChallengeDifficulty;
@@ -67,7 +68,14 @@ class ChallengeServiceTest {
     @DisplayName("listChallenges with difficulty filters by parsed difficulty")
     void listChallenges_withDifficulty_filtersByDifficulty() {
         Pageable pageable = PageRequest.of(0, 20);
-        Challenge challenge = new Challenge(1L, "Example", "Desc", ChallengeDifficulty.MEDIUM, 600, "[]");
+        Challenge challenge = new Challenge(
+            1L,
+            "Example",
+            "Desc",
+            ChallengeDifficulty.MEDIUM,
+            600,
+            JsonNodeFactory.instance.arrayNode()
+        );
         Page<Challenge> expectedPage = new PageImpl<>(List.of(challenge), pageable, 1);
 
         when(challengeRepository.findByDifficulty(ChallengeDifficulty.MEDIUM, pageable)).thenReturn(expectedPage);
@@ -95,7 +103,7 @@ class ChallengeServiceTest {
                 "ft_split",
                 "desc",
                 ChallengeDifficulty.INSANE,
-                "[]"
+            JsonNodeFactory.instance.arrayNode()
         );
 
         when(challengeRepository.save(org.mockito.ArgumentMatchers.any(Challenge.class)))
@@ -112,12 +120,20 @@ class ChallengeServiceTest {
     @Test
     @DisplayName("updateChallenge updates existing challenge and recalculates time from difficulty")
     void updateChallenge_existing_updatesChallenge() {
-        Challenge existing = new Challenge(3L, "old", "old", ChallengeDifficulty.EASY, 300, "[]");
+        Challenge existing = new Challenge(
+            3L,
+            "old",
+            "old",
+            ChallengeDifficulty.EASY,
+            300,
+            JsonNodeFactory.instance.arrayNode()
+        );
+        var expectedTestCases = JsonNodeFactory.instance.arrayNode().addObject().put("input", "x");
         ChallengeUpsertRequest request = new ChallengeUpsertRequest(
                 "new-title",
                 "new-desc",
                 ChallengeDifficulty.HARD,
-                "[{\"input\":\"x\"}]"
+            expectedTestCases
         );
 
         when(challengeRepository.findById(3L)).thenReturn(Optional.of(existing));
@@ -129,7 +145,7 @@ class ChallengeServiceTest {
         assertThat(updated.getDescription()).isEqualTo("new-desc");
         assertThat(updated.getDifficulty()).isEqualTo(ChallengeDifficulty.HARD);
         assertThat(updated.getTimeLimitSecs()).isEqualTo(1200);
-        assertThat(updated.getTestCases()).isEqualTo("[{\"input\":\"x\"}]");
+        assertThat(updated.getTestCases()).isEqualTo(expectedTestCases);
     }
 
     @Test
@@ -139,7 +155,7 @@ class ChallengeServiceTest {
                 "title",
                 null,
                 ChallengeDifficulty.MEDIUM,
-                "[]"
+            JsonNodeFactory.instance.arrayNode()
         );
 
         when(challengeRepository.findById(99L)).thenReturn(Optional.empty());

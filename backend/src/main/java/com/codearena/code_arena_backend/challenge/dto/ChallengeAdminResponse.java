@@ -1,5 +1,6 @@
 package com.codearena.code_arena_backend.challenge.dto;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.codearena.code_arena_backend.challenge.entity.Challenge;
 import com.codearena.code_arena_backend.challenge.entity.ChallengeDifficulty;
 
@@ -9,7 +10,7 @@ public record ChallengeAdminResponse(
         String description,
         ChallengeDifficulty difficulty,
         Integer timeLimitSecs,
-        String testCases
+        JsonNode testCases
 ) {
     public static ChallengeAdminResponse from(Challenge challenge) {
         return new ChallengeAdminResponse(
