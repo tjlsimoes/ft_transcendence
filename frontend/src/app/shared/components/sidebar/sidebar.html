@@ -1,0 +1,72 @@
+@if (isLobby()) {
+<aside class="sidebar">
+  <!-- Collapsed view (icons only) -->
+  <div class="sidebar-collapsed">
+    <div class="sidebar-top">
+      <button class="sidebar-btn" title="Notifications">
+        <svg class="sidebar-icon" viewBox="0 0 16 19" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M8 18.8262C9.1 18.8262 10 17.9608 10 16.9031H6C6 17.9608 6.9 18.8262 8 18.8262ZM14 13.0569V8.24925C14 5.29733 12.37 2.82617 9.5 2.17233V1.51848C9.5 0.720403 8.83 0.0761719 8 0.0761719C7.17 0.0761719 6.5 0.720403 6.5 1.51848V2.17233C3.64 2.82617 2 5.28771 2 8.24925V13.0569L0 14.98V15.9416H16V14.98L14 13.0569ZM12 14.0185H4V8.24925C4 5.86463 5.51 3.92233 8 3.92233C10.49 3.92233 12 5.86463 12 8.24925V14.0185Z"
+            fill="currentColor" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="sidebar-avatar-wrapper" style="display: flex; flex-direction: column; gap: 16px; align-items: center;">
+      @for (friend of friends; track friend.id) {
+      <div class="friend-avatar" [title]="friend.name" style="cursor: pointer;">
+        <img [src]="friend.avatar || ''" [alt]="friend.name" class="avatar-img"
+          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" />
+        <span class="avatar-fallback" style="display: none;">{{ friend.avatarLetter }}</span>
+        <span class="status-dot" [class]="friend.status"></span>
+      </div>
+      }
+    </div>
+  </div>
+
+  <!-- Expanded view (full panel) -->
+  <div class="sidebar-expanded">
+    <div class="sidebar-tabs">
+      <button class="tab-btn" [class.active]="activeTab() === 'friends'" (click)="setActiveTab('friends')">
+        AMIGOS
+      </button>
+      <button class="tab-btn" [class.active]="activeTab() === 'notifications'" (click)="setActiveTab('notifications')">
+        NOTIFICAÇÕES
+      </button>
+    </div>
+
+    <div class="sidebar-content">
+      @if (activeTab() === 'friends') {
+      <div class="friends-list">
+        @for (friend of friends; track friend.id) {
+        <div class="friend-item">
+          <div class="friend-avatar">
+            <img [src]="friend.avatar || ''" [alt]="friend.name" class="avatar-img"
+              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" />
+            <span class="avatar-fallback" style="display: none;">{{ friend.avatarLetter }}</span>
+            <span class="status-dot" [class]="friend.status"></span>
+          </div>
+          <div class="friend-info">
+            <span class="friend-name">{{ friend.name }}</span>
+            <span class="friend-rank">{{ friend.rank }}</span>
+          </div>
+        </div>
+        }
+      </div>
+      }
+
+      @if (activeTab() === 'notifications') {
+      <div class="notifications-list">
+        <div class="empty-state">
+          <svg class="empty-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M12 22C13.1 22 14 21.1 14 20H10C10 21.1 10.9 22 12 22ZM18 16V11C18 7.93 16.37 5.36 13.5 4.68V4C13.5 3.17 12.83 2.5 12 2.5C11.17 2.5 10.5 3.17 10.5 4V4.68C7.64 5.36 6 7.92 6 11V16L4 18V19H20V18L18 16ZM16 17H8V11C8 8.52 9.51 6.5 12 6.5C14.49 6.5 16 8.52 16 11V17Z"
+              fill="currentColor" />
+          </svg>
+        </div>
+      </div>
+      }
+    </div>
+  </div>
+</aside>
+}

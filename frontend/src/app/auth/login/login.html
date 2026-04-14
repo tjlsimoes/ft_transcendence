@@ -67,7 +67,7 @@
       </div>
 
       <!-- Submit -->
-      <button type="submit" class="btn-submit" [disabled]="isLoading()">
+      <button routerLink="/lobby" type="submit" class="btn-submit" [disabled]="isLoading()">
         @if (isLoading()) {
           <span class="spinner"></span>
         }

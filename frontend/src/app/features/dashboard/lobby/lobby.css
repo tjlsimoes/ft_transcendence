@@ -1,0 +1,135 @@
+.lobby-shell {
+	min-height: calc(100vh - 80px);
+	display: grid;
+	grid-template-columns: 1fr;
+	margin-top: 64px;
+	border-top: 1px solid rgba(0, 243, 61, 0.12);
+	padding-right: 70px;
+	position: relative;
+	isolation: isolate;
+}
+
+.lobby-shell::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	background: rgba(3, 5, 6, 0.34);
+	pointer-events: none;
+	z-index: 0;
+}
+
+.workspace-frame {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	position: relative;
+	z-index: 1;
+}
+
+.workspace-topbar {
+	min-height: 48px;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+	background: rgba(6, 8, 9, 0.97);
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 6px 16px;
+}
+
+.workspace-tabs {
+	display: flex;
+	align-items: center;
+	min-width: 0;
+	overflow-x: auto;
+}
+
+.tab-item {
+	min-height: 36px;
+	border: 1px solid transparent;
+	border-bottom: none;
+	background: transparent;
+	color: var(--text-dim, #A0A0A0);
+	font-size: 0.74rem;
+	letter-spacing: 0.7px;
+	padding: 0 14px;
+	cursor: pointer;
+	white-space: nowrap;
+	transition: color 0.2s ease, background 0.2s ease;
+}
+
+.tab-item:hover {
+	color: var(--text);
+	background: rgba(255, 255, 255, 0.04);
+}
+
+.tab-item:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: -2px;
+}
+
+.tab-item.active {
+	color: var(--text);
+	border-color: rgba(255, 255, 255, 0.18);
+	background: rgba(13, 15, 17, 0.95);
+}
+
+/* Stats column adjustments */
+.stats-column {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+/* Editor space and terminal split */
+.workspace-main {
+	flex: 1;
+	min-height: 0;
+	display: grid;
+	grid-template-columns: 320px minmax(0, 1fr);
+	gap: 16px;
+	padding: 16px;
+}
+
+.editor-terminal-split {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	min-height: 0;
+}
+
+/* ── Responsive Breakpoints ── */
+
+@media (max-width: 1100px) {
+	.workspace-main {
+		grid-template-columns: 1fr;
+	}
+
+	.stats-column {
+		max-width: 420px;
+	}
+}
+
+@media (max-width: 900px) {
+	.lobby-shell {
+		grid-template-columns: 1fr;
+		margin-top: 56px;
+		padding-right: 70px;
+	}
+
+	.workspace-topbar {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 8px;
+		padding: 8px 12px;
+	}
+
+	.workspace-main {
+		padding: 12px;
+	}
+}
+
+@media (max-width: 640px) {
+	.lobby-shell {
+		padding-right: 0;
+	}
+}

@@ -41,7 +41,7 @@ export $(grep -v '^#' ../.env | xargs) && ./mvnw spring-boot:run
 
 ---
 
-## 3. Dealing with CORS
+## 2. Dealing with CORS
 
 When the Nginx proxy is omitted, the Frontend (`:${FRONTEND_PORT:-80}`) and Backend (`:${BACKEND_PORT:-8080}`) operate on different ports. This triggers **CORS** (Cross-Origin Resource Sharing) security.
 
@@ -58,53 +58,54 @@ Add `@CrossOrigin("http://localhost:${FRONTEND_PORT:-80}")` to the controllers o
 
 ---
 
-## 4. Best Practices
+## 3. Database Schema Migrations
+
+Flyway is utilized for database schema management. Schema modifications require the addition of a new `.sql` script in the following directory:
+`backend/src/main/resources/db/migration/`
+
+These scripts are automatically executed by the Spring Boot backend upon application startup, regardless of whether a local or cloud-based database is employed. Manual modification of `database/init.sql` is prohibited for schema changes.
+
+---
+
+## 4. Cloud Database Integration (Neon)
+
+Managed cloud databases, such as [Neon](https://neon.tech), can be integrated into the development environment.
+
+### 4.1. Configuration via Environment Variables
+
+To utilize a Neon database, the following environment variables in the `.env` file must be updated:
+- `DB_HOST`: Set to the Neon hostname (e.g., `ep-pretty-dawn-123.us-east-2.aws.neon.tech`).
+- `DB_PORT`: `5432`.
+- `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`: Assigned Neon credentials.
+- `DB_SSL_MODE`: `require` (SSL is mandatory for Neon connections).
+
+### 4.2. Local Database Deactivation
+
+When using a cloud-based database, the local `codearena-db` container is not required. It can be stopped or deactivated to conserve system resources:
+- To stop: `docker compose stop db`
+- To deactivate permanently: `docker compose up -d --scale db=0`
+
+> [!IMPORTANT]
+> If the `db` service is deactivated in `docker-compose.yml`, it must also be removed from the `depends_on` list in the `backend` service. Failure to do so will cause the backend to stall during startup.
+
+### 4.3. Remote Database Integration Workflow
+
+To utilize a remote database while maintaining the local environment as a backup:
+
+1.  **Connection String acquisition**: Obtain the PostgreSQL connection URL from the Neon dashboard.
+2.  **Hybrid Workflow**:
+    - When executed natively on the host, the backend connects directly to the Neon instance.
+    - When executed via Docker, the `db` service can be commented out in `docker-compose.yml` to save resources.
+
+> [!TIP]
+> This configuration facilitates the sharing of a consistent database state across a development team without the need for manual SQL synchronization.
+
+---
+
+## 5. Best Practices
 - **Linting**: Utilize the provided ESLint and Prettier configurations within the IDE.
 - **Hot Reload**: Both Angular and Spring Boot (via devtools) support hot-reloading. Restarting is not required for most changes.
-- **Database Migrations**: SQL scripts should be added to `database/init.sql`. Docker executes these automatically upon the clearance of the `database-data` volume.
 - **Nginx Templating**: 
     - Always edit the `.template` files in `infra/nginx/` or `frontend/`. 
     - Changes to processed `.conf` files inside containers will be overwritten on the next startup as `envsubst` runs.
     - If you add a new environment variable to a template, ensure it is also added to the `environment` block of the respective service in `docker-compose.yml`.
-
-## 4. Cloud Database Integration (Neon)
-
-If you prefer using a managed cloud database like **Neon**, follow these steps:
-
-1.  **Update `.env`**:
-    - `DB_HOST`: Set to your Neon hostname (e.g., `ep-pretty-dawn-123.us-east-2.aws.neon.tech`).
-    - `DB_PORT`: `5432`.
-    - `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`: Use your Neon credentials.
-    - `DB_SSL_MODE`: `require` (Neon requires SSL).
-2.  **Disable Local DB**:
-    - To save resources, you don't need the local `codearena-db` container.
-    - Stop it specifically: `docker compose stop db`.
-    - Or keep it down permanently: `docker compose up -d --scale db=0`.
-3.  **Inheritance**: The Backend will automatically pick up these variables and connect to the cloud instead of the local network.
-
----
-
-## 3. Remote Database Integration (Neon)
-
-To use a remote database (like [Neon](https://neon.tech)) while keeping the local setup as a backup:
-
-1.  **Connection String acquisition**: Obtain the Postgres URL from the Neon dashboard.
-2.  **Update `.env`**:
-    - `DB_HOST`: Set to the Neon host (e.g., `ep-cool-fog-12345.us-east-2.aws.neon.tech`).
-    - `POSTGRES_USER` & `POSTGRES_PASSWORD`: Use Neon credentials.
-    - `POSTGRES_DB`: Usually `neondb`.
-    - `DB_SSL_MODE`: Set to `require`.
-3.  **Hybrid Workflow**:
-    - When running locally (on Host), the application connects to Neon directly.
-    - When running via Docker, the `db` service can be **commented out** in `docker-compose.yml` to save resources:
-      ```yaml
-      # docker-compose.yml
-      # db:
-      #   image: codearena-db:1.0
-      #   ...
-      ```
-
-> [!TIP]
-> This is ideal for sharing the same database state across the team without manual SQL syncs!
-
-> If the `db` service is commented out in `docker-compose.yml` to use Neon, it must also be removed from the `depends_on` list in the `backend` service. Failure to do so will cause the backend to stall while waiting for a missing healthcheck.

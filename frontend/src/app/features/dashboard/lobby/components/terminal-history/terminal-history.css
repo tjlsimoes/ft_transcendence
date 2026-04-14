@@ -1,0 +1,157 @@
+:host {
+	display: flex;
+	flex: 1;
+	min-height: 289px;
+	min-width: 0;
+}
+
+.pane {
+	border: 1px solid var(--border-light);
+	background: var(--bg-panel);
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+
+.terminal-pane {
+	flex: 1;
+	min-height: 0;
+}
+
+.pane-header {
+	min-height: 34px;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+	background: var(--bg-header);
+	display: flex;
+	align-items: center;
+	padding: 0 12px;
+	gap: 8px;
+}
+
+.pane-tab {
+	color: var(--text-dim);
+	font-size: 0.7rem;
+	letter-spacing: 0.5px;
+}
+
+.pane-content {
+	flex: 1;
+	padding: 14px;
+	min-height: 0;
+	overflow: hidden;
+}
+
+.terminal-content {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+	overflow: hidden;
+	min-height: 0;
+}
+
+.terminal-history-scroll {
+	flex: 1;
+	min-height: 0;
+	overflow-y: auto;
+	overflow-x: hidden;
+	scrollbar-width: thin;
+	scrollbar-color: rgba(121, 121, 121, 0.7) rgba(37, 37, 38, 0.75);
+}
+
+.terminal-history-scroll::-webkit-scrollbar {
+	width: 12px;
+	height: 12px;
+}
+
+.terminal-history-scroll::-webkit-scrollbar-track {
+	background: rgba(37, 37, 38, 0.75);
+}
+
+.terminal-history-scroll::-webkit-scrollbar-thumb {
+	background: rgba(121, 121, 121, 0.75);
+	border: 1px solid rgba(37, 37, 38, 0.75);
+	border-radius: 10px;
+}
+
+.terminal-history-scroll::-webkit-scrollbar-thumb:hover {
+	background: rgba(148, 148, 148, 0.9);
+}
+
+.terminal-history-scroll::-webkit-scrollbar-corner {
+	background: rgba(37, 37, 38, 0.75);
+}
+
+.history-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 0.8rem;
+}
+
+.history-table th {
+	text-align: left;
+	color: var(--text-dim);
+	font-weight: normal;
+	padding-bottom: 12px;
+	border-bottom: 1px dashed rgba(255, 255, 255, 0.25);
+}
+
+.history-table td {
+	padding: 12px 0;
+	border-bottom: 1px dashed rgba(255, 255, 255, 0.25);
+	color: var(--text-muted);
+}
+
+.history-result {
+	font-weight: bold;
+}
+
+.history-result.victory {
+	color: var(--color-victory, #22c55e) !important;
+}
+
+.history-result.defeat {
+	color: var(--color-defeat, #ef4444) !important;
+}
+
+.history-lp.positive {
+	color: var(--color-victory, #22c55e) !important;
+}
+
+.history-lp.negative {
+	color: var(--color-defeat, #ef4444) !important;
+}
+
+.lp-indicator {
+	font-size: 0.65rem;
+	margin-right: 2px;
+}
+
+.terminal-input {
+	min-height: 34px;
+	border: 1px solid rgba(255, 255, 255, 0.16);
+	background: rgba(2, 3, 4, 0.96);
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 0 10px;
+}
+
+.prompt-symbol {
+	color: var(--accent);
+	font-size: 0.82rem;
+}
+
+.prompt-input {
+	flex: 1;
+	background: transparent;
+	border: none;
+	color: var(--text);
+	font-size: 0.8rem;
+	font-family: inherit;
+	outline: none;
+	caret-color: var(--accent);
+}
+
+.prompt-input::placeholder {
+	color: rgba(255, 255, 255, 0.45);
+}

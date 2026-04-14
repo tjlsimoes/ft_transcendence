@@ -8,7 +8,7 @@ import { Router, RouterLink } from '@angular/router';
   selector: 'app-login',
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './login.html',
-  styleUrls: ['./login.css'],
+  styleUrls: ['../auth-shared.css', './login.css'],
 })
 export class LoginComponent {
   // FormGroup com os campos do formulário de login.

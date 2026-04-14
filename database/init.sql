@@ -1,2 +1,3 @@
--- Initial database schema
--- This file will be executed when the database container starts for the first time
+-- Schema is managed by Flyway migrations in backend/src/main/resources/db/migration.
+-- Keep this script as a no-op so the Postgres container bootstrap remains valid.
+SELECT 1;

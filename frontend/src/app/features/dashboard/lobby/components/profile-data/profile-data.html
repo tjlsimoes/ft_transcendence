@@ -1,0 +1,26 @@
+<div class="pane editor-pane">
+	<header class="pane-header">
+		<span class="editor-dot red"></span>
+		<span class="editor-dot amber"></span>
+		<span class="editor-dot green"></span>
+		<span class="pane-tab">CodeArena::ProfileData</span>
+	</header>
+	<div class="pane-content">
+		<section class="profile-shell" aria-label="Resumo do rank">
+			<div class="rank-emblem" aria-hidden="true">
+				<span class="rank-emblem-text">{{ rankTier }}</span>
+			</div>
+			<p class="rank-league">{{ leagueName }}</p>
+			<h2 class="season-title">RANKED SEASON {{ seasonLabel }}</h2>
+
+			<div class="progress-row">
+				<span>PROGRESS TO {{ nextLeague }}</span>
+				<span>{{ currentLp }} / {{ targetLp }} LP</span>
+			</div>
+			<div class="progress-track" role="progressbar" aria-label="Progresso de rank"
+				[attr.aria-valuenow]="currentLp" [attr.aria-valuemax]="targetLp" aria-valuemin="0">
+				<div class="progress-fill" [style.width.%]="lpProgress"></div>
+			</div>
+		</section>
+	</div>
+</div>
