@@ -158,9 +158,9 @@
 }
 
 .terminal-body {
-  padding: 160px;
-  font-size: 0.83rem;
-  line-height: 1.7;
+  padding: 20px 18px;
+  font-size: 0.9rem;
+  line-height: 1.6;
 }
 
 .terminal-body p {
@@ -180,6 +180,10 @@
   padding: 18px;
   border: 1px solid var(--border);
   background: color-mix(in srgb, var(--bg) 92%, #1a1a1a);
+  display: grid;
+  gap: 6px;
+  align-content: start;
+  min-height: 94px;
 }
 
 .highlight-value {
