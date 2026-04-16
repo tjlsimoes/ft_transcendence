@@ -64,7 +64,7 @@ public class SecurityConfig {
             // Route authorisation rules.
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints — no token required.
-                .requestMatchers("/api/auth/**", "/api/health").permitAll()
+                .requestMatchers("/api/auth/**", "/api/health", "/error").permitAll()
                 // Everything else requires a valid JWT.
                 .anyRequest().authenticated()
             )
