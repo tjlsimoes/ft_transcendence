@@ -2,6 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
+import { UserService } from './user.service';
 
 export interface AuthResponse {
   token: string;
@@ -24,6 +25,7 @@ export interface LoginPayload {
 export class AuthService {
   private http = inject(HttpClient);
   private router = inject(Router);
+  private userService = inject(UserService);
   private baseUrl = `${environment.apiUrl}/auth`;
 
   private tokenKey = 'auth_token';
@@ -49,7 +51,13 @@ export class AuthService {
   }
 
   logout(): void {
+    const token = this.getToken();
+    if (token) {
+      // Notify the backend so the user is marked OFFLINE.
+      this.http.post(`${this.baseUrl}/logout`, {}).subscribe();
+    }
     localStorage.removeItem(this.tokenKey);
+    this.userService.clear();
     this.router.navigate(['/login']);
   }
 

@@ -5,7 +5,7 @@
   </header>
 
   <section class="summary-grid" aria-label="Resumo principal">
-    @for (item of summaryStats; track item.id) {
+    @for (item of summaryStats(); track item.id) {
       <article class="summary-card">
         <span class="summary-label">{{ item.label }}</span>
         <strong class="summary-value" [class.highlight]="item.highlight">{{ item.value }}</strong>
@@ -14,7 +14,7 @@
   </section>
 
   <section class="record-list" aria-label="Vitorias e derrotas">
-    @for (item of recordStats; track item.id) {
+    @for (item of recordStats(); track item.id) {
       <div class="record-item">
         <span class="record-label">{{ item.label }}</span>
         <span class="record-value" [class.accent]="item.accent">

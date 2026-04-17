@@ -1,7 +1,10 @@
 <div class="identity-card" aria-label="Player identity">
 	<div class="avatar-frame">
-		<img [src]="avatarUrl()" [alt]="username() + ' avatar'" class="avatar-img"
-			(error)="onAvatarError($event)" />
+		@if (avatarUrl()) {
+			<img [src]="avatarUrl()" [alt]="username() + ' avatar'" class="avatar-img"
+				(error)="onAvatarError($event)" />
+		}
+		<span class="avatar-letter" [class.hidden]="avatarUrl() && !avatarFailed()">{{ avatarLetter() }}</span>
 		<div class="status-indicator" [class.online]="isOnline()"
 			[attr.aria-label]="isOnline() ? 'Online' : 'Offline'">
 		</div>

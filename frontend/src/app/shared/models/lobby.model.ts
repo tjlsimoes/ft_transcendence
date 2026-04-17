@@ -28,6 +28,14 @@ export interface ProfileData {
   currentLp: number;
   targetLp: number;
   nextLeague: string;
+
+  // Master/Legend context
+  /** For MASTER: the LP threshold to reach Legend. */
+  legendThresholdLp?: number;
+  /** For LEGEND: the player's global rank position. */
+  globalRank?: number;
+  /** For LEGEND: the highest LP among all players. */
+  highestLp?: number;
 }
 
 export interface SummaryStat {

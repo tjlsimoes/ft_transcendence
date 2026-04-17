@@ -4,14 +4,15 @@
 	</header>
 	<div class="pane-content terminal-content">
 		<div class="terminal-history-scroll">
+			@if (hasMatches()) {
 			<table class="history-table">
 				<caption class="sr-only">Recent match history</caption>
 				<thead>
 					<tr>
 						<th>Result</th>
 						<th>Opponent</th>
-						<th>LP Change</th>
-						<th>Time</th>
+						<th>Status</th>
+						<th>Date</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -22,16 +23,18 @@
 							{{ match.result }}
 						</td>
 						<td>{{ match.opponent }}</td>
-						<td class="history-lp" [class.positive]="match.lpChange > 0"
-							[class.negative]="match.lpChange < 0">
-							<span class="lp-indicator" aria-hidden="true">{{ match.lpChange > 0 ? '▲' : '▼' }}</span>
-							{{ match.lpChange > 0 ? '+' : '' }}{{ match.lpChange }}
-						</td>
-						<td>{{ match.date }}</td>
+						<td class="history-status">{{ match.status }}</td>
+						<td>{{ match.endedAt | date:'short' }}</td>
 					</tr>
 					}
 				</tbody>
 			</table>
+			} @else {
+			<div class="terminal-empty">
+				<span class="prompt-symbol" aria-hidden="true">&gt;</span>
+				<span>No match history yet. Queue up for your first duel!</span>
+			</div>
+			}
 		</div>
 
 		<div class="terminal-input">

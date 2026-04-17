@@ -49,8 +49,8 @@ body {
   color: var(--text);
   font-family: var(--font-mono);
   font-weight: 400;
-  min-height: 100vh;
-  overflow-x: hidden;
+  height: 100vh;
+  overflow: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

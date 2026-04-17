@@ -9,6 +9,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import com.codearena.code_arena_backend.user.dto.UserProfileResponse;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -50,6 +52,10 @@ public class UserService implements UserDetailsService {
         return userRepository.findByUsername(username);
     }
 
+    public Optional<User> findById(Long id) {
+        return userRepository.findById(id);
+    }
+
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
     }
@@ -64,6 +70,73 @@ public class UserService implements UserDetailsService {
 
     public User save(User user) {
         return userRepository.save(user);
+    }
+
+    /**
+     * Enriches a UserProfileResponse with ranking context for Master/Legend players.
+     * - Determines if the player is in the top 1% of Master+ players (Legend).
+     * - For MASTER: sets legendThresholdLp (LP needed to reach Legend).
+     * - For LEGEND: sets globalRank and highestLp.
+     */
+    public UserProfileResponse enrichWithRankingContext(UserProfileResponse response) {
+        if (response.getElo() < 3000) {
+            return response;
+        }
+
+        long masterPlusCount = userRepository.countMasterPlusPlayers();
+        long legendCutoff = Math.max(1, (long) Math.ceil(masterPlusCount * 0.01));
+
+        // The player's rank among Master+ players (0-based count of players above them)
+        long playersAbove = userRepository.countPlayersWithEloAbove(response.getElo());
+        // 1-based rank
+        long globalRank = playersAbove + 1;
+
+        boolean isLegend = globalRank <= legendCutoff;
+
+        // Find the Legend threshold: elo of the player at position legendCutoff
+        Integer legendThreshold = userRepository.findEloAtMasterPlusRank(legendCutoff - 1).orElse(3000);
+
+        if (isLegend) {
+            response.setLeague("LEGEND");
+            response.setGlobalRank((int) globalRank);
+            response.setHighestLp(userRepository.findHighestElo().orElse(response.getElo()));
+        } else {
+            response.setLegendThresholdLp(legendThreshold);
+        }
+
+        return response;
+    }
+
+    /**
+     * Synchronises the stored league (derived from current elo and ranking position)
+     * and sets status to ONLINE.
+     * Called on login and registration so that the DB always reflects the correct state.
+     */
+    public void goOnline(User user) {
+        String baseLeague = UserProfileResponse.leagueFromElo(user.getElo());
+
+        // Check if the player qualifies as Legend (top 1% of Master+ players)
+        if ("MASTER".equals(baseLeague)) {
+            long masterPlusCount = userRepository.countMasterPlusPlayers();
+            long legendCutoff = Math.max(1, (long) Math.ceil(masterPlusCount * 0.01));
+            long playersAbove = userRepository.countPlayersWithEloAbove(user.getElo());
+            long globalRank = playersAbove + 1;
+            if (globalRank <= legendCutoff) {
+                baseLeague = "LEGEND";
+            }
+        }
+
+        user.setLeague(User.League.valueOf(baseLeague));
+        user.setStatus(User.UserStatus.ONLINE);
+        userRepository.save(user);
+    }
+
+    /**
+     * Sets the user status to OFFLINE (logout / session expiry).
+     */
+    public void goOffline(User user) {
+        user.setStatus(User.UserStatus.OFFLINE);
+        userRepository.save(user);
     }
 
     // ------------------------------------------------------------------ //
