@@ -73,7 +73,7 @@ public class User {
         SILVER,   // 1000-1999
         GOLD,     // 2000-2999
         MASTER,   // 3000+ (no cap)
-        LEGEND    // Top 1% of Master+ players
+        LEGEND    // Top 1% of all players (must be Master+)
     }
 
     public enum UserStatus {

@@ -59,12 +59,12 @@ Inspired by Codewars, LeetCode, and the competitive systems of games like League
 | Silver   | 1000 – 1999    | Gray      |
 | Gold     | 2000 – 2999    | Golden    |
 | Master   | 3000+          | Purple    |
-| Legend   | Top 1% Masters | Red       |
+| Legend   | Top 1% all players | Red       |
 
 - LP gain/loss based on the Elo difference between opponents
 - Win streak grants a bonus
 - Inactivity decay (optional)
-- **Master** has no LP ceiling — Legend is reserved for the **top 1%** of all Master+ players
+- **Master** has no LP ceiling — Legend is reserved for the **top 1%** of all players (must be Master+)
 - **Master UI**: shows current LP + LP threshold of the last-placed Legend player (promotion target)
 - **Legend UI**: shows current LP + current global ranking position + highest LP among all players
 

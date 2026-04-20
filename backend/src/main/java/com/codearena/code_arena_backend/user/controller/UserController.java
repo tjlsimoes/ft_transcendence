@@ -1,6 +1,8 @@
 package com.codearena.code_arena_backend.user.controller;
 
 import com.codearena.code_arena_backend.duel.dto.MatchHistoryResponse;
+import com.codearena.code_arena_backend.duel.entity.Duel;
+import com.codearena.code_arena_backend.duel.entity.Duel.DuelStatus;
 import com.codearena.code_arena_backend.duel.repository.DuelRepository;
 import com.codearena.code_arena_backend.friendship.dto.FriendResponse;
 import com.codearena.code_arena_backend.friendship.repository.FriendshipRepository;
@@ -64,18 +66,29 @@ public class UserController {
                             .map(User::getUsername)
                             .orElse("Unknown");
 
-                    // Determine result based on duel status
-                    String result = "DEFEAT";
-                    if ("COMPLETED".equals(duel.getStatus())) {
-                        // For now, simple logic — will be refined with scoring system
-                        result = isChallenger ? "VICTORY" : "DEFEAT";
+                    // Determine result from winnerId (set by the judge/duel service).
+                    String result;
+                    if (duel.getStatus() == DuelStatus.DRAW) {
+                        result = "DRAW";
+                    } else if (duel.getStatus() == DuelStatus.COMPLETED && duel.getWinnerId() != null) {
+                        result = duel.getWinnerId().equals(user.getId()) ? "VICTORY" : "DEFEAT";
+                    } else if (duel.getStatus() == DuelStatus.CANCELLED) {
+                        result = "CANCELLED";
+                    } else {
+                        result = "PENDING";
                     }
+
+                    // Determine LP change for the requesting user.
+                    Integer lpChange = isChallenger
+                            ? duel.getChallengerEloChange()
+                            : duel.getOpponentEloChange();
 
                     return MatchHistoryResponse.builder()
                             .id(duel.getId())
                             .result(result)
                             .opponent(opponentName)
-                            .status(duel.getStatus())
+                            .status(duel.getStatus().name())
+                            .lpChange(lpChange)
                             .startedAt(duel.getStartedAt())
                             .endedAt(duel.getEndedAt())
                             .build();

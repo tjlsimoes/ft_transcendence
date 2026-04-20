@@ -35,7 +35,7 @@ public class UserProfileResponse {
     private LocalDateTime createdAt;
 
     // Ranking context — populated for Master/Legend players
-    /** For MASTER: the minimum LP to enter Legend (top 1% threshold). Null for other leagues. */
+    /** For MASTER: the minimum LP to enter Legend (top 1% of all players). Null for other leagues. */
     private Integer legendThresholdLp;
     /** For LEGEND: the player's current global rank position (1-based). Null for other leagues. */
     private Integer globalRank;
@@ -66,7 +66,7 @@ public class UserProfileResponse {
     /**
      * Derives league name from elo value.
      * Bronze 0-999 | Silver 1000-1999 | Gold 2000-2999 | Master 3000+
-     * Legend status is determined separately (top 1% of Master+ players).
+     * Legend status is determined separately (top 1% of all players).
      */
     public static String leagueFromElo(int elo) {
         if (elo >= 3000) return "MASTER";

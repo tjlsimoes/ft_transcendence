@@ -22,6 +22,7 @@ public class MatchHistoryResponse {
     private String result;       // "VICTORY" or "DEFEAT"
     private String opponent;
     private String status;
+    private Integer lpChange;
     private LocalDateTime startedAt;
     private LocalDateTime endedAt;
 }

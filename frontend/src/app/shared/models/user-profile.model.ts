@@ -24,9 +24,10 @@ export interface UserProfile {
 // Modelo de entrada do histórico de partidas devolvido por GET /api/users/me/matches.
 export interface MatchHistory {
   id: number;
-  result: 'VICTORY' | 'DEFEAT';
+  result: 'VICTORY' | 'DEFEAT' | 'DRAW' | 'CANCELLED' | 'PENDING';
   opponent: string;
   status: string;
+  lpChange: number | null;
   startedAt: string | null;
   endedAt: string | null;
 }

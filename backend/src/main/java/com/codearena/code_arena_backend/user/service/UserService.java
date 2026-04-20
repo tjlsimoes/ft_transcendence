@@ -8,6 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.codearena.code_arena_backend.user.dto.UserProfileResponse;
 
@@ -74,7 +75,8 @@ public class UserService implements UserDetailsService {
 
     /**
      * Enriches a UserProfileResponse with ranking context for Master/Legend players.
-     * - Determines if the player is in the top 1% of Master+ players (Legend).
+     * - Determines if the player is in the top 1% of ALL players (Legend).
+     * - A player must also have elo >= 3000 (Master) to qualify.
      * - For MASTER: sets legendThresholdLp (LP needed to reach Legend).
      * - For LEGEND: sets globalRank and highestLp.
      */
@@ -83,10 +85,10 @@ public class UserService implements UserDetailsService {
             return response;
         }
 
-        long masterPlusCount = userRepository.countMasterPlusPlayers();
-        long legendCutoff = Math.max(1, (long) Math.ceil(masterPlusCount * 0.01));
+        long totalPlayers = userRepository.countAllPlayers();
+        long legendCutoff = Math.max(1, (long) Math.ceil(totalPlayers * 0.01));
 
-        // The player's rank among Master+ players (0-based count of players above them)
+        // The player's global rank (0-based count of players above them)
         long playersAbove = userRepository.countPlayersWithEloAbove(response.getElo());
         // 1-based rank
         long globalRank = playersAbove + 1;
@@ -94,7 +96,7 @@ public class UserService implements UserDetailsService {
         boolean isLegend = globalRank <= legendCutoff;
 
         // Find the Legend threshold: elo of the player at position legendCutoff
-        Integer legendThreshold = userRepository.findEloAtMasterPlusRank(legendCutoff - 1).orElse(3000);
+        Integer legendThreshold = userRepository.findEloAtGlobalRank(legendCutoff - 1).orElse(3000);
 
         if (isLegend) {
             response.setLeague("LEGEND");
@@ -113,22 +115,24 @@ public class UserService implements UserDetailsService {
      * Called on login and registration so that the DB always reflects the correct state.
      */
     public void goOnline(User user) {
-        String baseLeague = UserProfileResponse.leagueFromElo(user.getElo());
-
-        // Check if the player qualifies as Legend (top 1% of Master+ players)
-        if ("MASTER".equals(baseLeague)) {
-            long masterPlusCount = userRepository.countMasterPlusPlayers();
-            long legendCutoff = Math.max(1, (long) Math.ceil(masterPlusCount * 0.01));
-            long playersAbove = userRepository.countPlayersWithEloAbove(user.getElo());
-            long globalRank = playersAbove + 1;
-            if (globalRank <= legendCutoff) {
-                baseLeague = "LEGEND";
-            }
-        }
-
-        user.setLeague(User.League.valueOf(baseLeague));
+        user.setLeague(User.League.valueOf(UserProfileResponse.leagueFromElo(user.getElo())));
         user.setStatus(User.UserStatus.ONLINE);
         userRepository.save(user);
+
+        // Recalculate Legend for all Master+ players so promotions/demotions propagate
+        if (user.getElo() >= 3000) {
+            recalculateLeagues();
+        }
+    }
+
+    /**
+     * Recalculates the stored league for ALL Master+ players in a single atomic SQL UPDATE.
+     * Uses DENSE_RANK so tied elo values share the same rank.
+     * Should be called after any elo change (match result, login).
+     */
+    @Transactional
+    public void recalculateLeagues() {
+        userRepository.recalculateMasterLeagues();
     }
 
     /**

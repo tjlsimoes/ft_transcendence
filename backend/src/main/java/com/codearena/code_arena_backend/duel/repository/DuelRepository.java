@@ -10,6 +10,10 @@ import java.util.List;
 @Repository
 public interface DuelRepository extends JpaRepository<Duel, Long> {
 
-    @Query("SELECT d FROM Duel d WHERE d.challengerId = :userId OR d.opponentId = :userId ORDER BY d.endedAt DESC")
+    @Query("""
+            SELECT d FROM Duel d
+            WHERE d.challengerId = :userId OR d.opponentId = :userId
+            ORDER BY COALESCE(d.endedAt, d.startedAt) DESC NULLS LAST
+            """)
     List<Duel> findByUserId(Long userId);
 }

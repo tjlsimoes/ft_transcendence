@@ -6,11 +6,13 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const auth = inject(AuthService);
   const token = auth.getToken();
 
-  // Don't send tokens to auth endpoints — they don't need them,
+  // Don't send tokens to login/register — they don't need them,
   // and a stale token would cause unnecessary JWT validation.
-  const isAuthEndpoint = req.url.includes('/api/auth/');
+  // Logout DOES need the token so the backend can identify the user.
+  const isPublicAuthEndpoint =
+    req.url.includes('/api/auth/login') || req.url.includes('/api/auth/register');
 
-  if (token && !isAuthEndpoint) {
+  if (token && !isPublicAuthEndpoint) {
     req = req.clone({
       setHeaders: { Authorization: `Bearer ${token}` },
     });

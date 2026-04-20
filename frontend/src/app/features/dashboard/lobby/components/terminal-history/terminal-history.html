@@ -11,20 +11,30 @@
 					<tr>
 						<th>Result</th>
 						<th>Opponent</th>
-						<th>Status</th>
-						<th>Date</th>
+						<th>LP Change</th>
+						<th>Time</th>
 					</tr>
 				</thead>
 				<tbody>
 					@for (match of matchHistory(); track match.id) {
 					<tr>
 						<td class="history-result" [class.victory]="match.result === 'VICTORY'"
-							[class.defeat]="match.result === 'DEFEAT'">
+							[class.defeat]="match.result === 'DEFEAT'"
+							[class.draw]="match.result === 'DRAW'"
+							[class.pending]="match.result === 'PENDING' || match.result === 'CANCELLED'">
 							{{ match.result }}
 						</td>
 						<td>{{ match.opponent }}</td>
-						<td class="history-status">{{ match.status }}</td>
-						<td>{{ match.endedAt | date:'short' }}</td>
+						<td class="history-lp" [class.positive]="match.lpChange !== null && match.lpChange > 0"
+							[class.negative]="match.lpChange !== null && match.lpChange < 0">
+							@if (match.lpChange !== null && match.lpChange !== 0) {
+								<span class="lp-indicator">{{ match.lpChange > 0 ? '▲' : '▼' }}</span>
+								{{ match.lpChange > 0 ? '+' : '' }}{{ match.lpChange }}
+							} @else {
+								—
+							}
+						</td>
+						<td>{{ match.endedAt | date:'dd/MM/yy HH:mm' }}</td>
 					</tr>
 					}
 				</tbody>
