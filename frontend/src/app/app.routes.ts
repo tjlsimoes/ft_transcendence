@@ -33,6 +33,11 @@ export const routes: Routes = [
     path: 'profile',
     loadComponent: () => import('./features/dashboard/profile-settings/profile-settings').then(m => m.ProfileSettings),
   },
+  // pagina de jogo.
+  {
+    path: 'challenge',
+    loadComponent: () => import('./challenge-page/challenge-page').then(m => m.ChallengePage),
+  },
   // Fallback: rota desconhecida redireciona para home.
   { path: '**', redirectTo: '' },
 ];
