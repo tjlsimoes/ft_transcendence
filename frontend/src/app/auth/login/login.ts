@@ -2,6 +2,8 @@ import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../core/services/auth.service';
+import { HttpErrorResponse } from '@angular/common/http';
 
 // Componente de login: valida formulário e controla fluxo de submissão.
 @Component({
@@ -17,12 +19,18 @@ export class LoginComponent {
   isLoading = signal(false);
   // Controla exibição/ocultação da senha no input.
   showPassword = signal(false);
+  // Mensagem de erro retornada pelo servidor.
+  serverError = signal('');
 
-  constructor(private fb: FormBuilder, private router: Router) {
+  constructor(
+    private fb: FormBuilder,
+    private router: Router,
+    private authService: AuthService,
+  ) {
     // Estrutura e validações do formulário.
     this.loginForm = this.fb.group({
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
+      username: ['', [Validators.required, Validators.minLength(3)]],
+      password: ['', [Validators.required, Validators.minLength(8)]],
       rememberMe: [false],
     });
   }
@@ -44,27 +52,36 @@ export class LoginComponent {
     if (!control || !control.errors || !control.touched) return '';
 
     if (control.errors['required']) {
-      return field === 'email' ? 'Email is required' : 'Password is required';
+      return field === 'username' ? 'Username is required' : 'Password is required';
     }
-    if (control.errors['email']) return 'Invalid email';
-    if (control.errors['minlength']) return 'Minimum 6 characters';
+    if (control.errors['minlength']) {
+      const min = control.errors['minlength'].requiredLength;
+      return `Minimum ${min} characters`;
+    }
 
     return '';
   }
 
-  // Executa submit: valida formulário, aplica loading e navega após sucesso.
-  async onSubmit(): Promise<void> {
+  // Executa submit: valida formulário, envia para API e navega após sucesso.
+  onSubmit(): void {
     this.loginForm.markAllAsTouched();
     if (this.loginForm.invalid) return;
 
     this.isLoading.set(true);
+    this.serverError.set('');
 
-    try {
-      // TODO: integrar com AuthService
-      console.log('Login:', this.loginForm.value);
-      await this.router.navigate(['/']);
-    } finally {
-      this.isLoading.set(false);
-    }
+    const { username, password } = this.loginForm.value;
+
+    this.authService.login({ username, password }).subscribe({
+      next: (response) => {
+        this.authService.saveToken(response);
+        this.router.navigate(['/lobby']);
+        this.isLoading.set(false);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.serverError.set(this.authService.extractApiError(err));
+        this.isLoading.set(false);
+      },
+    });
   }
 }

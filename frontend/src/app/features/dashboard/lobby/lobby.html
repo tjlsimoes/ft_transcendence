@@ -13,25 +13,25 @@
 			<aside class="stats-column" aria-label="Player stats column">
 				<!-- Player Identity Card -->
 				<app-identity-card
-					[username]="player.username"
-					[league]="player.league"
-					[avatarUrl]="player.avatarUrl"
-					[isOnline]="player.isOnline" />
+					[username]="player().username"
+					[league]="player().league"
+					[avatarUrl]="player().avatarUrl"
+					[isOnline]="player().isOnline" />
 
 				<!-- Matchmaking Queue -->
 				<app-queue-panel />
 
 				<!-- Player Statistics -->
-				<app-player-stats />
+				<app-player-stats [summaryStats]="summaryStats()" [recordStats]="recordStats()" />
 			</aside>
 
 			<section class="editor-terminal-split" aria-label="Editor and Terminal">
 
 				<!-- Profile Data (rank display) -->
-				<app-profile-data />
+				<app-profile-data [data]="profileData()" />
 
 				<!-- Terminal: Match History and Queue Events -->
-				<app-terminal-history [matchHistory]="matchHistory" />
+				<app-terminal-history [matchHistory]="matchHistory()" />
 
 			</section>
 		</div>
