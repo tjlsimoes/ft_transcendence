@@ -2,3 +2,14 @@
 	Estilos específicos do componente raiz App.
 	Use este arquivo para regras de layout global do shell (fora de styles.css).
 */
+
+:host {
+	display: block;
+	height: 100vh;
+	overflow: hidden;
+}
+
+main {
+	height: 100%;
+	overflow: hidden;
+}

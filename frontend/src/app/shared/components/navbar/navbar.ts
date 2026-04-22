@@ -1,7 +1,7 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, computed } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { RouteStateService } from '../../../core/services/route-state.service';
-import { LOBBY_USER_MOCK } from '../../models/user.mock';
+import { UserService } from '../../../core/services/user.service';
 
 @Component({
   selector: 'app-navbar',
@@ -11,8 +11,10 @@ import { LOBBY_USER_MOCK } from '../../models/user.mock';
 })
 export class Navbar {
   private routeState = inject(RouteStateService);
+  private userService = inject(UserService);
 
-  lobbyUser = LOBBY_USER_MOCK;
+  username = this.userService.username;
+  avatarLetter = this.userService.avatarLetter;
 
   // Delegado ao serviço compartilhado para evitar duplicação de lógica de rota.
   isLobby = this.routeState.isLobby;

@@ -8,6 +8,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -49,6 +51,16 @@ public class AuthController {
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         AuthResponse response = authService.login(request);
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * POST /api/auth/logout
+     * Marks the user as OFFLINE. Requires a valid JWT.
+     */
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(@AuthenticationPrincipal UserDetails userDetails) {
+        authService.logout(userDetails.getUsername());
+        return ResponseEntity.noContent().build();
     }
 
     /**

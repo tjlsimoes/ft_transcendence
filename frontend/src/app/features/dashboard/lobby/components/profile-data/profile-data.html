@@ -8,19 +8,50 @@
 	<div class="pane-content">
 		<section class="profile-shell" aria-label="Resumo do rank">
 			<div class="rank-emblem" aria-hidden="true">
-				<span class="rank-emblem-text">{{ rankTier }}</span>
+				<span class="rank-emblem-text">{{ rankTier() }}</span>
 			</div>
-			<p class="rank-league">{{ leagueName }}</p>
-			<h2 class="season-title">RANKED SEASON {{ seasonLabel }}</h2>
+			<p class="rank-league">{{ leagueName() }}</p>
+			<h2 class="season-title">RANKED SEASON {{ seasonLabel() }}</h2>
 
-			<div class="progress-row">
-				<span>PROGRESS TO {{ nextLeague }}</span>
-				<span>{{ currentLp }} / {{ targetLp }} LP</span>
-			</div>
-			<div class="progress-track" role="progressbar" aria-label="Progresso de rank"
-				[attr.aria-valuenow]="currentLp" [attr.aria-valuemax]="targetLp" aria-valuemin="0">
-				<div class="progress-fill" [style.width.%]="lpProgress"></div>
-			</div>
+			<!-- Standard leagues: Bronze, Silver, Gold -->
+			@if (isStandardLeague()) {
+				<div class="progress-row">
+					<span>PROGRESS TO {{ nextLeague() }}</span>
+					<span>{{ currentLp() }} / {{ targetLp() }} LP</span>
+				</div>
+				<div class="progress-track" role="progressbar" aria-label="Progresso de rank"
+					[attr.aria-valuenow]="currentLp()" [attr.aria-valuemax]="targetLp()" aria-valuemin="0">
+					<div class="progress-fill" [style.width.%]="lpProgress()"></div>
+				</div>
+			}
+
+			<!-- Master: show current LP + Legend threshold -->
+			@if (isMaster()) {
+				<div class="progress-row">
+					<span>LEGEND THRESHOLD</span>
+					<span>{{ currentLp() }} / {{ legendThresholdLp() ?? '—' }} LP</span>
+				</div>
+				<div class="progress-track" role="progressbar" aria-label="Progresso para Legend"
+					[attr.aria-valuenow]="currentLp()" [attr.aria-valuemax]="legendThresholdLp() ?? currentLp()" aria-valuemin="0">
+					<div class="progress-fill" [style.width.%]="lpProgress()"></div>
+				</div>
+			}
+
+			<!-- Legend: show rank position + highest LP -->
+			@if (isLegend()) {
+				<div class="progress-row">
+					<span>GLOBAL RANK</span>
+					<span>#{{ globalRank() }}</span>
+				</div>
+				<div class="progress-row">
+					<span>YOUR LP</span>
+					<span>{{ currentLp() }} LP</span>
+				</div>
+				<div class="progress-row">
+					<span>HIGHEST LP</span>
+					<span>{{ highestLp() ?? '—' }} LP</span>
+				</div>
+			}
 		</section>
 	</div>
 </div>

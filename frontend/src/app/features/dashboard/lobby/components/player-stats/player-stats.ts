@@ -1,5 +1,4 @@
-import { Component } from '@angular/core';
-import { MOCK_SUMMARY_STATS, MOCK_RECORD_STATS } from '../../../../../shared/models/lobby.mock';
+import { Component, input } from '@angular/core';
 import type { SummaryStat, RecordStat } from '../../../../../shared/models/lobby.model';
 
 @Component({
@@ -9,6 +8,6 @@ import type { SummaryStat, RecordStat } from '../../../../../shared/models/lobby
   styleUrl: './player-stats.css',
 })
 export class PlayerStats {
-  summaryStats: SummaryStat[] = MOCK_SUMMARY_STATS;
-  recordStats: RecordStat[] = MOCK_RECORD_STATS;
+  summaryStats = input<SummaryStat[]>([]);
+  recordStats = input<RecordStat[]>([]);
 }

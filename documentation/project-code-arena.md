@@ -53,17 +53,20 @@ Inspired by Codewars, LeetCode, and the competitive systems of games like League
 
 ### 3.4 Ranking System (Elo / Glicko-2)
 
-| League   | LP Range    | Color     |
-|----------|-------------|-----------|
-| Bronze   | 0 – 999     | Brown     |
-| Silver   | 1000 – 1999 | Gray      |
-| Gold     | 2000 – 2999 | Golden    |
-| Master   | 3000 – 3999 | Purple    |
-| Legend   | Top 1%      | Red       |
+| League   | LP Range       | Color     |
+|----------|----------------|-----------|
+| Bronze   | 0 – 999        | Brown     |
+| Silver   | 1000 – 1999    | Gray      |
+| Gold     | 2000 – 2999    | Golden    |
+| Master   | 3000+          | Purple    |
+| Legend   | Top 1% all players | Red       |
 
 - LP gain/loss based on the Elo difference between opponents
 - Win streak grants a bonus
 - Inactivity decay (optional)
+- **Master** has no LP ceiling — Legend is reserved for the **top 1%** of all players (must be Master+)
+- **Master UI**: shows current LP + LP threshold of the last-placed Legend player (promotion target)
+- **Legend UI**: shows current LP + current global ranking position + highest LP among all players
 
 ---
 
