@@ -1,16 +1,26 @@
 package com.codearena.code_arena_backend.user.controller;
 
+import com.codearena.code_arena_backend.duel.dto.MatchHistoryResponse;
+import com.codearena.code_arena_backend.duel.entity.Duel;
+import com.codearena.code_arena_backend.duel.entity.Duel.DuelStatus;
+import com.codearena.code_arena_backend.duel.repository.DuelRepository;
+import com.codearena.code_arena_backend.friendship.dto.FriendResponse;
+import com.codearena.code_arena_backend.friendship.repository.FriendshipRepository;
 import com.codearena.code_arena_backend.user.dto.FriendSummaryResponse;
 import com.codearena.code_arena_backend.user.dto.UpdateUserProfileRequest;
 import com.codearena.code_arena_backend.user.dto.UserAvatarResource;
 import com.codearena.code_arena_backend.user.dto.UserProfileResponse;
+import com.codearena.code_arena_backend.user.entity.User;
 import com.codearena.code_arena_backend.user.service.UserProfileService;
+import com.codearena.code_arena_backend.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,30 +37,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-import com.codearena.code_arena_backend.duel.dto.MatchHistoryResponse;
-import com.codearena.code_arena_backend.duel.entity.Duel;
-import com.codearena.code_arena_backend.duel.entity.Duel.DuelStatus;
-import com.codearena.code_arena_backend.duel.repository.DuelRepository;
-import com.codearena.code_arena_backend.friendship.dto.FriendResponse;
-import com.codearena.code_arena_backend.friendship.repository.FriendshipRepository;
-import com.codearena.code_arena_backend.user.dto.UserProfileResponse;
-import com.codearena.code_arena_backend.user.entity.User;
-import com.codearena.code_arena_backend.user.service.UserService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
-
 /**
  * REST controller for authenticated user operations.
  *
  * All endpoints require a valid JWT (no permitAll here).
- * The authenticated user is resolved via @AuthenticationPrincipal.
+ * The authenticated user is resolved via Authentication or @AuthenticationPrincipal.
  */
 @RestController
 @RequestMapping("/api/users")
@@ -58,6 +49,28 @@ import java.util.List;
 public class UserController {
 
     private final UserProfileService userProfileService;
+    private final UserService userService;
+    private final DuelRepository duelRepository;
+    private final FriendshipRepository friendshipRepository;
+
+    // ------------------------------------------------------------------ //
+    //  Profile endpoints (from profile branch)                            //
+    // ------------------------------------------------------------------ //
+
+    /**
+     * GET /api/users/me
+     * Returns the profile and game statistics of the currently authenticated user,
+     * enriched with ranking context for Master/Legend players.
+     */
+    @GetMapping("/me")
+    public ResponseEntity<UserProfileResponse> getMe(@AuthenticationPrincipal UserDetails userDetails) {
+        User user = userService.findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new IllegalStateException("Authenticated user not found"));
+
+        UserProfileResponse response = UserProfileResponse.from(user);
+        response = userService.enrichWithRankingContext(response);
+        return ResponseEntity.ok(response);
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<UserProfileResponse> getProfileById(@PathVariable Long id) {
@@ -81,6 +94,10 @@ public class UserController {
         String username = authentication.getName();
         return ResponseEntity.ok(userProfileService.uploadMyAvatar(username, file));
     }
+
+    // ------------------------------------------------------------------ //
+    //  Friends endpoints                                                  //
+    // ------------------------------------------------------------------ //
 
     @GetMapping("/me/friends")
     public ResponseEntity<List<FriendSummaryResponse>> listMyFriends(Authentication authentication) {
@@ -108,45 +125,9 @@ public class UserController {
         return ResponseEntity.ok(userProfileService.listOnlineFriends(username));
     }
 
-    @GetMapping("/avatars/{filename:.+}")
-    public ResponseEntity<org.springframework.core.io.Resource> getAvatar(@PathVariable String filename) {
-        UserAvatarResource avatar = userProfileService.loadAvatar(filename);
-        return ResponseEntity.ok()
-                .contentType(avatar.mediaType())
-                .body(avatar.resource());
-    }
-
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, String>> handleBadRequest(IllegalArgumentException ex) {
-        return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
-    }
-
-    @ExceptionHandler(NoSuchElementException.class)
-    public ResponseEntity<Map<String, String>> handleNotFound(NoSuchElementException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", ex.getMessage()));
-    }
-
-    @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<Map<String, String>> handleServerError(IllegalStateException ex) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", ex.getMessage()));
-    private final UserService userService;
-    private final DuelRepository duelRepository;
-    private final FriendshipRepository friendshipRepository;
-
-    /**
-     * GET /api/users/me
-     * Returns the profile and game statistics of the currently authenticated user.
-     */
-    @GetMapping("/me")
-    public ResponseEntity<UserProfileResponse> getMe(@AuthenticationPrincipal UserDetails userDetails) {
-        User user = userService.findByUsername(userDetails.getUsername())
-                .orElseThrow(() -> new IllegalStateException("Authenticated user not found"));
-
-        UserProfileResponse response = UserProfileResponse.fromEntity(user);
-        userService.enrichWithRankingContext(response);
-        return ResponseEntity.ok(response);
-    }
+    // ------------------------------------------------------------------ //
+    //  Match history endpoint (from duel/ranking branch)                  //
+    // ------------------------------------------------------------------ //
 
     /**
      * GET /api/users/me/matches
@@ -198,34 +179,35 @@ public class UserController {
         return ResponseEntity.ok(history);
     }
 
-    /**
-     * GET /api/users/me/friends
-     * Returns the friend list of the currently authenticated user.
-     */
-    @GetMapping("/me/friends")
-    public ResponseEntity<List<FriendResponse>> getMyFriends(@AuthenticationPrincipal UserDetails userDetails) {
-        User user = userService.findByUsername(userDetails.getUsername())
-                .orElseThrow(() -> new IllegalStateException("Authenticated user not found"));
+    // ------------------------------------------------------------------ //
+    //  Avatar serving                                                     //
+    // ------------------------------------------------------------------ //
 
-        List<FriendResponse> friends = friendshipRepository.findAcceptedByUserId(user.getId())
-                .stream()
-                .map(friendship -> {
-                    Long friendId = friendship.getUserId().equals(user.getId())
-                            ? friendship.getFriendId()
-                            : friendship.getUserId();
-                    return userService.findById(friendId)
-                            .map(friend -> FriendResponse.builder()
-                                    .id(friend.getId())
-                                    .username(friend.getUsername())
-                                    .avatarUrl(friend.getAvatar())
-                                    .league(UserProfileResponse.leagueFromElo(friend.getElo()))
-                                    .status(friend.getStatus().name())
-                                    .build())
-                            .orElse(null);
-                })
-                .filter(f -> f != null)
-                .toList();
+    @GetMapping("/avatars/{filename:.+}")
+    public ResponseEntity<org.springframework.core.io.Resource> getAvatar(@PathVariable String filename) {
+        UserAvatarResource avatar = userProfileService.loadAvatar(filename);
+        return ResponseEntity.ok()
+                .contentType(avatar.mediaType())
+                .body(avatar.resource());
+    }
 
-        return ResponseEntity.ok(friends);
+    // ------------------------------------------------------------------ //
+    //  Exception handlers                                                 //
+    // ------------------------------------------------------------------ //
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, String>> handleBadRequest(IllegalArgumentException ex) {
+        return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(NoSuchElementException.class)
+    public ResponseEntity<Map<String, String>> handleNotFound(NoSuchElementException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, String>> handleServerError(IllegalStateException ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", ex.getMessage()));
     }
 }

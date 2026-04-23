@@ -82,7 +82,7 @@ public class UserService implements UserDetailsService {
      * - For LEGEND: sets globalRank and highestLp.
      */
     public UserProfileResponse enrichWithRankingContext(UserProfileResponse response) {
-        if (response.getElo() < 3000) {
+        if (response.elo() < 3000) {
             return response;
         }
 
@@ -90,7 +90,7 @@ public class UserService implements UserDetailsService {
         long legendCutoff = Math.max(1, (long) Math.ceil(totalPlayers * 0.01));
 
         // The player's global rank (0-based count of players above them)
-        long playersAbove = userRepository.countPlayersWithEloAbove(response.getElo());
+        long playersAbove = userRepository.countPlayersWithEloAbove(response.elo());
         // 1-based rank
         long globalRank = playersAbove + 1;
 
@@ -100,14 +100,11 @@ public class UserService implements UserDetailsService {
         Integer legendThreshold = userRepository.findEloAtGlobalRank(legendCutoff - 1).orElse(3000);
 
         if (isLegend) {
-            response.setLeague("LEGEND");
-            response.setGlobalRank((int) globalRank);
-            response.setHighestLp(userRepository.findHighestElo().orElse(response.getElo()));
+            int highestLp = userRepository.findHighestElo().orElse(response.elo());
+            return response.withLegendContext((int) globalRank, highestLp);
         } else {
-            response.setLegendThresholdLp(legendThreshold);
+            return response.withMasterContext(legendThreshold);
         }
-
-        return response;
     }
 
     /**

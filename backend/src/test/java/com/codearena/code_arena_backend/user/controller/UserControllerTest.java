@@ -1,11 +1,14 @@
 package com.codearena.code_arena_backend.user.controller;
 
+import com.codearena.code_arena_backend.duel.repository.DuelRepository;
+import com.codearena.code_arena_backend.friendship.repository.FriendshipRepository;
 import com.codearena.code_arena_backend.user.dto.FriendSummaryResponse;
 import com.codearena.code_arena_backend.user.dto.UpdateUserProfileRequest;
 import com.codearena.code_arena_backend.user.dto.UserAvatarResource;
 import com.codearena.code_arena_backend.user.dto.UserProfileResponse;
 import com.codearena.code_arena_backend.user.entity.User;
 import com.codearena.code_arena_backend.user.service.UserProfileService;
+import com.codearena.code_arena_backend.user.service.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,6 +20,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -32,23 +36,38 @@ class UserControllerTest {
     @Mock
     private UserProfileService userProfileService;
 
+    @Mock
+    private UserService userService;
+
+    @Mock
+    private DuelRepository duelRepository;
+
+    @Mock
+    private FriendshipRepository friendshipRepository;
+
     @InjectMocks
     private UserController userController;
+
+    private static UserProfileResponse testProfile(
+            Long id, String username, String displayName, String bio,
+            String avatarUrl, int wins, int losses, int elo,
+            String league, String status
+    ) {
+        return new UserProfileResponse(
+                id, username, null, displayName, bio, avatarUrl,
+                wins, losses, 0, elo, league, status,
+                LocalDateTime.now(),
+                null, null, null
+        );
+    }
 
     @Test
     @DisplayName("getProfileById returns HTTP 200 with profile payload")
     void getProfileById_returnsProfile() {
-        UserProfileResponse profile = new UserProfileResponse(
-                5L,
-                "player5",
-                "Player Five",
-                "bio",
+        UserProfileResponse profile = testProfile(
+                5L, "player5", "Player Five", "bio",
                 "/api/users/avatars/default-avatar.svg",
-                10,
-                2,
-                1200,
-                User.League.SILVER,
-                User.UserStatus.ONLINE
+                10, 2, 1200, "SILVER", "ONLINE"
         );
         when(userProfileService.getProfileById(5L)).thenReturn(profile);
 
@@ -64,17 +83,10 @@ class UserControllerTest {
     void updateMyProfile_usesAuthenticationName() {
         TestingAuthenticationToken auth = new TestingAuthenticationToken("player1", null);
         UpdateUserProfileRequest request = new UpdateUserProfileRequest("New Name", "new bio");
-        UserProfileResponse profile = new UserProfileResponse(
-                1L,
-                "player1",
-                "New Name",
-                "new bio",
+        UserProfileResponse profile = testProfile(
+                1L, "player1", "New Name", "new bio",
                 "/api/users/avatars/default-avatar.svg",
-                1,
-                1,
-                1000,
-                User.League.BRONZE,
-                User.UserStatus.OFFLINE
+                1, 1, 1000, "BRONZE", "OFFLINE"
         );
 
         when(userProfileService.updateMyProfile("player1", request)).thenReturn(profile);

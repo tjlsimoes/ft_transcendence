@@ -71,7 +71,7 @@ class UserProfileServiceTest {
         assertThat(response.wins()).isEqualTo(12);
         assertThat(response.losses()).isEqualTo(5);
         assertThat(response.elo()).isEqualTo(1460);
-        assertThat(response.league()).isEqualTo(User.League.SILVER);
+        assertThat(response.league()).isEqualTo("SILVER");
     }
 
     @Test
