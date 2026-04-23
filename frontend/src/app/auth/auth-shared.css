@@ -134,6 +134,28 @@
   color: #f44;
 }
 
+/* Mensagem de erro retornada pelo servidor. */
+.server-error {
+  padding: 10px 14px;
+  background: rgba(255, 68, 68, 0.1);
+  border: 1px solid rgba(255, 68, 68, 0.3);
+  color: #f44;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* Mensagem de sucesso. */
+.server-success {
+  padding: 10px 14px;
+  background: rgba(68, 255, 100, 0.1);
+  border: 1px solid rgba(68, 255, 100, 0.3);
+  color: #44ff64;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-align: center;
+}
+
 /* Checkbox e termos. */
 .checkbox-label {
   display: flex;

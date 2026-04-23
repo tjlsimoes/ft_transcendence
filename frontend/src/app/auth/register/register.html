@@ -11,19 +11,29 @@
 
     <!-- Formulário -->
     <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="auth-form">
-      <!-- Nome -->
+      <!-- Erro do servidor -->
+      @if (serverError()) {
+        <div class="server-error">{{ serverError() }}</div>
+      }
+
+      <!-- Sucesso -->
+      @if (successMessage()) {
+        <div class="server-success">{{ successMessage() }}</div>
+      }
+
+      <!-- Username -->
       <div class="form-group">
-        <label for="name" class="form-label">UserName</label>
+        <label for="username" class="form-label">UserName</label>
         <input
-          id="name"
+          id="username"
           type="text"
-          formControlName="name"
+          formControlName="username"
           placeholder="Your callsign"
           class="form-input"
-          [class.input-error]="hasError('name')"
+          [class.input-error]="hasError('username')"
         />
-        @if (hasError('name')) {
-          <span class="error-msg">{{ getErrorMessage('name') }}</span>
+        @if (hasError('username')) {
+          <span class="error-msg">{{ getErrorMessage('username') }}</span>
         }
       </div>
 

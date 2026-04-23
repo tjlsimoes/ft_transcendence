@@ -5,6 +5,7 @@ import com.codearena.code_arena_backend.auth.dto.LoginRequest;
 import com.codearena.code_arena_backend.auth.dto.RegisterRequest;
 import com.codearena.code_arena_backend.user.entity.User;
 import com.codearena.code_arena_backend.user.service.UserService;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -55,6 +56,7 @@ public class AuthService {
      *
      * @throws IllegalArgumentException if username or email is already taken
      */
+    @Transactional
     public AuthResponse register(RegisterRequest request) {
         if (userService.existsByUsername(request.getUsername())) {
             throw new IllegalArgumentException("Username already taken");
@@ -75,6 +77,9 @@ public class AuthService {
 
         userService.save(user);
 
+        // Sync league from elo and set status to ONLINE.
+        userService.goOnline(user);
+
         // Generate JWT immediately — user is logged in after registration.
         UserDetails userDetails = userService.loadUserByUsername(user.getUsername());
         String token = jwtService.generateToken(userDetails);
@@ -87,6 +92,7 @@ public class AuthService {
      * AuthenticationManager.authenticate() throws BadCredentialsException
      * if the credentials are wrong — the controller will handle that.
      */
+    @Transactional
     public AuthResponse login(LoginRequest request) {
         // This call verifies username + hashed password via UserDetailsService.
         authenticationManager.authenticate(
@@ -96,9 +102,22 @@ public class AuthService {
                 )
         );
 
+        // Sync league from elo and set status to ONLINE.
+        userService.findByUsername(request.getUsername())
+                .ifPresent(userService::goOnline);
+
         UserDetails userDetails = userService.loadUserByUsername(request.getUsername());
         String token = jwtService.generateToken(userDetails);
         return buildResponse(token);
+    }
+
+    /**
+     * Marks the user as OFFLINE in the database.
+     */
+    @Transactional
+    public void logout(String username) {
+        userService.findByUsername(username)
+                .ifPresent(userService::goOffline);
     }
 
     // ------------------------------------------------------------------ //

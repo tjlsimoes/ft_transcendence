@@ -24,6 +24,22 @@
 	filter: grayscale(20%) contrast(120%);
 }
 
+.avatar-letter {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 1.6rem;
+	font-weight: 700;
+	color: var(--accent, #00f33d);
+	font-family: var(--font-mono, monospace);
+}
+
+.avatar-letter.hidden {
+	display: none;
+}
+
 .status-indicator {
 	position: absolute;
 	bottom: -4px;

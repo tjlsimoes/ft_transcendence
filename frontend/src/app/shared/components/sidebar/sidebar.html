@@ -13,11 +13,11 @@
     </div>
 
     <div class="sidebar-avatar-wrapper" style="display: flex; flex-direction: column; gap: 16px; align-items: center;">
-      @for (friend of friends; track friend.id) {
-      <div class="friend-avatar" [title]="friend.name" style="cursor: pointer;">
-        <img [src]="friend.avatar || ''" [alt]="friend.name" class="avatar-img"
+      @for (friend of friends(); track friend.id) {
+      <div class="friend-avatar" [title]="friend.username" style="cursor: pointer;">
+        <img [src]="friend.avatarUrl || ''" [alt]="friend.username" class="avatar-img"
           onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" />
-        <span class="avatar-fallback" style="display: none;">{{ friend.avatarLetter }}</span>
+        <span class="avatar-fallback" style="display: none;">{{ getAvatarLetter(friend.username) }}</span>
         <span class="status-dot" [class]="friend.status"></span>
       </div>
       }
@@ -38,18 +38,23 @@
     <div class="sidebar-content">
       @if (activeTab() === 'friends') {
       <div class="friends-list">
-        @for (friend of friends; track friend.id) {
+        @for (friend of friends(); track friend.id) {
         <div class="friend-item">
           <div class="friend-avatar">
-            <img [src]="friend.avatar || ''" [alt]="friend.name" class="avatar-img"
+            <img [src]="friend.avatarUrl || ''" [alt]="friend.username" class="avatar-img"
               onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" />
-            <span class="avatar-fallback" style="display: none;">{{ friend.avatarLetter }}</span>
+            <span class="avatar-fallback" style="display: none;">{{ getAvatarLetter(friend.username) }}</span>
             <span class="status-dot" [class]="friend.status"></span>
           </div>
           <div class="friend-info">
-            <span class="friend-name">{{ friend.name }}</span>
-            <span class="friend-rank">{{ friend.rank }}</span>
+            <span class="friend-name">{{ friend.username }}</span>
+            <span class="friend-rank">{{ friend.league }}</span>
           </div>
+        </div>
+        }
+        @empty {
+        <div class="empty-state">
+          <span>No friends yet. Send an invite!</span>
         </div>
         }
       </div>

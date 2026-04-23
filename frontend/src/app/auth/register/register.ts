@@ -9,6 +9,8 @@ import {
   ValidationErrors,
 } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../core/services/auth.service';
+import { HttpErrorResponse } from '@angular/common/http';
 
 // Componente de cadastro: valida dados, confirma senha e envia formulário.
 @Component({
@@ -25,14 +27,20 @@ export class RegisterComponent {
   // Estados de exibição para campos de senha.
   showPassword = signal(false);
   showConfirmPassword = signal(false);
+  // Mensagem de erro retornada pelo servidor.
+  serverError = signal('');
 
-  constructor(private fb: FormBuilder, private router: Router) {
+  constructor(
+    private fb: FormBuilder,
+    private router: Router,
+    private authService: AuthService,
+  ) {
     // Define controles, validações e validação de grupo (senha x confirmação).
     this.registerForm = this.fb.group(
       {
-        name: ['', [Validators.required, Validators.minLength(3)]],
+        username: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(30)]],
         email: ['', [Validators.required, Validators.email]],
-        password: ['', [Validators.required, Validators.minLength(6)]],
+        password: ['', [Validators.required, Validators.minLength(8)]],
         confirmPassword: ['', [Validators.required]],
         acceptTerms: [false, [Validators.requiredTrue]],
       },
@@ -77,7 +85,7 @@ export class RegisterComponent {
 
     if (control.errors['required']) {
       const labels: Record<string, string> = {
-        name: 'Name is required',
+        username: 'Username is required',
         email: 'Email is required',
         password: 'Password is required',
         confirmPassword: 'Confirmation is required',
@@ -90,23 +98,37 @@ export class RegisterComponent {
       const min = control.errors['minlength'].requiredLength;
       return `Minimum ${min} characters`;
     }
+    if (control.errors['maxlength']) {
+      const max = control.errors['maxlength'].requiredLength;
+      return `Maximum ${max} characters`;
+    }
     if (control.errors['requiredTrue']) return 'You must accept the terms to continue';
     return '';
   }
 
-  // Executa submit: valida formulário, controla loading e redireciona ao final.
-  async onSubmit(): Promise<void> {
+  // Mensagem de sucesso após registro.
+  successMessage = signal('');
+
+  // Executa submit: valida formulário, envia para API e redireciona ao final.
+  onSubmit(): void {
     this.registerForm.markAllAsTouched();
     if (this.registerForm.invalid) return;
 
     this.isLoading.set(true);
+    this.serverError.set('');
 
-    try {
-      // TODO: integrar com AuthService
-      console.log('Register:', this.registerForm.value);
-      await this.router.navigate(['/login']);
-    } finally {
-      this.isLoading.set(false);
-    }
+    const { username, email, password } = this.registerForm.value;
+
+    this.authService.register({ username, email, password }).subscribe({
+      next: () => {
+        this.isLoading.set(false);
+        this.successMessage.set('Account created successfully! Redirecting to login...');
+        setTimeout(() => this.router.navigate(['/login']), 2000);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.serverError.set(this.authService.extractApiError(err));
+        this.isLoading.set(false);
+      },
+    });
   }
 }
