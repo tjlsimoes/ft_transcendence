@@ -11,6 +11,11 @@ import java.util.List;
 @Repository
 public interface FriendshipRepository extends JpaRepository<Friendship, FriendshipId> {
 
+    List<Friendship> findByUserIdAndStatus(Long userId, String status);
+
+    boolean existsByUserIdAndFriendId(Long userId, Long friendId);
+
+    void deleteByUserIdAndFriendId(Long userId, Long friendId);
     @Query("SELECT f FROM Friendship f WHERE (f.userId = :userId OR f.friendId = :userId) AND f.status = 'ACCEPTED'")
     List<Friendship> findAcceptedByUserId(Long userId);
 
