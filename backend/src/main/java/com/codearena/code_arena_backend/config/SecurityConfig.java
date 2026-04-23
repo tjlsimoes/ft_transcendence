@@ -4,6 +4,7 @@ import com.codearena.code_arena_backend.auth.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -64,7 +65,12 @@ public class SecurityConfig {
             // Route authorisation rules.
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints — no token required.
-                .requestMatchers("/api/auth/login", "/api/auth/register", "/api/health", "/error").permitAll()
+                .requestMatchers("/api/auth/**", "/api/health").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/challenges", "/api/challenges/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/challenges", "/api/challenges/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/challenges", "/api/challenges/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PATCH, "/api/challenges", "/api/challenges/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/challenges", "/api/challenges/**").hasRole("ADMIN")
                 // Everything else requires a valid JWT.
                 .anyRequest().authenticated()
             )
