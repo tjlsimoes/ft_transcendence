@@ -65,7 +65,7 @@ public class SecurityConfig {
             // Route authorisation rules.
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints — no token required.
-                .requestMatchers("/api/auth/**", "/api/health").permitAll()
+                .requestMatchers("/api/auth/**", "/api/health", "/ws/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/users/avatars/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/challenges", "/api/challenges/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/challenges", "/api/challenges/**").hasRole("ADMIN")
