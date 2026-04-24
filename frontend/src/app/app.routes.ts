@@ -33,9 +33,9 @@ export const routes: Routes = [
     path: 'profile',
     loadComponent: () => import('./features/dashboard/profile-settings/profile-settings').then(m => m.ProfileSettings),
   },
-  // Ranking / leaderboard.
+  // Leaderboard (ranking global de jogadores).
   {
-    path: 'ranking',
+    path: 'leaderboard',
     loadComponent: () => import('./features/ranking/ranking').then(m => m.Ranking),
   },
   // Fallback: rota desconhecida redireciona para home.

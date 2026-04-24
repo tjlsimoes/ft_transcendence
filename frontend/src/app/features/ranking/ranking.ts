@@ -1,5 +1,6 @@
 import { Component, OnInit, signal } from '@angular/core';
-import { LEADERBOARD_PLAYERS_MOCK, LeaderboardPlayer } from './ranking.mock';
+import { Title } from '@angular/platform-browser';
+import { LeaderboardService, LeaderboardEntry } from '../../core/services/leaderboard.service';
 
 @Component({
   selector: 'app-ranking',
@@ -8,14 +9,26 @@ import { LEADERBOARD_PLAYERS_MOCK, LeaderboardPlayer } from './ranking.mock';
   styleUrl: './ranking.css',
 })
 export class Ranking implements OnInit {
-  protected readonly topPlayers = signal<LeaderboardPlayer[]>([]);
+  protected readonly players = signal<LeaderboardEntry[]>([]);
+  protected readonly loading = signal(true);
+  protected readonly error = signal(false);
+
+  constructor(
+    private titleService: Title,
+    private leaderboardService: LeaderboardService,
+  ) {}
 
   ngOnInit(): void {
-    this.loadRankingData();
-  }
-
-  private loadRankingData(): void {
-    // Single mock source now; swap this call for API integration later.
-    this.topPlayers.set(LEADERBOARD_PLAYERS_MOCK);
+    this.titleService.setTitle('Leaderboard — Code Arena');
+    this.leaderboardService.getLeaderboard().subscribe({
+      next: (data) => {
+        this.players.set(data);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.error.set(true);
+        this.loading.set(false);
+      },
+    });
   }
 }

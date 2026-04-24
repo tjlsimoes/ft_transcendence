@@ -16,7 +16,7 @@
 }
 
 .section-heading {
-	margin-bottom: 18px;
+	margin-bottom: 28px;
 }
 
 .section-kicker,
@@ -27,16 +27,13 @@
 	font-size: 0.78rem;
 }
 
-/* Prominent page title styling for the leaderboard */
-.section-kicker {
-	display: block;
-	/* Match hero title typography */
-	font-size: 3rem;
+.page-title {
+	font-size: 2rem;
 	font-weight: 700;
-	line-height: 1.15;
-	letter-spacing: 0.02em;
+	letter-spacing: -0.02em;
 	color: var(--text);
-	margin: 0 0 8px 0;
+	margin: 6px 0 0;
+	line-height: 1.15;
 }
 
 .leaderboard-grid {
@@ -145,59 +142,37 @@
 	transform-origin: center;
 }
 
-.weekly-line {
+/* ── Stats block ── */
+.player-stats-block {
 	display: flex;
 	align-items: center;
 	justify-content: center;
+}
+
+.stats-row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
 	flex-wrap: wrap;
-	gap: 8px;
-	min-width: 0;
 	color: var(--text-muted);
 	font-size: 0.85rem;
-	line-height: 1.4;
-	padding: 8px 10px;
 }
 
-.weekly-stats-block {
-	display: grid;
-	gap: 1px;
-	justify-items: center;
-}
-
-.stats-period {
-	margin: 0;
-}
-
-.weekly-item {
+.stat-item {
 	display: inline-flex;
 	align-items: center;
-	gap: 6px;
+	gap: 5px;
 	white-space: nowrap;
 }
 
-.weekly-label {
-	color: var(--text-muted);
-	font-size: 0.78rem;
-	font-weight: 600;
-	margin-right: 4px;
-}
-
-.lp-positive {
-    color: var(--accent);
-}
-
-.lp-negative {
-    color: #ff8b8b;
-}
-
-.weekly-label {
+.stat-label {
 	color: var(--text-muted);
 	font-size: 0.74rem;
 	letter-spacing: 0.08em;
 	text-transform: uppercase;
 }
 
-.weekly-item strong {
+.stat-value {
 	color: var(--text);
 	font-size: 0.9rem;
 }
@@ -206,44 +181,38 @@
 	color: var(--text-muted);
 }
 
-.match-history-block {
-	display: grid;
-	justify-self: end;
-	justify-items: end;
-	gap: 6px;
-	text-align: right;
-	min-width: 170px;
-}
-
-/* make the Match history label use primary page text (white) */
-.match-history-block .mini-title {
-    color: var(--text);
-    text-transform: none;
-}
-
-.recent-strip {
+/* ── W/L block ── */
+.player-wl-block {
 	display: flex;
-	gap: 8px;
-	justify-content: flex-end;
-}
-
-.result-pill {
-	display: inline-flex;
 	align-items: center;
-	justify-content: center;
-	width: 28px;
-	height: 28px;
-	border: 1px solid rgba(0, 243, 61, 0.28);
-	color: var(--accent);
-	background: rgba(0, 243, 61, 0.08);
-	font-size: 0.8rem;
+	gap: 4px;
+	justify-self: end;
+	font-size: 1rem;
 	font-weight: 700;
 }
 
-.result-pill.loss {
-	border-color: rgba(255, 90, 90, 0.28);
+.wl-win {
+	color: var(--color-victory);
+}
+
+.wl-sep {
+	color: var(--text-muted);
+	font-weight: 400;
+}
+
+.wl-loss {
+	color: var(--color-defeat);
+}
+
+/* ── State messages ── */
+.state-msg {
+	color: var(--text-muted);
+	font-size: 0.9rem;
+	padding: 24px 0;
+}
+
+.state-msg--error {
 	color: #ff8b8b;
-	background: rgba(255, 90, 90, 0.08);
 }
 
 @media (max-width: 960px) {
@@ -251,25 +220,9 @@
 		grid-template-columns: 72px 1fr;
 	}
 
-	.weekly-line {
-		justify-content: flex-start;
-		padding-left: 0;
-	}
-
-	.weekly-stats-block {
-		justify-items: start;
-	}
-
-	.match-history-block {
+	.player-wl-block {
 		grid-column: 1 / -1;
-		justify-items: start;
-		text-align: left;
 		justify-self: start;
-		min-width: 0;
-	}
-
-	.recent-strip {
-		justify-content: flex-start;
 	}
 }
 
@@ -298,7 +251,7 @@
 		transform: none;
 	}
 
-	.weekly-line {
+	.stats-row {
 		font-size: 0.8rem;
 	}
 
