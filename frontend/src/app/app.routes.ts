@@ -35,8 +35,8 @@ export const routes: Routes = [
   },
   // pagina de jogo.
   {
-    path: 'challenge',
-    loadComponent: () => import('./challenge-page/challenge-page').then(m => m.ChallengePage),
+    path: 'arena',
+    loadComponent: () => import('./arena-page/arena-page').then(m => m.ArenaPage),
   },
   // Fallback: rota desconhecida redireciona para home.
   { path: '**', redirectTo: '' },

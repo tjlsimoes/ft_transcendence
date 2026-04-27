@@ -1,0 +1,270 @@
+<div class="arena-shell" #arenaShell>
+
+  <!-- ── Opponent-finished notification ────────────────────────── -->
+  @if (showOpponentNotif()) {
+    <div class="opponent-notif" role="alert">
+      <span class="opponent-notif-icon">&#9888;</span>
+      <div class="opponent-notif-body">
+        <span class="opponent-notif-title">Opponent finished!</span>
+        <span class="opponent-notif-sub">You have 1 minute left to submit.</span>
+      </div>
+      <button class="opponent-notif-close" type="button" (click)="dismissOpponentNotif()" aria-label="Dismiss">&#10005;</button>
+    </div>
+  }
+
+  <!-- ── LEFT PANEL: Problem ─────────────────────────────────── -->
+  <aside class="problem-panel">
+
+    <!-- Tab bar -->
+    <nav class="problem-tabs" aria-label="Problem navigation">
+      @for (tab of panelTabs; track tab) {
+        <button
+          class="problem-tab"
+          [ngClass]="{ active: activeTab() === tab }"
+          (click)="setTab(tab)"
+          type="button">
+          {{ tab }}
+        </button>
+      }
+    </nav>
+
+    <!-- Scrollable content -->
+    <div class="problem-content">
+
+      @if (activeTab() === 'Problem') {
+        <h2 class="problem-title">1D Arrays in C</h2>
+
+        <p class="problem-body">
+          An array is a container object that holds a fixed number of values of a single type.
+          To create an array in C, we can do <code>int arr[n];</code>. Here, <code>arr</code>
+          is a variable array which holds up to 10 integers. The above example is a static array
+          that has memory allocated at compile time. A dynamic array can be created in C, using the
+          <code>malloc</code> function and the memory is allocated on the heap at runtime.
+          To create an integer array, <code>arr</code> of size <code>n</code>,
+          <code>int *arr = (int*)malloc(n * sizeof(int))</code>, where <code>arr</code> points
+          to the base address of the array. When you have finished with the array, use
+          <code>free(arr)</code> to deallocate the memory.
+        </p>
+
+        <p class="problem-body">
+          In this challenge, create an array of size <code>n</code> dynamically, and read the values
+          from stdin. Iterate the array calculating the sum of all elements. Print the sum and free
+          the memory where the array is stored.
+        </p>
+
+        <p class="problem-body">
+          While it is true that you can sum the elements as they are read, without first storing them
+          to an array, you will not get the experience working with an array. Efficiency will be
+          required later.
+        </p>
+
+        <div class="problem-section">
+          <h3 class="section-title">Input Format</h3>
+          <p class="problem-body">
+            The first line contains an integer, <code>n</code>.<br>
+            The next line contains <code>n</code> space-separated integers.
+          </p>
+        </div>
+
+        <div class="problem-section">
+          <h3 class="section-title">Constraints</h3>
+          <p class="problem-body">
+            1 ≤ n ≤ 1000<br>
+            1 ≤ a[i] ≤ 1000
+          </p>
+        </div>
+
+        <div class="problem-section">
+          <h3 class="section-title">Output Format</h3>
+          <p class="problem-body">Print the sum of the integers in the array.</p>
+        </div>
+
+        <div class="problem-section">
+          <h3 class="section-title">Sample Input 0</h3>
+          <pre class="code-sample">6
+16 13 7 2 1 12</pre>
+        </div>
+
+        <div class="problem-section">
+          <h3 class="section-title">Sample Output 0</h3>
+          <pre class="code-sample">51</pre>
+        </div>
+      }
+
+      @if (activeTab() !== 'Problem') {
+        <div class="empty-tab">
+          <p class="text-muted">{{ activeTab() }} content coming soon.</p>
+        </div>
+      }
+
+    </div>
+  </aside>
+
+  <!-- ── RESIZE HANDLE ─────────────────────────────────────── -->
+  <div class="resize-handle" (mousedown)="startResize($event)" aria-hidden="true"></div>
+
+  <!-- ── RIGHT PANEL: Code Editor ───────────────────────────── -->
+  <section class="editor-panel" aria-label="Code editor">
+
+    <!-- Editor topbar -->
+    <header class="editor-topbar">
+      <div class="editor-topbar-left">
+        <button class="theme-btn" type="button" (click)="selectedTheme.set(selectedTheme() === 'Dark' ? 'Light' : 'Dark')">
+          Change Theme
+        </button>
+      </div>
+
+      <div class="editor-topbar-center">
+        <app-arena-timer (timeUp)="onTimeUp()" />
+      </div>
+
+      <div class="editor-topbar-right">
+        <!-- DEV: remove before production -->
+        <button class="theme-btn" type="button" (click)="mockOpponentFinished()">
+          Opp. Finished
+        </button>
+      </div>
+    </header>
+
+    <!-- Code editor area -->
+    <div class="editor-area"></div>
+
+    <!-- Editor footer (expands to show run/submit results inline) -->
+    <footer class="editor-footer" [class.footer--expanded]="runPanelOpen() || resultPanelOpen()">
+
+      <!-- ── Always-visible bar ─────────────────────────────────── -->
+      <div class="footer-bar">
+        <div class="footer-left">
+          <!-- Status badge: shown when there is a result -->
+          @if (runResult()) {
+            <span class="footer-status-dot" [class.dot-success]="runResult()!.status === 'success'" [class.dot-error]="runResult()!.status !== 'success'"></span>
+            <span class="footer-status-label" [class.run-headline--error]="runResult()!.status !== 'success'">
+              {{ runResult()!.headline }}
+            </span>
+            @if (runResult()!.executionTimeMs !== undefined) {
+              <span class="footer-status-time">{{ runResult()!.executionTimeMs }}ms</span>
+            }
+            <button class="footer-expand-btn" type="button" (click)="toggleRunPanel()" [attr.aria-label]="runPanelOpen() ? 'Collapse output' : 'Expand output'">
+              {{ runPanelOpen() ? '▾' : '▴' }}
+            </button>
+            <button class="footer-close-btn" type="button" (click)="closeRunPanel()" aria-label="Close output">✕</button>
+          }
+          @if (submissionResult()) {
+            <span class="footer-status-label" [class.verdict-correct]="submissionResult()!.verdict === 'correct'" [class.verdict-wrong]="submissionResult()!.verdict !== 'correct'">
+              {{ submissionResult()!.headline }}
+            </span>
+            <span class="footer-status-summary">{{ submissionResult()!.summary }}</span>
+            <button class="footer-expand-btn" type="button" (click)="toggleResultPanel()" [attr.aria-label]="resultPanelOpen() ? 'Collapse results' : 'Expand results'">
+              {{ resultPanelOpen() ? '▾' : '▴' }}
+            </button>
+            <button class="footer-close-btn" type="button" (click)="closeResultPanel()" aria-label="Close results">✕</button>
+          }
+        </div>
+        <div class="footer-right">
+          <button class="run-btn" type="button" (click)="runCode()">Run Code</button>
+          <button class="submit-btn" type="button" (click)="submitCode()">Submit Code</button>
+        </div>
+      </div>
+
+      <!-- ── Run output body (collapsible) ─────────────────────── -->
+      @if (runResult() && runPanelOpen()) {
+        <div class="footer-body" [class.footer-body--accent]="runResult()!.status === 'success'" [class.footer-body--error]="runResult()!.status !== 'success'">
+          @if (runResult()!.compilerMessage) {
+            <div class="detail-row">
+              <span class="detail-label">Compiler Message</span>
+              <pre class="detail-code detail-code--error">{{ runResult()!.compilerMessage }}</pre>
+            </div>
+          }
+          @if (runResult()!.stdin) {
+            <div class="detail-row">
+              <span class="detail-label">Input (stdin)</span>
+              <pre class="detail-code">{{ runResult()!.stdin }}</pre>
+            </div>
+          }
+          @if (runResult()!.stdout !== undefined) {
+            <div class="detail-row">
+              <span class="detail-label">Your Output (stdout)</span>
+              <pre class="detail-code">{{ runResult()!.stdout }}</pre>
+            </div>
+          }
+          @if (runResult()!.stderr) {
+            <div class="detail-row">
+              <span class="detail-label">stderr</span>
+              <pre class="detail-code detail-code--error">{{ runResult()!.stderr }}</pre>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- ── Submission result body (collapsible) ───────────────── -->
+      @if (submissionResult() && resultPanelOpen()) {
+        <div class="footer-body footer-body--split" [class.footer-body--error]="submissionResult()!.verdict !== 'correct'" [class.footer-body--correct]="submissionResult()!.verdict === 'correct'">
+          <div class="result-cases">
+            @for (tc of submissionResult()!.testCases; track tc.label) {
+              <button
+                class="result-case-btn"
+                type="button"
+                [class.active]="activeTestCase() === tc"
+                [class.case-passed]="tc.status === 'passed'"
+                [class.case-failed]="tc.status === 'failed'"
+                (click)="openResultCase(tc)">
+                <span class="case-icon">{{ tc.status === 'passed' ? '✓' : '✗' }}</span>
+                {{ tc.label }}
+              </button>
+            }
+          </div>
+          @if (activeTestCase(); as tc) {
+            <div class="result-detail">
+              @if (tc.status === 'passed') {
+                <p class="detail-passed-msg">All checks passed for this test case.</p>
+              } @else {
+                @if (tc.compilerMessage) {
+                  <div class="detail-row">
+                    <span class="detail-label">Compiler Message</span>
+                    <pre class="detail-code">{{ tc.compilerMessage }}</pre>
+                  </div>
+                }
+                @if (tc.stdin) {
+                  <div class="detail-row">
+                    <span class="detail-label">Input (stdin)</span>
+                    <pre class="detail-code">{{ tc.stdin }}</pre>
+                  </div>
+                }
+                @if (tc.stdout !== undefined) {
+                  <div class="detail-row">
+                    <span class="detail-label">Your Output (stdout)</span>
+                    <pre class="detail-code">{{ tc.stdout }}</pre>
+                  </div>
+                }
+                @if (tc.expectedOutput !== undefined) {
+                  <div class="detail-row">
+                    <span class="detail-label">Expected Output</span>
+                    <pre class="detail-code detail-code--expected">{{ tc.expectedOutput }}</pre>
+                  </div>
+                }
+              }
+            </div>
+          }
+        </div>
+      }
+
+    </footer>
+
+    <!-- Custom test input panel -->
+    @if (showTestInput()) {
+      <div class="test-input-panel">
+        <label class="test-input-label" for="custom-input">Custom Input</label>
+        <textarea
+          id="custom-input"
+          class="test-input-area"
+          placeholder="Enter custom input here..."
+          [ngModel]="testInput()"
+          (ngModelChange)="testInput.set($event)">
+        </textarea>
+      </div>
+    }
+
+  </section>
+
+</div>
+

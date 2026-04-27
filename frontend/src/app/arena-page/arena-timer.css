@@ -1,0 +1,31 @@
+.timer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.timer-display {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--text);
+  transition: color 0.3s ease;
+  user-select: none;
+}
+
+/* Opponent finished and clock forced to 1 minute */
+.timer.urgent .timer-display {
+  color: var(--color-defeat);
+  animation: timer-pulse 1s ease-in-out infinite;
+}
+
+@keyframes timer-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
