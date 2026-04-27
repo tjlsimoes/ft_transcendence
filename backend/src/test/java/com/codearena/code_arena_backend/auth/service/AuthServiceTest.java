@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -50,6 +51,7 @@ class AuthServiceTest {
     void setUp() {
         // Inject @Value field — jwt expiration (ms)
         ReflectionTestUtils.setField(authService, "jwtExpirationMs", 3_600_000L);
+        ReflectionTestUtils.setField(authService, "defaultAvatarUrl", "/api/users/avatars/default-avatar.svg");
     }
 
     // ------------------------------------------------------------------ //
@@ -77,6 +79,13 @@ class AuthServiceTest {
         assertThat(response.getToken()).isEqualTo("mock.jwt.token");
         assertThat(response.getTokenType()).isEqualTo("Bearer");
         assertThat(response.getExpiresIn()).isEqualTo(3600L);
+
+        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+        verify(userService).save(userCaptor.capture());
+        User savedUser = userCaptor.getValue();
+        assertThat(savedUser.getDisplayName()).isEqualTo("player1");
+        assertThat(savedUser.getAvatar()).isEqualTo("/api/users/avatars/default-avatar.svg");
+        assertThat(savedUser.getRole()).isEqualTo(User.Role.USER);
     }
 
     @Test

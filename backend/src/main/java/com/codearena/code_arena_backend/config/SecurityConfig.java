@@ -67,6 +67,7 @@ public class SecurityConfig {
                 // Public endpoints — no token required.
                 .requestMatchers("/api/auth/**", "/api/health").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/leaderboard").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/users/avatars/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/challenges", "/api/challenges/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/challenges", "/api/challenges/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/api/challenges", "/api/challenges/**").hasRole("ADMIN")
