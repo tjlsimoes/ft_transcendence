@@ -23,12 +23,14 @@ services:
     image: redis:8.6.1-alpine3.23
     container_name: codearena-cache
     restart: unless-stopped
-    command: redis-server --requirepass ${REDIS_PASSWORD} --port ${REDIS_PORT:-6379}
+    command: redis-server --requirepass ${REDIS_PASSWORD} --port ${REDIS_PORT:-6379} --appendonly yes
     healthcheck:
       test: ["CMD", "redis-cli", "-p", "${REDIS_PORT:-6379}", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
+    volumes:
+      - ./database/redis:/data
     networks:
       - codearena
 
