@@ -8,7 +8,7 @@ import com.codearena.code_arena_backend.duel.dto.MatchHistoryResponse;
 import com.codearena.code_arena_backend.duel.entity.Duel.DuelStatus;
 import com.codearena.code_arena_backend.duel.repository.DuelRepository;
 import com.codearena.code_arena_backend.user.entity.User;
-import com.codearena.code_arena_backend.user.service.UserService;
+import com.codearena.code_arena_backend.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -27,7 +27,7 @@ public class RankingService {
     private static final int K_FACTOR = 32;
 
     private final DuelRepository duelRepository;
-    private final UserService userService;
+    private final UserRepository userRepository;
 
      // expectedScore - The probability of the player winning:
      // 
@@ -85,7 +85,7 @@ public class RankingService {
                 .map(duel -> {
                     boolean isChallenger = duel.getChallengerId().equals(user.getId());
                     Long opponentId = isChallenger ? duel.getOpponentId() : duel.getChallengerId();
-                    String opponentName = userService.findById(opponentId)
+                    String opponentName = userRepository.findById(opponentId)
                             .map(User::getUsername)
                             .orElse("Unknown");
 
@@ -118,5 +118,17 @@ public class RankingService {
                 })
                 .toList();
             return history;
+    }
+
+    /**
+     * Derives league name from elo value.
+     * Bronze 0-999 | Silver 1000-1999 | Gold 2000-2999 | Master 3000+
+     * Legend status is determined separately (top 1% of all players).
+     */
+    public String getLeagueFromElo(int elo) {
+        if (elo >= 3000) return "MASTER";
+        if (elo >= 2000) return "GOLD";
+        if (elo >= 1000) return "SILVER";
+        return "BRONZE";
     }
 }

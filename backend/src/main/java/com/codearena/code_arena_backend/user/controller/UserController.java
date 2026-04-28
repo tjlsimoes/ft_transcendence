@@ -6,6 +6,7 @@ import com.codearena.code_arena_backend.duel.entity.Duel.DuelStatus;
 import com.codearena.code_arena_backend.duel.repository.DuelRepository;
 import com.codearena.code_arena_backend.friendship.dto.FriendResponse;
 import com.codearena.code_arena_backend.friendship.repository.FriendshipRepository;
+import com.codearena.code_arena_backend.ranking.service.RankingService;
 import com.codearena.code_arena_backend.user.dto.FriendSummaryResponse;
 import com.codearena.code_arena_backend.user.dto.UpdateUserProfileRequest;
 import com.codearena.code_arena_backend.user.dto.UserAvatarResource;
@@ -52,6 +53,7 @@ public class UserController {
     private final UserService userService;
     private final DuelRepository duelRepository;
     private final FriendshipRepository friendshipRepository;
+    private final RankingService rankingService;
 
     // ------------------------------------------------------------------ //
     //  Profile endpoints (from profile branch)                            //
@@ -67,7 +69,8 @@ public class UserController {
         User user = userService.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new IllegalStateException("Authenticated user not found"));
 
-        UserProfileResponse response = UserProfileResponse.from(user);
+        String league = rankingService.getLeagueFromElo(user.getElo());
+        UserProfileResponse response = UserProfileResponse.from(user, league);
         response = userService.enrichWithRankingContext(response);
         return ResponseEntity.ok(response);
     }

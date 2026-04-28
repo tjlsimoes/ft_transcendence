@@ -11,6 +11,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.codearena.code_arena_backend.ranking.service.RankingService;
 import com.codearena.code_arena_backend.user.dto.UserProfileResponse;
 
 import java.util.List;
@@ -32,6 +33,7 @@ import java.util.Optional;
 public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
+    private final RankingService rankingService;
 
     /**
      * Called by Spring Security (and by JwtAuthenticationFilter) to load a user.
@@ -113,7 +115,7 @@ public class UserService implements UserDetailsService {
      * Called on login and registration so that the DB always reflects the correct state.
      */
     public void goOnline(User user) {
-        user.setLeague(User.League.valueOf(UserProfileResponse.leagueFromElo(user.getElo())));
+        user.setLeague(User.League.valueOf(rankingService.getLeagueFromElo(user.getElo())));
         user.setStatus(User.UserStatus.ONLINE);
         userRepository.save(user);
 
