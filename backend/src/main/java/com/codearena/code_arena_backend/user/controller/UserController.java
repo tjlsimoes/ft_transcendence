@@ -140,45 +140,20 @@ public class UserController {
     public ResponseEntity<List<MatchHistoryResponse>> getMyMatches(@AuthenticationPrincipal UserDetails userDetails) {
         User user = userService.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new IllegalStateException("Authenticated user not found"));
+        List<MatchHistoryResponse> history = rankingService.getUserMatchHistory(user);
+        return ResponseEntity.ok(history);
+    }
 
-        List<MatchHistoryResponse> history = duelRepository.findByUserId(user.getId())
-                .stream()
-                .map(duel -> {
-                    boolean isChallenger = duel.getChallengerId().equals(user.getId());
-                    Long opponentId = isChallenger ? duel.getOpponentId() : duel.getChallengerId();
-                    String opponentName = userService.findById(opponentId)
-                            .map(User::getUsername)
-                            .orElse("Unknown");
 
-                    // Determine result from winnerId (set by the judge/duel service).
-                    String result;
-                    if (duel.getStatus() == DuelStatus.DRAW) {
-                        result = "DRAW";
-                    } else if (duel.getStatus() == DuelStatus.COMPLETED && duel.getWinnerId() != null) {
-                        result = duel.getWinnerId().equals(user.getId()) ? "VICTORY" : "DEFEAT";
-                    } else if (duel.getStatus() == DuelStatus.CANCELLED) {
-                        result = "CANCELLED";
-                    } else {
-                        result = "PENDING";
-                    }
-
-                    // Determine LP change for the requesting user.
-                    Integer lpChange = isChallenger
-                            ? duel.getChallengerEloChange()
-                            : duel.getOpponentEloChange();
-
-                    return MatchHistoryResponse.builder()
-                            .id(duel.getId())
-                            .result(result)
-                            .opponent(opponentName)
-                            .status(duel.getStatus().name())
-                            .lpChange(lpChange)
-                            .startedAt(duel.getStartedAt())
-                            .endedAt(duel.getEndedAt())
-                            .build();
-                })
-                .toList();
-
+    /**
+     * GET /api/users/{id}/matches
+     * Returns the match history of the user with the given id.
+     */
+    @GetMapping("/{id}/matches")
+    public ResponseEntity<List<MatchHistoryResponse>> getMatches(@PathVariable Long id) {
+        User user = userService.findById(id)
+                .orElseThrow(() -> new IllegalStateException("User not found"));
+        List<MatchHistoryResponse> history = rankingService.getUserMatchHistory(user);
         return ResponseEntity.ok(history);
     }
 
