@@ -3,17 +3,15 @@ package com.codearena.code_arena_backend.ranking.controller;
 import com.codearena.code_arena_backend.ranking.dto.LeaderboardEntryResponse;
 import com.codearena.code_arena_backend.user.entity.User;
 import com.codearena.code_arena_backend.user.repository.UserRepository;
-
 import lombok.RequiredArgsConstructor;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Public endpoint returning the top-N players ordered by ELO.
@@ -24,48 +22,34 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class LeaderboardController {
 
+    private static final String DEFAULT_LIMIT = "50";
+    private static final int MAX_LIMIT = 100;
+
     private final UserRepository userRepository;
 
     /**
-     * GET /api/leaderboard?page=X&size=Y&sort=Z
+     * GET /api/leaderboard?limit=50
      * Returns the top players sorted by ELO descending.
      * Rank is assigned sequentially (1-based).
      */
     @GetMapping
-    public ResponseEntity<Page<LeaderboardEntryResponse>> getLeaderboard
-        (
-            @RequestParam(required = false) User.League league,
-            @PageableDefault(size = 50) Pageable pageable
-        ) {
+    public ResponseEntity<List<LeaderboardEntryResponse>> getLeaderboard(
+            @RequestParam(required = false) String league,
+            @RequestParam(defaultValue = DEFAULT_LIMIT) int limit) {
 
-        Page<User> playersPage;
+        int safeLimit = Math.min(Math.max(1, limit), MAX_LIMIT);
+        List<User> players;
         if (league != null) {
-            playersPage = userRepository.findByLeagueOrderByEloDesc(league, pageable);
+            players = userRepository.findTopPlayersLeagueAndEloDesc(league.toUpperCase(), safeLimit);
         } else {
-            playersPage = userRepository.findAllByOrderByEloDesc(pageable);
+            players = userRepository.findTopPlayersByElo(safeLimit);
         }
 
-        long offset = pageable.getOffset();
-
-        // We use map to convert each User into a LeaderboardEntryResponse.
-        // To assign sequential ranks, we can't just use a simple stream without tracking index,
-        // so we can use a local counter array.
-        int[] rankCounter = new int[] { (int) offset + 1 };
-
-        Page<LeaderboardEntryResponse> response = playersPage.map(user ->
-            LeaderboardEntryResponse.fromUser(rankCounter[0]++, user)
-        );
+        List<LeaderboardEntryResponse> response = new ArrayList<>(players.size());
+        for (int i = 0; i < players.size(); i++) {
+            response.add(LeaderboardEntryResponse.fromUser(i + 1, players.get(i)));
+        }
 
         return ResponseEntity.ok(response);
     }
-
-    // Why the weird int[] rankCounter array?
-    // We use .map(user -> ...) to transform the entities into DTOs.
-    // In Java, variables used inside a lambda function (like ->) must be "effectively final"
-    // (meaning their value cannot change).
-    // If we used int rankCounter = 51; and tried to do rankCounter++ inside the lambda,
-    // Java would throw a compile error.
-    // By putting it inside an array int[] rankCounter = new int[]{ 51 };
-    // the array reference is final, but we are allowed to change the contents
-    // inside the array (rankCounter[0]++).
 }
