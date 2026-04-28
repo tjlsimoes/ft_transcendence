@@ -4,11 +4,8 @@ import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Service;
 
-import com.codearena.code_arena_backend.duel.dto.DuelResultEvent;
 import com.codearena.code_arena_backend.duel.entity.Duel;
 import com.codearena.code_arena_backend.duel.repository.DuelRepository;
-import com.codearena.code_arena_backend.notification.NotificationService;
-import com.codearena.code_arena_backend.notification.entity.NotificationType;
 import com.codearena.code_arena_backend.ranking.service.RankingService;
 import com.codearena.code_arena_backend.user.entity.User;
 import com.codearena.code_arena_backend.user.repository.UserRepository;
@@ -22,10 +19,10 @@ public class DuelService {
     private final RankingService rankingService;
     private final DuelRepository duelRepository;
     private final UserRepository userRepository;
-    private final NotificationService notificationService;
     
     @Transactional
     public void completeDuel(Long duelId, Long winnerId, boolean isDraw) {
+        // Get Duel and check if it's valid
         Duel duel = duelRepository.findById(duelId)
             .orElseThrow(() -> new RuntimeException("Duel not found"));
         
@@ -36,86 +33,60 @@ public class DuelService {
             throw new RuntimeException("Duel already completed");
         }
 
-        User challenger = userRepository.findById(duel.getChallengerId())
-            .orElseThrow(() -> new RuntimeException("Challenger not found"));
-        User opponent = userRepository.findById(duel.getOpponentId())
-            .orElseThrow(() -> new RuntimeException("Opponent not found"));
-
         // Update Duel status
         duel.setEndedAt(LocalDateTime.now());
         if (isDraw) {
             duel.setStatus(Duel.DuelStatus.DRAW);
-            duel.setWinnerId(null);
         } else {
             duel.setStatus(Duel.DuelStatus.COMPLETED);
             duel.setWinnerId(winnerId);
         }
 
-        // Calculate Elo Deltas
-        double challengerScore = isDraw ? 0.5 : (winnerId.equals(challenger.getId()) ? 1.0 : 0.0);
-        double opponentScore = isDraw ? 0.5 : (winnerId.equals(opponent.getId()) ? 1.0 : 0.0);
+        // Calculate and Update Ratings/Elo
+        User winner = userRepository.findById(winnerId)
+            .orElseThrow(() -> new RuntimeException("Winner not found"));
+        
+        User loser = duel.getChallengerId().equals(winnerId)
+            ? userRepository.findById(duel.getOpponentId()).orElseThrow(() -> new RuntimeException("Loser not found"))
+            : userRepository.findById(duel.getChallengerId()).orElseThrow(() -> new RuntimeException("Loser not found"));
 
-        int challengerDelta = rankingService.calculateEloDelta(challenger.getElo(), opponent.getElo(), challengerScore, challenger.getWinStreak());
-        int opponentDelta = rankingService.calculateEloDelta(opponent.getElo(), challenger.getElo(), opponentScore, opponent.getWinStreak());
+        Integer winnerDelta = rankingService.calculateEloDelta(winner.getElo(), loser.getElo(), isDraw ? 0.5 : 1.0, winner.getWinStreak());
+        Integer loserDelta = rankingService.calculateEloDelta(loser.getElo(), winner.getElo(), isDraw ? 0.5 : 0.0, loser.getWinStreak());
 
-        // Update Stats
+        // Update win streaks
         if (isDraw) {
-            challenger.setWinStreak(0);
-            opponent.setWinStreak(0);
-        } else if (winnerId.equals(challenger.getId())) {
-            challenger.setWins(challenger.getWins() + 1);
-            challenger.setWinStreak(challenger.getWinStreak() + 1);
-            opponent.setLosses(opponent.getLosses() + 1);
-            opponent.setWinStreak(0);
+            loser.setWinStreak(0);
+            winner.setWinStreak(0);
+        } else if (winnerId.equals(duel.getChallengerId())) {
+            loser.setWinStreak(0);
+            winner.setWinStreak(winner.getWinStreak() + 1);
         } else {
-            opponent.setWins(opponent.getWins() + 1);
-            opponent.setWinStreak(opponent.getWinStreak() + 1);
-            challenger.setLosses(challenger.getLosses() + 1);
-            challenger.setWinStreak(0);
+            loser.setWinStreak(loser.getWinStreak() + 1);
+            winner.setWinStreak(0);
         }
 
-        // Apply Elo changes
-        challenger.setElo(challenger.getElo() + challengerDelta);
-        opponent.setElo(opponent.getElo() + opponentDelta);
+        // Update win/loss counts
+        if (!isDraw) {
+            winner.setWins(winner.getWins() + 1);
+            loser.setLosses(loser.getLosses() + 1);
+        }
+
+        winner.setElo(winner.getElo() + winnerDelta);
+        loser.setElo(loser.getElo() + loserDelta);
         
-        // Sync Leagues
-        challenger.setLeague(User.League.valueOf(rankingService.getLeagueFromElo(challenger.getElo())));
-        opponent.setLeague(User.League.valueOf(rankingService.getLeagueFromElo(opponent.getElo())));
+        // Update user leagues based on new Elo (Bronze, Silver, Gold, Master)
+        winner.setLeague(User.League.valueOf(rankingService.getLeagueFromElo(winner.getElo())));
+        loser.setLeague(User.League.valueOf(rankingService.getLeagueFromElo(loser.getElo())));
 
-        // Save Deltas to Duel
-        duel.setChallengerEloChange(challengerDelta);
-        duel.setOpponentEloChange(opponentDelta);
+        duel.setChallengerEloChange(winnerDelta);
+        duel.setOpponentEloChange(loserDelta);
 
-        // Save all
         duelRepository.save(duel);
-        userRepository.save(challenger);
-        userRepository.save(opponent);
+        userRepository.save(winner);
+        userRepository.save(loser);
         
+        // Ensure Legend (Top 1% of Master+) is correctly recalculated globally
         userRepository.recalculateMasterLeagues();
-
-        // Send duel result notifications
-        DuelResultEvent challengerResult = DuelResultEvent.builder()
-            .duelId(duel.getId())
-            .result(isDraw ? "DRAW" : (winnerId.equals(challenger.getId()) ? "WIN" : "LOSS"))
-            .opponentId(opponent.getId())
-            .opponentName(opponent.getDisplayName())
-            .eloChange(challengerDelta)
-            .newElo(challenger.getElo())
-            .build();
-
-        notificationService.send(challenger.getId(), NotificationType.DUEL_RESULT, challengerResult);
-
-        DuelResultEvent opponentResult = DuelResultEvent.builder()
-            .duelId(duel.getId())
-            .result(isDraw ? "DRAW" : (winnerId.equals(opponent.getId()) ? "WIN" : "LOSS"))
-            .opponentId(challenger.getId())
-            .opponentName(challenger.getDisplayName())
-            .eloChange(opponentDelta)
-            .newElo(opponent.getElo())
-            .build();
-
-        notificationService.send(opponent.getId(), NotificationType.DUEL_RESULT, opponentResult);
-
     }
 }
 
