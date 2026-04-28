@@ -22,7 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class LeaderboardController {
 
-    private static final int DEFAULT_LIMIT = 50;
+    private static final String DEFAULT_LIMIT = "50";
     private static final int MAX_LIMIT = 100;
 
     private final UserRepository userRepository;
@@ -34,10 +34,16 @@ public class LeaderboardController {
      */
     @GetMapping
     public ResponseEntity<List<LeaderboardEntryResponse>> getLeaderboard(
-            @RequestParam(defaultValue = "50") int limit) {
+            @RequestParam(required = false) String league,
+            @RequestParam(defaultValue = DEFAULT_LIMIT) int limit) {
 
         int safeLimit = Math.min(Math.max(1, limit), MAX_LIMIT);
-        List<User> players = userRepository.findTopPlayersByElo(safeLimit);
+        List<User> players;
+        if (league != null) {
+            players = userRepository.findTopPlayersLeagueAndEloDesc(league.toUpperCase(), safeLimit);
+        } else {
+            players = userRepository.findTopPlayersByElo(safeLimit);
+        }
 
         List<LeaderboardEntryResponse> response = new ArrayList<>(players.size());
         for (int i = 0; i < players.size(); i++) {
