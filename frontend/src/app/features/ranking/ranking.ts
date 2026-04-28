@@ -22,7 +22,7 @@ export class Ranking implements OnInit {
     this.titleService.setTitle('Leaderboard — Code Arena');
     this.leaderboardService.getLeaderboard().subscribe({
       next: (data) => {
-        this.players.set(data);
+        this.players.set(data.content);
         this.loading.set(false);
       },
       error: () => {

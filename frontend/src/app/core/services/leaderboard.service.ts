@@ -18,14 +18,23 @@ export interface LeaderboardEntry {
   winRate: string;
 }
 
+export interface Page<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class LeaderboardService {
   private http = inject(HttpClient);
   private baseUrl = `${environment.apiUrl}/leaderboard`;
 
-  getLeaderboard(limit = 50): Observable<LeaderboardEntry[]> {
-    return this.http.get<LeaderboardEntry[]>(this.baseUrl, {
-      params: { limit: limit.toString() },
-    });
+  getLeaderboard(page = 0, size = 50, league?: string): Observable<Page<LeaderboardEntry>> {
+    const params: any = {page: page.toString(), size: size.toString()};
+    if (league)
+      params.league = league;
+    return this.http.get<Page<LeaderboardEntry>>(this.baseUrl, { params })
   }
 }
