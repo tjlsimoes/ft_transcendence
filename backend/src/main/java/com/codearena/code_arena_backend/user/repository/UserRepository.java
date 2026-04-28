@@ -1,6 +1,9 @@
 package com.codearena.code_arena_backend.user.repository;
 
 import com.codearena.code_arena_backend.user.entity.User;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -39,14 +42,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u FROM User u WHERE u.elo >= 3000 ORDER BY u.elo DESC")
     List<User> findMasterPlusPlayers();
 
-    /** Top N players ordered by elo descending (for leaderboard). */
-    @Query(value = "SELECT * FROM users ORDER BY elo DESC LIMIT :limit", nativeQuery = true)
-    List<User> findTopPlayersByElo(int limit);
+    /** Paginated leaderboard of all players ordered by elo descending. */
+    Page<User> findAllByOrderByEloDesc(Pageable pageable);
 
-    /**
-     * Top N players of a given league ordered by elo descending (for leaderboard). */
-    @Query(value = "SELECT * FROM users WHERE league = :league ORDER BY elo DESC LIMIT :limit", nativeQuery = true)
-    List<User> findTopPlayersLeagueAndEloDesc(String league, int limit);
+    /** Paginated leaderboard of players in a specific league ordered by elo descending. */
+    Page<User> findByLeagueOrderByEloDesc(User.League league, Pageable pageable);
 
     /**
      * Atomically recalculates LEGEND/MASTER for all players with elo >= 3000.
