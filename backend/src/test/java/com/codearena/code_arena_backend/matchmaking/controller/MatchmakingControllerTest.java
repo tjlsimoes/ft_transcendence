@@ -64,6 +64,13 @@ class MatchmakingControllerTest {
         assertThat(response.getBody().type()).isEqualTo("QUEUED");
         verify(userRepository).save(user);
         assertThat(user.getStatus()).isEqualTo(User.UserStatus.IN_QUEUE);
+
+        // Verify notification sent via user destination
+        verify(messagingTemplate).convertAndSendToUser(
+                eq("player1"),
+                eq("/queue/matchmaking"),
+                any()
+        );
     }
 
     @Test
@@ -92,6 +99,8 @@ class MatchmakingControllerTest {
         var response = controller.enqueue(auth);
 
         assertThat(response.getStatusCode().value()).isEqualTo(409);
+        assertThat(response.getBody().type()).isEqualTo("ERROR");
+        assertThat(response.getBody().message()).contains("Cannot queue while in a duel");
     }
 
     @Test
