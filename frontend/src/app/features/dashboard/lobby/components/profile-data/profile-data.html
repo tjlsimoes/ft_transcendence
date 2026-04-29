@@ -6,9 +6,16 @@
 		<span class="pane-tab">CodeArena::ProfileData</span>
 	</header>
 	<div class="pane-content">
-		<section class="profile-shell" aria-label="Resumo do rank">
-			<div class="rank-emblem" aria-hidden="true">
-				<span class="rank-emblem-text">{{ rankTier() }}</span>
+		<section [class]="'profile-shell ' + tone()" aria-label="Resumo do rank">
+			<div class="league-emblem" aria-hidden="true">
+				<span class="league-aura"></span>
+				<span class="league-wing league-wing-left"></span>
+				<span class="league-wing league-wing-right"></span>
+				<span class="league-crown"></span>
+				<span class="league-stars"></span>
+				<div class="emblem-frame">
+					<div class="emblem-core">{{ rankTier() }}</div>
+				</div>
 			</div>
 			<p class="rank-league">{{ leagueName() }}</p>
 			<h2 class="season-title">RANKED SEASON {{ seasonLabel() }}</h2>

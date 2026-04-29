@@ -1,5 +1,4 @@
 import { Component, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import {
   FormBuilder,
   FormGroup,
@@ -15,7 +14,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 // Componente de cadastro: valida dados, confirma senha e envia formulário.
 @Component({
   selector: 'app-register',
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './register.html',
   styleUrls: ['../auth-shared.css', './register.css'],
 })

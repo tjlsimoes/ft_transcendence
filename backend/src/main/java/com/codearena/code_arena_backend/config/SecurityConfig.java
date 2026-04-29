@@ -62,20 +62,21 @@ public class SecurityConfig {
             // Apply CORS rules defined in CorsConfig.
             .cors(Customizer.withDefaults())
 
-                // Route authorisation rules.
-                .authorizeHttpRequests(auth -> auth
-                        // Public endpoints — no token required.
-                        .requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/refresh", "/api/health")
-                        .permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/users/avatars/**").permitAll()
-						.requestMatchers(HttpMethod.GET, "/api/challenges", "/api/challenges/**").permitAll()
-						.requestMatchers(HttpMethod.POST, "/api/challenges", "/api/challenges/**").hasRole("ADMIN")
-						.requestMatchers(HttpMethod.PUT, "/api/challenges", "/api/challenges/**").hasRole("ADMIN")
-						.requestMatchers(HttpMethod.PATCH, "/api/challenges", "/api/challenges/**").hasRole("ADMIN")
-						.requestMatchers(HttpMethod.DELETE, "/api/challenges", "/api/challenges/**").hasRole("ADMIN")
-						// Everything else (including /api/auth/logout) requires a valid,
-                        // non-blacklisted JWT.
-                        .anyRequest().authenticated())
+            // Route authorisation rules.
+            .authorizeHttpRequests(auth -> auth
+                // Public endpoints — no token required.
+                .requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/refresh", "/api/health").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/leaderboard").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/users/avatars/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/challenges", "/api/challenges/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/challenges", "/api/challenges/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/challenges", "/api/challenges/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PATCH, "/api/challenges", "/api/challenges/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/challenges", "/api/challenges/**").hasRole("ADMIN")
+                // Everything else (including /api/auth/logout) requires a valid,
+                // non-blacklisted JWT.
+                .anyRequest().authenticated()
+            )
 
                 // Never create or use an HTTP session — fully stateless.
                 // Every request must carry a valid JWT.
