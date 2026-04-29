@@ -38,28 +38,62 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
         StompHeaderAccessor accessor =
                 MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
-        if (accessor != null && StompCommand.CONNECT.equals(accessor.getCommand())) {
+        if (accessor == null) {
+            return message;
+        }
+
+        // Handle CONNECT: require a valid Bearer JWT; otherwise reject CONNECT
+        if (StompCommand.CONNECT.equals(accessor.getCommand())) {
             String authHeader = accessor.getFirstNativeHeader("Authorization");
 
-            if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                String token = authHeader.substring(7);
-                try {
-                    String username = jwtService.extractUsername(token);
-                    UserDetails userDetails = userService.loadUserByUsername(username);
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                log.warn("WebSocket CONNECT missing Authorization header; rejecting connection");
+                return null; // drop CONNECT -> connection will not be established
+            }
 
-                    if (jwtService.isTokenValid(token, userDetails)) {
-                        UsernamePasswordAuthenticationToken auth =
-                                new UsernamePasswordAuthenticationToken(
-                                        userDetails, null, userDetails.getAuthorities()
-                                );
-                        accessor.setUser(auth);
-                        log.debug("WebSocket CONNECT authenticated for user: {}", username);
+            String token = authHeader.substring(7);
+            try {
+                String username = jwtService.extractUsername(token);
+                UserDetails userDetails = userService.loadUserByUsername(username);
+
+                if (jwtService.isTokenValid(token, userDetails)) {
+                    UsernamePasswordAuthenticationToken auth =
+                            new UsernamePasswordAuthenticationToken(
+                                    userDetails, null, userDetails.getAuthorities()
+                            );
+                    accessor.setUser(auth);
+                    log.debug("WebSocket CONNECT authenticated for user: {}", username);
+                } else {
+                    log.warn("WebSocket CONNECT provided invalid token for user: {}", username);
+                    return null;
+                }
+            } catch (Exception e) {
+                log.warn("WebSocket authentication failed: {}", e.getMessage());
+                return null;
+            }
+        }
+
+        // Handle SUBSCRIBE: prevent subscriptions to public matchmaking topics and
+        // require an authenticated principal for user-scoped queues.
+        if (StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
+            String dest = accessor.getDestination();
+            if (dest != null) {
+                // Deny old public matchmaking topics
+                if (dest.startsWith("/topic/matchmaking") || dest.equals("/queue/matchmaking")) {
+                    log.warn("Blocking subscription to public matchmaking destination: {}", dest);
+                    return null;
+                }
+
+                // Require authenticated principal for user destinations (e.g. /user/queue/...)
+                if (dest.startsWith("/user/") || dest.startsWith("/queue/")) {
+                    if (accessor.getUser() == null) {
+                        log.warn("Blocking subscription to {} because session is unauthenticated", dest);
+                        return null;
                     }
-                } catch (Exception e) {
-                    log.warn("WebSocket authentication failed: {}", e.getMessage());
                 }
             }
         }
+
         return message;
     }
 }
