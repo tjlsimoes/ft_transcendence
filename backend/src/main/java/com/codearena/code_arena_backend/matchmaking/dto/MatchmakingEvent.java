@@ -2,7 +2,7 @@ package com.codearena.code_arena_backend.matchmaking.dto;
 
 /**
  * Event sent to players via WebSocket when matchmaking state changes.
- * Clients subscribe to /topic/matchmaking/{userId} to receive these.
+ * Clients should subscribe to their user-scoped queue: /user/queue/matchmaking to receive these.
  */
 public record MatchmakingEvent(
         /** Event type: QUEUED, MATCHED, TIMEOUT, CANCELLED */

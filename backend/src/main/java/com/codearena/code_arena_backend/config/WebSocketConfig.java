@@ -14,7 +14,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
  * (matchmaking notifications, duel events, chat).
  *
  * Clients connect via: wss://host/ws
- * Subscribe to topics like: /topic/matchmaking/{userId}
+ * Subscribe to user-scoped queue: /user/queue/matchmaking (server sends via convertAndSendToUser)
  */
 @Configuration
 @EnableWebSocketMessageBroker
@@ -28,10 +28,12 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        // Enable simple in-memory broker for /topic destinations
-        config.enableSimpleBroker("/topic");
+        // Enable simple in-memory broker for /topic and /queue destinations
+        config.enableSimpleBroker("/topic", "/queue");
         // Prefix for messages FROM client to server (e.g. /app/matchmaking/queue)
         config.setApplicationDestinationPrefixes("/app");
+        // Prefix used for user-specific destinations (convertAndSendToUser)
+        config.setUserDestinationPrefix("/user");
     }
 
     @Override

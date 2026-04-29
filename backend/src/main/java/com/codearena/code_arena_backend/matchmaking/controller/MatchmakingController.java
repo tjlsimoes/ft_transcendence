@@ -55,7 +55,14 @@ public class MatchmakingController {
             userRepository.save(user);
 
             MatchmakingEvent event = MatchmakingEvent.queued();
-            messagingTemplate.convertAndSend("/topic/matchmaking/" + user.getId(), event);
+            try {
+                messagingTemplate.convertAndSendToUser(user.getUsername(), "/queue/matchmaking", event);
+            } catch (Exception e) {
+                // Fall back to logging if notification fails
+                // (user will still be enqueued)
+                // No need to expose transport failures to client here.
+
+            }
             return ResponseEntity.ok(event);
         }
 

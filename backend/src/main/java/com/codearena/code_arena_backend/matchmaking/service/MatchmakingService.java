@@ -81,17 +81,18 @@ public class MatchmakingService {
         userRepository.save(player2);
 
         log.info("Match created: Duel #{} — {} vs {} (challenge={}, difficulty={})",
-                duel.getId(), player1.getUsername(), player2.getUsername(),
-                challenge.getId(), difficulty);
+            duel.getId(), player1.getUsername(), player2.getUsername(),
+            challenge.getId(), difficulty);
 
-        // 5. Notify both players via WebSocket
+        // 5. Notify both players via user-scoped WebSocket destinations to avoid
+        // unauthorized subscription guessing (use /user/queue/matchmaking)
         MatchmakingEvent event1 = MatchmakingEvent.matched(
-                duel.getId(), player2Id, player2.getDisplayName(), challenge.getId());
+            duel.getId(), player2Id, player2.getDisplayName(), challenge.getId());
         MatchmakingEvent event2 = MatchmakingEvent.matched(
-                duel.getId(), player1Id, player1.getDisplayName(), challenge.getId());
+            duel.getId(), player1Id, player1.getDisplayName(), challenge.getId());
 
-            messagingTemplate.convertAndSend("/topic/matchmaking/" + player1Id, event1);
-            messagingTemplate.convertAndSend("/topic/matchmaking/" + player2Id, event2);
+        messagingTemplate.convertAndSendToUser(player1.getUsername(), "/queue/matchmaking", event1);
+        messagingTemplate.convertAndSendToUser(player2.getUsername(), "/queue/matchmaking", event2);
         } catch (Exception e) {
             // Attempt to put players back into the queue and restore their status.
             try {
@@ -105,21 +106,25 @@ public class MatchmakingService {
                 log.warn("Failed to re-enqueue player {} after match creation error", player2Id, ex);
             }
 
-            // Ensure user statuses are back to ONLINE
+            // Ensure user statuses are back to ONLINE and notify via user-scoped destinations
             userRepository.findById(player1Id).ifPresent(u -> {
                 u.setStatus(User.UserStatus.ONLINE);
                 userRepository.save(u);
+                try {
+                    messagingTemplate.convertAndSendToUser(u.getUsername(), "/queue/matchmaking", MatchmakingEvent.queued());
+                } catch (Exception ex) {
+                    log.warn("Failed to notify player {} after re-enqueue", player1Id, ex);
+                }
             });
             userRepository.findById(player2Id).ifPresent(u -> {
                 u.setStatus(User.UserStatus.ONLINE);
                 userRepository.save(u);
+                try {
+                    messagingTemplate.convertAndSendToUser(u.getUsername(), "/queue/matchmaking", MatchmakingEvent.queued());
+                } catch (Exception ex) {
+                    log.warn("Failed to notify player {} after re-enqueue", player2Id, ex);
+                }
             });
-
-            // Notify players they are back in queue
-            messagingTemplate.convertAndSend(
-                    "/topic/matchmaking/" + player1Id, MatchmakingEvent.queued());
-            messagingTemplate.convertAndSend(
-                    "/topic/matchmaking/" + player2Id, MatchmakingEvent.queued());
 
             log.error("Failed to create match between {} and {} — players re-enqueued", player1Id, player2Id, e);
             throw e;
@@ -139,10 +144,12 @@ public class MatchmakingService {
         userRepository.findById(userId).ifPresent(user -> {
             user.setStatus(User.UserStatus.ONLINE);
             userRepository.save(user);
+            try {
+                messagingTemplate.convertAndSendToUser(user.getUsername(), "/queue/matchmaking", MatchmakingEvent.cancelled());
+            } catch (Exception e) {
+                log.warn("Failed to send cancelled event to user {}", userId, e);
+            }
         });
-
-        messagingTemplate.convertAndSend(
-                "/topic/matchmaking/" + userId, MatchmakingEvent.cancelled());
 
         log.info("Player {} cancelled queue", userId);
     }
@@ -157,10 +164,12 @@ public class MatchmakingService {
         userRepository.findById(userId).ifPresent(user -> {
             user.setStatus(User.UserStatus.ONLINE);
             userRepository.save(user);
+            try {
+                messagingTemplate.convertAndSendToUser(user.getUsername(), "/queue/matchmaking", MatchmakingEvent.timeout());
+            } catch (Exception e) {
+                log.warn("Failed to send timeout event to user {}", userId, e);
+            }
         });
-
-        messagingTemplate.convertAndSend(
-                "/topic/matchmaking/" + userId, MatchmakingEvent.timeout());
 
         log.info("Player {} timed out from queue", userId);
     }
