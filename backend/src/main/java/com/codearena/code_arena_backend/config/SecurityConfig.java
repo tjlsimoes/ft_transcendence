@@ -66,8 +66,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints — no token required.
                 .requestMatchers("/api/auth/**", "/api/health", "/ws/**").permitAll()
-				.requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/refresh", "/api/health")
-                        .permitAll()
+                .requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/refresh", "/api/health").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/leaderboard").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/users/avatars/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/challenges", "/api/challenges/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/challenges", "/api/challenges/**").hasRole("ADMIN")
@@ -75,7 +75,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PATCH, "/api/challenges", "/api/challenges/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/challenges", "/api/challenges/**").hasRole("ADMIN")
                 // Everything else (including /api/auth/logout) requires a valid,
-				// non-blacklisted JWT.
+                // non-blacklisted JWT.
                 .anyRequest().authenticated()
             )
 
