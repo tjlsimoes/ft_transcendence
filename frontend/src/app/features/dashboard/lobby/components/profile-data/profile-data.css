@@ -5,6 +5,12 @@
 	min-width: 0;
 }
 
+/* Ligeiramente maior que o padrão global (126px) apenas na dashboard. */
+.league-emblem {
+	width: 152px;
+	height: 152px;
+}
+
 .pane {
 	border: 1px solid var(--border-light);
 	background: var(--bg-panel);
@@ -47,27 +53,8 @@
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
-	gap: 14px;
+	gap: 6px;
 	padding: 8px 10px 14px;
-}
-
-.rank-emblem {
-	width: 102px;
-	height: 102px;
-	margin: 0 auto;
-	border: 2px solid var(--accent);
-	transform: rotate(45deg);
-	display: grid;
-	place-items: center;
-}
-
-.rank-emblem-text {
-	transform: rotate(-45deg);
-	font-size: 2rem;
-	font-weight: 700;
-	font-style: italic;
-	letter-spacing: 1px;
-	color: var(--text);
 }
 
 .rank-league {
@@ -116,14 +103,6 @@
 		padding: 10px 4px 12px;
 	}
 
-	.rank-emblem {
-		width: 88px;
-		height: 88px;
-	}
-
-	.rank-emblem-text {
-		font-size: 1.7rem;
-	}
 }
 
 .editor-dot {

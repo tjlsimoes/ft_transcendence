@@ -26,6 +26,12 @@ export class ProfileData {
   isLegend = computed(() => this.data().leagueName === 'LEGEND LEAGUE');
   isStandardLeague = computed(() => !this.isMaster() && !this.isLegend());
 
+  /** CSS class da liga para os emblemas globais (ex: 'league-master'). */
+  tone = computed(() => {
+    const word = this.data().leagueName.toLowerCase().split(' ')[0];
+    return `league-${word}`;
+  });
+
   lpProgress = computed(() => {
     if (this.isLegend()) return 100;
     if (this.isMaster()) {
