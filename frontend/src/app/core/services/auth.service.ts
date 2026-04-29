@@ -56,7 +56,36 @@ export class AuthService {
 
   isLoggedIn(): boolean {
     const token = this.getToken();
-    return !!token && token !== 'undefined' && token !== 'null';
+    if (!token || token === 'undefined' || token === 'null') {
+      return false;
+    }
+    if (this.isTokenExpired(token)) {
+      // Proactively remove stale tokens so subsequent checks are clean.
+      localStorage.removeItem(this.tokenKey);
+      localStorage.removeItem(this.refreshTokenKey);
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Decodes the JWT payload (base64url) and checks the `exp` claim.
+   * Does NOT verify the signature — that is the backend's responsibility.
+   * This is only used client-side to avoid navigating with a known-expired token.
+   */
+  private isTokenExpired(token: string): boolean {
+    try {
+      const payloadBase64 = token.split('.')[1];
+      // Convert base64url → standard base64, then add required padding.
+      const base64 = payloadBase64.replace(/-/g, '+').replace(/_/g, '/');
+      const padded = base64 + '=='.slice(0, (4 - base64.length % 4) % 4);
+      const decoded = JSON.parse(atob(padded));
+      // `exp` is in seconds; Date.now() is in milliseconds.
+      return typeof decoded.exp === 'number' && decoded.exp * 1000 < Date.now();
+    } catch {
+      // Malformed token — treat as expired.
+      return true;
+    }
   }
 
   logout(): void {

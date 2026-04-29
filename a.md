@@ -232,17 +232,10 @@ auth.service.ts
 
 **Fix:** `finalize(cleanup)` do RxJS garante que localStorage só é limpo (e o router navega para `/login`) **após** a resposta do backend — tanto em sucesso como em erro. O backend tem sempre a oportunidade de blacklistar os tokens antes da sessão local ser destruída.
 
-### BUG #4 — `isLoggedIn()` não valida expiração do JWT
+### ~~BUG #4 — `isLoggedIn()` não valida expiração do JWT~~ ✅ RESOLVIDO
 auth.service.ts
 
-O auth guard verifica apenas se o token existe no `localStorage`. Um JWT expirado há 5 horas passa nesta verificação. O utilizador entra no lobby, o `loadMe()` falha com 401, e só então é redirecionado. Experiência de UX quebrada e guard defeituoso.
-
-```ts
-isLoggedIn(): boolean {
-    const token = this.getToken();
-    return !!token && token !== 'undefined' && token !== 'null';  // sem parse, sem expiração
-}
-```
+**Fix:** `isLoggedIn()` agora chama `isTokenExpired(token)`, que faz `atob()` do payload base64url do JWT e compara `decoded.exp * 1000` com `Date.now()`. Tokens expirados ou malformados retornam `false` e são removidos proativamente do `localStorage`. Não valida a assinatura (responsabilidade do backend) — é suficiente para o guard de UX.
 
 ### BUG #5 — `Sidebar.ngOnInit` com condição estática em Signal reativo
 sidebar.ts
