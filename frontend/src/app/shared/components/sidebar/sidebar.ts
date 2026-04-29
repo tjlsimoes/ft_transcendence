@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, effect } from '@angular/core';
 import { RouteStateService } from '../../../core/services/route-state.service';
 import { UserService } from '../../../core/services/user.service';
 import type { FriendEntry } from '../../models/user-profile.model';
@@ -9,7 +9,7 @@ import type { FriendEntry } from '../../models/user-profile.model';
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.css',
 })
-export class Sidebar implements OnInit {
+export class Sidebar {
   private routeState = inject(RouteStateService);
   private userService = inject(UserService);
 
@@ -22,12 +22,17 @@ export class Sidebar implements OnInit {
   // Delegado ao serviço compartilhado para evitar duplicação de lógica de rota.
   isLobby = this.routeState.isLobby;
 
-  ngOnInit(): void {
-    if (this.isLobby()) {
-      this.userService.loadFriends().subscribe({
-        next: (friends) => this.friends.set(friends),
-      });
-    }
+  constructor() {
+    // effect() reavalia sempre que isLobby muda — ao contrário de ngOnInit, que
+    // avalia uma única vez. Assim, navegar para /lobby após inicialização carrega
+    // os amigos correctamente.
+    effect(() => {
+      if (this.isLobby()) {
+        this.userService.loadFriends().subscribe({
+          next: (friends) => this.friends.set(friends),
+        });
+      }
+    });
   }
 
   setActiveTab(tab: 'friends' | 'notifications'): void {

@@ -237,10 +237,10 @@ auth.service.ts
 
 **Fix:** `isLoggedIn()` agora chama `isTokenExpired(token)`, que faz `atob()` do payload base64url do JWT e compara `decoded.exp * 1000` com `Date.now()`. Tokens expirados ou malformados retornam `false` e são removidos proativamente do `localStorage`. Não valida a assinatura (responsabilidade do backend) — é suficiente para o guard de UX.
 
-### BUG #5 — `Sidebar.ngOnInit` com condição estática em Signal reativo
+### ~~BUG #5 — `Sidebar.ngOnInit` com condição estática em Signal reativo~~ ✅ RESOLVIDO
 sidebar.ts
 
-`if (this.isLobby())` é avaliado uma única vez no `ngOnInit`. Se o utilizador navegar para `/lobby` após o sidebar já ter sido inicializado (e estava noutra rota), os amigos nunca são carregados porque a condição não reavalia.
+**Fix:** `ngOnInit` removido. Substituído por `effect()` registado no `constructor`. O `effect()` reavalia automaticamente sempre que o signal `isLobby` muda de valor — navegar para `/lobby` a partir de qualquer outra rota dispara `loadFriends()` correctamente. Com `ngOnInit`, a condição era avaliada uma única vez no arranque do componente, pelo que utilizadores que navegassem para `/lobby` depois de já estarem noutra rota nunca veriam a lista de amigos carregada.
 
 ### BUG #6 — `Lobby.loadMatches()` sem error handler
 lobby.ts
