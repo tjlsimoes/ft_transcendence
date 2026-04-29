@@ -74,6 +74,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PUT, "/api/challenges", "/api/challenges/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PATCH, "/api/challenges", "/api/challenges/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/challenges", "/api/challenges/**").hasRole("ADMIN")
+                // Internal endpoints — only callable programmatically within the JVM.
+                // The proxy does not forward /internal/ but we deny here as defence in depth.
+                .requestMatchers("/internal/**").denyAll()
                 // Everything else (including /api/auth/logout) requires a valid,
                 // non-blacklisted JWT.
                 .anyRequest().authenticated()
