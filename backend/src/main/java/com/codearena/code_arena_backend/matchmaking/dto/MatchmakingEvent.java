@@ -3,9 +3,16 @@ package com.codearena.code_arena_backend.matchmaking.dto;
 /**
  * Event sent to players via WebSocket when matchmaking state changes.
  * Clients should subscribe to their user-scoped queue: /user/queue/matchmaking to receive these.
+ *
+ * Event types:
+ *   QUEUED    — player successfully added to queue
+ *   MATCHED   — two players matched; contains duelId, opponentId, opponentName, challengeId
+ *   TIMEOUT   — no match found within timeout window; player removed from queue
+ *   CANCELLED — player cancelled their queue entry
+ *   ERROR     — an error occurred (e.g., cannot queue while in a duel)
  */
 public record MatchmakingEvent(
-        /** Event type: QUEUED, MATCHED, TIMEOUT, CANCELLED */
+        /** Event type: QUEUED, MATCHED, TIMEOUT, CANCELLED, or ERROR */
         String type,
         /** Duel ID (non-null when type=MATCHED) */
         Long duelId,
@@ -37,5 +44,9 @@ public record MatchmakingEvent(
     public static MatchmakingEvent cancelled() {
         return new MatchmakingEvent("CANCELLED", null, null, null, null,
                 "You have left the matchmaking queue.");
+    }
+
+    public static MatchmakingEvent error(String message) {
+        return new MatchmakingEvent("ERROR", null, null, null, null, message);
     }
 }

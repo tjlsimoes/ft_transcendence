@@ -44,8 +44,7 @@ public class MatchmakingController {
 
         if (user.getStatus() == User.UserStatus.IN_DUEL) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(new MatchmakingEvent("ERROR", null, null, null, null,
-                            "Cannot queue while in a duel."));
+                    .body(MatchmakingEvent.error("Cannot queue while in a duel."));
         }
 
         boolean newlyQueued = queueService.enqueue(user.getId(), user.getElo());
