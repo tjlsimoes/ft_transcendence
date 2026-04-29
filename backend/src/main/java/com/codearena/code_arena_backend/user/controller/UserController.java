@@ -36,6 +36,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * REST controller for authenticated user operations.
@@ -138,14 +140,19 @@ public class UserController {
         User user = userService.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new IllegalStateException("Authenticated user not found"));
 
-        List<MatchHistoryResponse> history = duelRepository.findByUserId(user.getId())
-                .stream()
+        List<Duel> duels = duelRepository.findByUserId(user.getId());
+
+        // Collect all opponent IDs, then resolve usernames in a single query (avoids N+1).
+        Set<Long> opponentIds = duels.stream()
+                .map(d -> d.getChallengerId().equals(user.getId()) ? d.getOpponentId() : d.getChallengerId())
+                .collect(Collectors.toSet());
+        Map<Long, String> usernameById = userService.getUsernamesByIds(opponentIds);
+
+        List<MatchHistoryResponse> history = duels.stream()
                 .map(duel -> {
                     boolean isChallenger = duel.getChallengerId().equals(user.getId());
                     Long opponentId = isChallenger ? duel.getOpponentId() : duel.getChallengerId();
-                    String opponentName = userService.findById(opponentId)
-                            .map(User::getUsername)
-                            .orElse("Unknown");
+                    String opponentName = usernameById.getOrDefault(opponentId, "Unknown");
 
                     // Determine result from winnerId (set by the judge/duel service).
                     String result;

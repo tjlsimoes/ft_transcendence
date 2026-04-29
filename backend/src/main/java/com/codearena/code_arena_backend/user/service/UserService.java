@@ -13,8 +13,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.codearena.code_arena_backend.user.dto.UserProfileResponse;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * UserService implements Spring Security's UserDetailsService interface.
@@ -56,6 +59,19 @@ public class UserService implements UserDetailsService {
 
     public Optional<User> findById(Long id) {
         return userRepository.findById(id);
+    }
+
+    /**
+     * Loads usernames for multiple user IDs in a single SELECT … WHERE id IN (…) query.
+     * Use this instead of calling findById() inside a loop to avoid N+1 queries.
+     *
+     * @param ids the set of user IDs to resolve
+     * @return map of userId → username; absent IDs are simply not present in the map
+     */
+    public Map<Long, String> getUsernamesByIds(Collection<Long> ids) {
+        return userRepository.findAllById(ids)
+                .stream()
+                .collect(Collectors.toMap(User::getId, User::getUsername));
     }
 
     public Optional<User> findByEmail(String email) {
