@@ -1,6 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { finalize } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { UserService } from './user.service';
 
@@ -61,15 +62,24 @@ export class AuthService {
   logout(): void {
     const token = this.getToken();
     const refreshToken = this.getRefreshToken();
+
+    const cleanup = () => {
+      localStorage.removeItem(this.tokenKey);
+      localStorage.removeItem(this.refreshTokenKey);
+      this.userService.clear();
+      this.router.navigate(['/login']);
+    };
+
     if (token) {
       const body = refreshToken ? { refreshToken } : {};
-      // Notify the backend so the user is marked OFFLINE and tokens are blacklisted.
-      this.http.post(`${this.baseUrl}/logout`, body).subscribe();
+      // Wait for the backend to blacklist the tokens before clearing local state.
+      // finalize() runs on both success and error, so UX is never blocked.
+      this.http.post(`${this.baseUrl}/logout`, body)
+        .pipe(finalize(cleanup))
+        .subscribe();
+    } else {
+      cleanup();
     }
-    localStorage.removeItem(this.tokenKey);
-    localStorage.removeItem(this.refreshTokenKey);
-    this.userService.clear();
-    this.router.navigate(['/login']);
   }
 
   extractApiError(err: HttpErrorResponse): string {

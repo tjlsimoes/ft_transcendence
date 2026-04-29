@@ -222,29 +222,15 @@ profile-settings.ts
 await this.simulateDelay(600);   // ← isto é o "backend" neste componente
 ```
 
-### BUG #2 — N+1 Query em `getMyMatches` (CRÍTICO)
+### ~~BUG #2 — N+1 Query em `getMyMatches` (CRÍTICO)~~ ✅ RESOLVIDO
 UserController.java
 
-Por cada duel na lista, faz `userService.findById(opponentId)` — uma query separada à BD. 50 duels = 51 queries. Sem paginação. A lista inteira de duels de um utilizador é carregada em memória de uma vez.
+**Fix:** `UserService.getUsernamesByIds(Collection<Long>)` resolve todos os opponentIds num único `SELECT … WHERE id IN (…)`. O controller recolhe todos os IDs antes do stream e faz um só `getOrDefault()` por duel. 50 duels = **2 queries** em vez de 51.
 
-```java
-List<MatchHistoryResponse> history = duelRepository.findByUserId(user.getId())
-    .stream()
-    .map(duel -> {
-        // ...
-        String opponentName = userService.findById(opponentId)   // N+1 aqui
-            .map(User::getUsername).orElse("Unknown");
-```
-
-### BUG #3 — `authService.logout()` fire-and-forget no frontend
+### ~~BUG #3 — `authService.logout()` fire-and-forget no frontend~~ ✅ RESOLVIDO
 auth.service.ts
 
-O HTTP POST de logout é disparado sem `.subscribe()` aguardar a resposta antes de limpar o localStorage. Se o backend estiver lento, os tokens não chegam a ser blacklisted. O utilizador é redirecionado para `/login` independentemente do resultado.
-
-```ts
-this.http.post(`${this.baseUrl}/logout`, body).subscribe();  // fire-and-forget
-localStorage.removeItem(this.tokenKey);  // executa imediatamente
-```
+**Fix:** `finalize(cleanup)` do RxJS garante que localStorage só é limpo (e o router navega para `/login`) **após** a resposta do backend — tanto em sucesso como em erro. O backend tem sempre a oportunidade de blacklistar os tokens antes da sessão local ser destruída.
 
 ### BUG #4 — `isLoggedIn()` não valida expiração do JWT
 auth.service.ts
