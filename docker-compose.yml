@@ -34,6 +34,70 @@ services:
     networks:
       - codearena
 
+  judge0-server:
+    image: judge0/judge0:latest-extra-dev
+    container_name: codearena-judge0-server
+    volumes:
+      - ./judge0.conf:/judge0.conf:ro
+    ports:
+      - "2358:2358"
+    privileged: true
+    restart: unless-stopped
+    depends_on:
+      judge0-db:
+        condition: service_healthy
+      judge0-cache:
+        condition: service_healthy
+    networks:
+      - codearena
+
+  judge0-worker:
+    image: judge0/judge0:latest-extra-dev
+    container_name: codearena-judge0-worker
+    command: ["./scripts/workers"]
+    volumes:
+      - ./judge0.conf:/judge0.conf:ro
+    privileged: true
+    restart: unless-stopped
+    depends_on:
+      judge0-db:
+        condition: service_healthy
+      judge0-cache:
+        condition: service_healthy
+    networks:
+      - codearena
+
+  judge0-db:
+    image: postgres:16-alpine
+    container_name: codearena-judge0-db
+    env_file: judge0.conf
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -p 5432 -U judge0 -d judge0"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - codearena
+
+  judge0-cache:
+    image: redis:7-alpine
+    container_name: codearena-judge0-cache
+    command: [
+      "sh", "-c",
+      'docker-entrypoint.sh --appendonly no --requirepass "$$REDIS_PASSWORD"'
+    ]
+    env_file: judge0.conf
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "6379", "-a", "judge0_redis_secret", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - codearena
+
+
   backend:
     image: codearena-backend:1.0
     build:
@@ -61,6 +125,7 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-3600000}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
+      JUDGE0_URL: ${JUDGE0_URL}
     volumes:
       - ./backend/uploads:/app/uploads
     healthcheck:
