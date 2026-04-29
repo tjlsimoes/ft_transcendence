@@ -75,34 +75,45 @@ public class SecurityConfig {
                 // Everything else requires a valid JWT.
                 .anyRequest().authenticated()
             )
+                // Route authorisation rules.
+                .authorizeHttpRequests(auth -> auth
+                        // Public endpoints — no token required.
+                        .requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/refresh", "/api/health")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/users/avatars/**").permitAll()
+						.requestMatchers(HttpMethod.GET, "/api/challenges", "/api/challenges/**").permitAll()
+						.requestMatchers(HttpMethod.POST, "/api/challenges", "/api/challenges/**").hasRole("ADMIN")
+						.requestMatchers(HttpMethod.PUT, "/api/challenges", "/api/challenges/**").hasRole("ADMIN")
+						.requestMatchers(HttpMethod.PATCH, "/api/challenges", "/api/challenges/**").hasRole("ADMIN")
+						.requestMatchers(HttpMethod.DELETE, "/api/challenges", "/api/challenges/**").hasRole("ADMIN")
+						// Everything else (including /api/auth/logout) requires a valid,
+                        // non-blacklisted JWT.
+                        .anyRequest().authenticated())
 
-            // Never create or use an HTTP session — fully stateless.
-            .sessionManagement(session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
+                // Never create or use an HTTP session — fully stateless.
+                // Every request must carry a valid JWT.
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-            // Register our DaoAuthenticationProvider so Spring knows how
-            // to verify username + hashed password during login.
-            .authenticationProvider(authenticationProvider())
+                /*
+                 * NOTE ON AUTHENTICATION REFACTOR:
+                 * We previously had a manual AuthenticationProvider bean. However, in Spring
+                 * Boot 3.x/4.x,
+                 * if we provide UserDetailsService and PasswordEncoder as beans, Spring
+                 * Security
+                 * automatically configures a DaoAuthenticationProvider for us.
+                 *
+                 * Manually exposing it as a bean was triggering a
+                 * "Global AuthenticationManager"
+                 * configuration warning at startup. We now rely on Spring's auto-wiring to keep
+                 * the startup logs clean and follow modern standards.
+                 */
 
-            // Run our JWT filter before Spring's default login filter.
-            // This ensures the SecurityContext is populated from the token
-            // before any authorisation checks happen.
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                // Run our JWT filter before Spring's default login filter.
+                // This ensures the SecurityContext is populated from the token
+                // before any authorisation checks happen.
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
-    }
-
-    /**
-     * Wires UserDetailsService + PasswordEncoder into Spring's auth machinery.
-     * In Spring Security 6.x, DaoAuthenticationProvider requires UserDetailsService
-     * in the constructor (the no-arg constructor was removed).
-     */
-    @Bean
-    public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
-        provider.setPasswordEncoder(passwordEncoder());
-        return provider;
     }
 
     /**
@@ -117,6 +128,6 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return new BCryptPasswordEncoder(12);
     }
 }
