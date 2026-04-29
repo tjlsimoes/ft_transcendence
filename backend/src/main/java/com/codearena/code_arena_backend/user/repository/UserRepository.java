@@ -39,6 +39,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u FROM User u WHERE u.elo >= 3000 ORDER BY u.elo DESC")
     List<User> findMasterPlusPlayers();
 
+    /** Top N players ordered by elo descending (for leaderboard). */
+    @Query(value = "SELECT * FROM users ORDER BY elo DESC LIMIT :limit", nativeQuery = true)
+    List<User> findTopPlayersByElo(int limit);
+
     /**
      * Atomically recalculates LEGEND/MASTER for all players with elo >= 3000.
      * Players whose DENSE_RANK (by elo DESC) is within the legend cutoff get LEGEND;

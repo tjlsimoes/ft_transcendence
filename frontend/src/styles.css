@@ -1,6 +1,9 @@
+@import "tailwindcss";
+
 /* Estilos globais compartilhados por toda a aplicação. */
 
-@import "tailwindcss";
+/* ── League emblem (shared across About, Ranking e Dashboard) ── */
+@import "./app/shared/styles/league-emblem.css";
 
 :root {
   /* ── Core palette ── */
