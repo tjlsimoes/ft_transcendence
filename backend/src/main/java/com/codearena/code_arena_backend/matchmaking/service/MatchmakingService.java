@@ -49,17 +49,21 @@ public class MatchmakingService {
         User player2 = userRepository.findById(player2Id)
                 .orElseThrow(() -> new NoSuchElementException("User not found: " + player2Id));
 
-        // 1. Dequeue both players
+        // 1. Dequeue both players first to avoid duplicate matches while we prepare the duel
         queueService.dequeue(player1Id);
         queueService.dequeue(player2Id);
 
-        // 2. Pick challenge by difficulty (mapped from average Elo)
-        int avgElo = (player1.getElo() + player2.getElo()) / 2;
-        ChallengeDifficulty difficulty = mapEloToDifficulty(avgElo);
-        Challenge challenge = challengeRepository
+        // Prepare and create the duel. If anything fails after dequeueing we must
+        // compensatingly re-enqueue both players and notify them so they aren't
+        // silently removed from matchmaking.
+        try {
+            // 2. Pick challenge by difficulty (mapped from average Elo)
+            int avgElo = (player1.getElo() + player2.getElo()) / 2;
+            ChallengeDifficulty difficulty = mapEloToDifficulty(avgElo);
+            Challenge challenge = challengeRepository
                 .findRandomByDifficulty(difficulty.name())
                 .orElseThrow(() -> new NoSuchElementException(
-                        "No challenge available for difficulty: " + difficulty));
+                    "No challenge available for difficulty: " + difficulty));
 
         // 3. Create Duel record
         Duel duel = new Duel();
@@ -86,8 +90,40 @@ public class MatchmakingService {
         MatchmakingEvent event2 = MatchmakingEvent.matched(
                 duel.getId(), player1Id, player1.getDisplayName(), challenge.getId());
 
-        messagingTemplate.convertAndSend("/topic/matchmaking/" + player1Id, event1);
-        messagingTemplate.convertAndSend("/topic/matchmaking/" + player2Id, event2);
+            messagingTemplate.convertAndSend("/topic/matchmaking/" + player1Id, event1);
+            messagingTemplate.convertAndSend("/topic/matchmaking/" + player2Id, event2);
+        } catch (Exception e) {
+            // Attempt to put players back into the queue and restore their status.
+            try {
+                queueService.enqueue(player1Id, player1.getElo());
+            } catch (Exception ex) {
+                log.warn("Failed to re-enqueue player {} after match creation error", player1Id, ex);
+            }
+            try {
+                queueService.enqueue(player2Id, player2.getElo());
+            } catch (Exception ex) {
+                log.warn("Failed to re-enqueue player {} after match creation error", player2Id, ex);
+            }
+
+            // Ensure user statuses are back to ONLINE
+            userRepository.findById(player1Id).ifPresent(u -> {
+                u.setStatus(User.UserStatus.ONLINE);
+                userRepository.save(u);
+            });
+            userRepository.findById(player2Id).ifPresent(u -> {
+                u.setStatus(User.UserStatus.ONLINE);
+                userRepository.save(u);
+            });
+
+            // Notify players they are back in queue
+            messagingTemplate.convertAndSend(
+                    "/topic/matchmaking/" + player1Id, MatchmakingEvent.queued());
+            messagingTemplate.convertAndSend(
+                    "/topic/matchmaking/" + player2Id, MatchmakingEvent.queued());
+
+            log.error("Failed to create match between {} and {} — players re-enqueued", player1Id, player2Id, e);
+            throw e;
+        }
     }
 
     /**
