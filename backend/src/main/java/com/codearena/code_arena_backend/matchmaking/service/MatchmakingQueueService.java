@@ -3,6 +3,8 @@ package com.codearena.code_arena_backend.matchmaking.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
+import java.util.Arrays;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -34,19 +36,31 @@ public class MatchmakingQueueService {
      * @return true if newly enqueued, false if already in queue
      */
     public boolean enqueue(Long userId, int elo) {
-        if (isQueued(userId)) {
+        // Use a Redis Lua script to atomically check/insert into the hash and
+        // add the sorted-set member. This prevents race conditions where two
+        // concurrent enqueues create multiple ZSET entries for the same user.
+        long timestamp = System.currentTimeMillis();
+        String member = userId + ":" + timestamp;
+        String field = userId.toString();
+        String value = elo + ":" + timestamp;
+
+        String lua = "if redis.call('HEXISTS', KEYS[1], ARGV[1]) == 1 then return 0 end "
+                + "redis.call('HSET', KEYS[1], ARGV[1], ARGV[2]) "
+                + "redis.call('ZADD', KEYS[2], ARGV[4], ARGV[3]) "
+                + "return 1";
+
+        DefaultRedisScript<Long> script = new DefaultRedisScript<>(lua, Long.class);
+        Long result = redisTemplate.execute(script,
+                Arrays.asList(PLAYERS_KEY, QUEUE_KEY),
+                field, value, member, String.valueOf(elo));
+
+        if (result != null && result == 1L) {
+            log.info("Player {} enqueued with elo={}", userId, elo);
+            return true;
+        } else {
             log.debug("Player {} already in queue, skipping enqueue", userId);
             return false;
         }
-
-        long timestamp = System.currentTimeMillis();
-        String member = userId + ":" + timestamp;
-
-        redisTemplate.opsForZSet().add(QUEUE_KEY, member, elo);
-        redisTemplate.opsForHash().put(PLAYERS_KEY, userId.toString(), elo + ":" + timestamp);
-
-        log.info("Player {} enqueued with elo={}", userId, elo);
-        return true;
     }
 
     /**
