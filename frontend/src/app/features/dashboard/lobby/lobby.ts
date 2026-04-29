@@ -1,6 +1,5 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { Title } from '@angular/platform-browser';
-import { Router } from '@angular/router';
 import { PlayerStats } from './components/player-stats/player-stats';
 import { ProfileData } from './components/profile-data/profile-data';
 import { TerminalHistory } from './components/terminal-history/terminal-history';
@@ -32,20 +31,15 @@ export class Lobby implements OnInit {
     private titleService: Title,
     private userService: UserService,
     private authService: AuthService,
-    private router: Router,
   ) {}
 
   ngOnInit(): void {
     this.titleService.setTitle('Lobby — Code Arena');
 
-    if (!this.authService.isLoggedIn()) {
-      this.router.navigate(['/login']);
-      return;
-    }
-
     this.userService.loadMe().subscribe({
       next: (user) => this.applyUserData(user),
       error: () => {
+        // Token inválido ou expirado — limpa sessão e redireciona para login.
         this.authService.logout();
       },
     });

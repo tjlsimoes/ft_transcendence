@@ -119,10 +119,10 @@ export class RegisterComponent {
     const { username, email, password } = this.registerForm.value;
 
     this.authService.register({ username, email, password }).subscribe({
-      next: () => {
+      next: (response) => {
+        this.authService.saveToken(response);
         this.isLoading.set(false);
-        this.successMessage.set('Account created successfully! Redirecting to login...');
-        setTimeout(() => this.router.navigate(['/login']), 2000);
+        this.router.navigate(['/lobby']);
       },
       error: (err: HttpErrorResponse) => {
         this.serverError.set(this.authService.extractApiError(err));

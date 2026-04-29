@@ -5,7 +5,8 @@ import { environment } from '../../../environments/environment';
 import { UserService } from './user.service';
 
 export interface AuthResponse {
-  token: string;
+  accessToken: string;
+  refreshToken: string;
   tokenType: string;
   expiresIn: number;
 }
@@ -29,6 +30,7 @@ export class AuthService {
   private baseUrl = `${environment.apiUrl}/auth`;
 
   private tokenKey = 'auth_token';
+  private refreshTokenKey = 'refresh_token';
 
   register(payload: RegisterPayload) {
     return this.http.post<AuthResponse>(`${this.baseUrl}/register`, payload);
@@ -39,24 +41,33 @@ export class AuthService {
   }
 
   saveToken(response: AuthResponse): void {
-    localStorage.setItem(this.tokenKey, response.token);
+    localStorage.setItem(this.tokenKey, response.accessToken);
+    localStorage.setItem(this.refreshTokenKey, response.refreshToken);
   }
 
   getToken(): string | null {
     return localStorage.getItem(this.tokenKey);
   }
 
+  getRefreshToken(): string | null {
+    return localStorage.getItem(this.refreshTokenKey);
+  }
+
   isLoggedIn(): boolean {
-    return !!this.getToken();
+    const token = this.getToken();
+    return !!token && token !== 'undefined' && token !== 'null';
   }
 
   logout(): void {
     const token = this.getToken();
+    const refreshToken = this.getRefreshToken();
     if (token) {
-      // Notify the backend so the user is marked OFFLINE.
-      this.http.post(`${this.baseUrl}/logout`, {}).subscribe();
+      const body = refreshToken ? { refreshToken } : {};
+      // Notify the backend so the user is marked OFFLINE and tokens are blacklisted.
+      this.http.post(`${this.baseUrl}/logout`, body).subscribe();
     }
     localStorage.removeItem(this.tokenKey);
+    localStorage.removeItem(this.refreshTokenKey);
     this.userService.clear();
     this.router.navigate(['/login']);
   }

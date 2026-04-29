@@ -163,8 +163,9 @@ public class AuthService {
      * @param accessToken  the Bearer access token string
      * @param refreshToken (optional) the refresh token string
      */
+    @Transactional
     public void logout(String accessToken, String refreshToken) {
-		String username = null;
+        String username = null;
 
         // 1. Blacklist Access Token (by full string)
         if (accessToken != null && accessToken.startsWith("Bearer ")) {
@@ -176,10 +177,12 @@ public class AuthService {
                 if (diff > 0) {
                     tokenBlacklistService.blacklistToken(jwt, java.time.Duration.ofMillis(diff));
                 }
+            } catch (io.jsonwebtoken.ExpiredJwtException e) {
+                // Token is already expired — no need to blacklist it, but we still
+                // extract the username so we can set the user OFFLINE below.
+                username = e.getClaims().getSubject();
             } catch (Exception e) {
-                // Token might be expired or malformed — we continue to try and get username
-                // from refresh token if possible, but we don't blacklist if we can't parse
-                // expiration.
+                // Truly malformed token — try to recover username from refresh token.
             }
         }
 

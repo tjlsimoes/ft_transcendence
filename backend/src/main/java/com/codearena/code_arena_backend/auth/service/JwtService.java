@@ -127,6 +127,19 @@ public class JwtService {
         return extractClaim(token, Claims::getExpiration);
     }
 
+    /**
+     * Extracts the username even if the token is expired.
+     * Used during logout so we can still set the user OFFLINE
+     * when their access token has already expired.
+     */
+    public String extractUsernameIgnoreExpiry(String token) {
+        try {
+            return extractUsername(token);
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            return e.getClaims().getSubject();
+        }
+    }
+
     // ------------------------------------------------------------------ //
     //  Private helpers                                                     //
     // ------------------------------------------------------------------ //
