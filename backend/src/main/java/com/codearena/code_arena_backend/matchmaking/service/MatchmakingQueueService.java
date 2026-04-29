@@ -3,11 +3,9 @@ package com.codearena.code_arena_backend.matchmaking.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
