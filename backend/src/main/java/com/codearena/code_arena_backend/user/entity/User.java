@@ -40,6 +40,12 @@ public class User {
     @Column(name = "avatar_url", length = 2048)
     private String avatar;
 
+    @Column(name = "display_name", length = 100)
+    private String displayName;
+
+    @Column(columnDefinition = "TEXT")
+    private String bio;
+
     @Column(nullable = false)
     private Integer elo = 0; // Starting ELO
 
@@ -60,6 +66,10 @@ public class User {
     @Enumerated(EnumType.STRING)
     private UserStatus status = UserStatus.OFFLINE;
 
+    @Column(nullable = false, length = 50)
+    @Enumerated(EnumType.STRING)
+    private Role role = Role.USER;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -72,8 +82,8 @@ public class User {
         BRONZE,   // 0-999
         SILVER,   // 1000-1999
         GOLD,     // 2000-2999
-        MASTER,   // 3000-3999
-        LEGEND    // Top 1%
+        MASTER,   // 3000+ (no cap)
+        LEGEND    // Top 1% of all players (must be Master+)
     }
 
     public enum UserStatus {
@@ -81,5 +91,10 @@ public class User {
         OFFLINE,
         IN_QUEUE,
         IN_DUEL
+    }
+
+    public enum Role {
+        USER,
+        ADMIN
     }
 }

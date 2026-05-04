@@ -11,19 +11,24 @@
 
     <!-- Formulário -->
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="auth-form">
-      <!-- E-mail -->
+      <!-- Erro do servidor -->
+      @if (serverError()) {
+        <div class="server-error">{{ serverError() }}</div>
+      }
+
+      <!-- Username -->
       <div class="form-group">
-        <label for="email" class="form-label">Email</label>
+        <label for="username" class="form-label">Username</label>
         <input
-          id="email"
-          type="email"
-          formControlName="email"
-          placeholder="you@email.com"
+          id="username"
+          type="text"
+          formControlName="username"
+          placeholder="Your callsign"
           class="form-input"
-          [class.input-error]="hasError('email')"
+          [class.input-error]="hasError('username')"
         />
-        @if (hasError('email')) {
-          <span class="error-msg">{{ getErrorMessage('email') }}</span>
+        @if (hasError('username')) {
+          <span class="error-msg">{{ getErrorMessage('username') }}</span>
         }
       </div>
 
@@ -67,7 +72,7 @@
       </div>
 
       <!-- Submit -->
-      <button routerLink="/lobby" type="submit" class="btn-submit" [disabled]="isLoading()">
+      <button type="submit" class="btn-submit" [disabled]="isLoading()">
         @if (isLoading()) {
           <span class="spinner"></span>
         }

@@ -1,0 +1,225 @@
+/* ── League emblem shared styles ──────────────────────────────────────────
+   Usado por: About (league-card), Ranking (player-card), Dashboard (profile-data).
+   Importado globalmente via styles.css — não duplicar nestes arquivos de componente.
+   ────────────────────────────────────────────────────────────────────────── */
+
+.league-emblem {
+  --league-glow: rgba(255, 255, 255, 0.18);
+  --league-metal: rgba(255, 255, 255, 0.3);
+  --league-shadow: rgba(255, 255, 255, 0.18);
+  --league-core-bg: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.08) 55%, rgba(0, 0, 0, 0.42));
+  --league-letter: #f7f7f7;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 126px;
+  height: 126px;
+  margin: 6px auto 10px;
+  color: var(--league-metal);
+}
+
+.league-aura,
+.league-wing,
+.league-crown,
+.league-stars,
+.emblem-frame,
+.emblem-core {
+  position: absolute;
+}
+
+.league-aura {
+  inset: 16px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, currentColor 55%, transparent);
+  box-shadow: 0 0 22px var(--league-glow);
+  opacity: 0.5;
+}
+
+.league-wing {
+  top: 48px;
+  width: 24px;
+  height: 42px;
+  border: 1px solid color-mix(in srgb, currentColor 65%, transparent);
+  background: linear-gradient(180deg, color-mix(in srgb, currentColor 26%, transparent), transparent);
+  opacity: 0;
+}
+
+.league-wing-left {
+  left: 8px;
+  clip-path: polygon(100% 0, 0 50%, 100% 100%);
+}
+
+.league-wing-right {
+  right: 8px;
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+}
+
+.league-crown {
+  top: 8px;
+  width: 52px;
+  height: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+}
+
+.league-stars {
+  top: 14px;
+  left: 50%;
+  width: 78px;
+  height: 10px;
+  transform: translateX(-50%);
+  opacity: 0;
+}
+
+.emblem-frame {
+  inset: 22px;
+  display: grid;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, currentColor 60%, transparent);
+  transform: rotate(45deg);
+  background: linear-gradient(135deg, color-mix(in srgb, currentColor 20%, transparent), rgba(255, 255, 255, 0.02));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04), 0 0 20px var(--league-shadow);
+}
+
+.emblem-frame::before {
+  content: '';
+  position: absolute;
+  inset: 12px;
+  border: 1px solid color-mix(in srgb, currentColor 40%, transparent);
+}
+
+.emblem-core {
+  inset: 50%;
+  width: 62px;
+  height: 62px;
+  transform: translate(-50%, -50%) rotate(-45deg);
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, currentColor 70%, transparent);
+  background: var(--league-core-bg);
+  box-shadow:
+    inset 0 0 18px rgba(255, 255, 255, 0.08),
+    0 0 12px color-mix(in srgb, currentColor 20%, transparent);
+  color: var(--league-letter);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-shadow:
+    0 0 10px color-mix(in srgb, var(--league-letter) 35%, transparent),
+    0 1px 0 rgba(0, 0, 0, 0.45);
+}
+
+/* ── Per-league overrides ── */
+
+.league-bronze .league-emblem {
+  --league-glow: rgba(182, 125, 74, 0.12);
+  --league-metal: #b67d4a;
+  --league-shadow: rgba(182, 125, 74, 0.12);
+  --league-core-bg: radial-gradient(circle at 30% 30%, #6b4a2d, #3c2818 60%, #140d08);
+  --league-letter: #ffd6b3;
+}
+
+.league-bronze .league-aura {
+  inset: 22px;
+  opacity: 0.28;
+}
+
+.league-silver .league-emblem {
+  --league-glow: rgba(207, 224, 243, 0.18);
+  --league-metal: #c9d7e6;
+  --league-shadow: rgba(185, 192, 201, 0.18);
+  --league-core-bg: radial-gradient(circle at 30% 30%, #7e93a8, #485867 58%, #19222b);
+  --league-letter: #f4fbff;
+}
+
+.league-silver .league-aura {
+  opacity: 0.62;
+}
+
+.league-silver .league-wing {
+  opacity: 0.5;
+}
+
+.league-gold .league-emblem {
+  --league-glow: rgba(243, 200, 90, 0.28);
+  --league-metal: #f3c85a;
+  --league-shadow: rgba(243, 200, 90, 0.24);
+  --league-core-bg: radial-gradient(circle at 30% 30%, #a37410, #5e4207 56%, #1f1402);
+  --league-letter: #fff3c4;
+}
+
+.league-gold .league-wing {
+  opacity: 0.72;
+}
+
+.league-gold .league-stars {
+  opacity: 0.8;
+  background:
+    radial-gradient(circle, currentColor 0 2px, transparent 3px) 0 50% / 26px 10px repeat-x;
+}
+
+.league-master .league-emblem {
+  --league-glow: rgba(111, 129, 255, 0.34);
+  --league-metal: #8fa0ff;
+  --league-shadow: rgba(111, 129, 255, 0.28);
+  --league-core-bg: radial-gradient(circle at 30% 30%, #5667d9, #2a3375 58%, #0f1330);
+  --league-letter: #eef1ff;
+}
+
+.league-master .league-wing {
+  opacity: 0.78;
+  top: 44px;
+  width: 28px;
+  height: 48px;
+}
+
+.league-master .league-stars {
+  opacity: 0.9;
+  background:
+    radial-gradient(circle, currentColor 0 2px, transparent 3px) 0 50% / 26px 10px repeat-x;
+}
+
+.league-master .league-crown {
+  opacity: 0.78;
+  background: linear-gradient(180deg, color-mix(in srgb, currentColor 35%, white), currentColor);
+  clip-path: polygon(0 100%, 8% 42%, 25% 72%, 38% 20%, 50% 68%, 62% 20%, 75% 72%, 92% 42%, 100% 100%);
+}
+
+.league-legend .league-emblem {
+  --league-glow: rgba(255, 91, 77, 0.42);
+  --league-metal: #ff8e7d;
+  --league-shadow: rgba(255, 91, 77, 0.35);
+  --league-core-bg: radial-gradient(circle at 30% 30%, #b72416, #5f0e09 54%, #220403);
+  --league-letter: #fff1e6;
+}
+
+.league-legend .league-aura {
+  inset: 10px;
+  opacity: 0.95;
+  box-shadow: 0 0 30px var(--league-glow), inset 0 0 14px color-mix(in srgb, currentColor 20%, transparent);
+}
+
+.league-legend .league-wing {
+  opacity: 0.95;
+  top: 40px;
+  width: 30px;
+  height: 54px;
+}
+
+.league-legend .league-crown {
+  opacity: 1;
+  width: 58px;
+  height: 24px;
+  background: linear-gradient(180deg, color-mix(in srgb, currentColor 42%, white), currentColor);
+  clip-path: polygon(0 100%, 7% 36%, 22% 68%, 36% 10%, 50% 62%, 64% 10%, 78% 68%, 93% 36%, 100% 100%);
+  filter: drop-shadow(0 0 8px rgba(255, 91, 77, 0.35));
+}
+
+.league-legend .league-stars {
+  opacity: 1;
+  width: 92px;
+  background:
+    radial-gradient(circle, currentColor 0 2px, transparent 3px) 0 50% / 23px 10px repeat-x;
+}

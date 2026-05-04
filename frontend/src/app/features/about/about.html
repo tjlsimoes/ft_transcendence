@@ -1,0 +1,112 @@
+<div class="about-page">
+  <section class="about-hero">
+    <div class="hero-copy">
+      <p class="eyebrow">player guide</p>
+      <h1>
+        Code Arena is where coding starts feeling like a real match.
+      </h1>
+      <p class="hero-intro">
+        Queue up, face a real opponent, solve fast, and climb. It is built for
+        players who want tension, progress, and a reason to come back for one
+        more match.
+      </p>
+
+      <div class="hero-actions">
+        <a class="primary-action" routerLink="/register">Enter the Arena</a>
+        <a class="secondary-action" routerLink="/">See the Home Page</a>
+      </div>
+    </div>
+
+    <aside class="hero-panel">
+      <div class="terminal-shot" aria-hidden="true">
+        <div class="terminal-topbar">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+
+        <div class="terminal-body">
+          <p><span class="prompt">match@arena:~$</span> queue --ranked</p>
+          <p class="terminal-dim">Searching for opponent...</p>
+          <p>Opponent found: <span class="terminal-accent">silver-coder</span></p>
+          <p>Challenge: <span class="terminal-accent">binary maze</span></p>
+          <p>Time limit: <span class="terminal-warn">10:00</span></p>
+          <p class="terminal-divider">--------------------------------</p>
+          <p>tests passed ............ <span class="terminal-accent">12/12</span></p>
+          <p>submission rank ........ <span class="terminal-accent">1st</span></p>
+          <p>lp change .............. <span class="terminal-accent">+24</span></p>
+        </div>
+      </div>
+
+      <div class="highlight-grid">
+        @for (highlight of highlights; track highlight.label) {
+          <div class="highlight-card">
+            <span class="highlight-value">{{ highlight.value }}</span>
+            <span class="highlight-label">{{ highlight.label }}</span>
+          </div>
+        }
+      </div>
+    </aside>
+  </section>
+
+  <section class="about-section intro-section">
+    <div class="section-heading">
+      <p class="section-kicker">Why play</p>
+      <h2>A simpler reason: it is fun to feel yourself getting sharper.</h2>
+    </div>
+
+    <div class="pillars-grid">
+      @for (reason of reasons; track reason.title) {
+        <article class="info-card">
+          <h3>{{ reason.title }}</h3>
+          <p>{{ reason.description }}</p>
+        </article>
+      }
+    </div>
+  </section>
+
+  
+
+  <section class="about-section progression-section">
+    <div class="section-heading">
+      <p class="section-kicker">Leagues</p>
+      <h2>Each Elo tier should feel like a badge you want to earn.</h2>
+    </div>
+
+    <div class="league-grid">
+      @for (league of leagues; track league.name) {
+        <article class="league-card" [class]="league.tone">
+          <div class="league-emblem" aria-hidden="true">
+            <span class="league-aura"></span>
+            <span class="league-wing league-wing-left"></span>
+            <span class="league-wing league-wing-right"></span>
+            <span class="league-crown"></span>
+            <span class="league-stars"></span>
+            <div class="emblem-frame">
+              <div class="emblem-core">{{ league.mark }}</div>
+            </div>
+          </div>
+          <div class="league-header">
+            <h3>{{ league.name }}</h3>
+            <span>{{ league.lp }}</span>
+          </div>
+          <p>{{ league.focus }}</p>
+        </article>
+      }
+    </div>
+  </section>
+
+  <section class="about-section closing-section">
+    <p class="section-kicker">Ready to play</p>
+    <h2>The page should leave you with one idea: you want to queue for a match.</h2>
+    <p>
+      If you like pressure, improvement, and ranked systems, Code Arena should
+      feel immediately readable: enter, fight, climb, repeat.
+    </p>
+
+    <div class="closing-actions">
+      <a class="primary-action" routerLink="/register">Create an account</a>
+      <a class="secondary-action" routerLink="/">Return home</a>
+    </div>
+  </section>
+</div>

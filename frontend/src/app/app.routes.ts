@@ -21,7 +21,7 @@ export const routes: Routes = [
   // Pagina de about.
   {
     path: 'about',
-    loadComponent: () => import('./about/about').then(m => m.About),
+    loadComponent: () => import('./features/about/about').then(m => m.About),
   },
   // Lobby do dashboard.
   {
@@ -37,6 +37,11 @@ export const routes: Routes = [
   {
     path: 'arena',
     loadComponent: () => import('./arena-page/arena-page').then(m => m.ArenaPage),
+  },
+  // Leaderboard (ranking global de jogadores).
+  {
+    path: 'leaderboard',
+    loadComponent: () => import('./features/ranking/ranking').then(m => m.Ranking),
   },
   // Fallback: rota desconhecida redireciona para home.
   { path: '**', redirectTo: '' },

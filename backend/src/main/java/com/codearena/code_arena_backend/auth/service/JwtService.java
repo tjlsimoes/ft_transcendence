@@ -12,6 +12,7 @@ import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 
 /**
@@ -32,34 +33,51 @@ public class JwtService {
     @Value("${jwt.secret}")
     private String secretKey;
 
-    /** Token lifetime in milliseconds, defaults to 24 h (86 400 000 ms). */
+    /**
+     * Token lifetime in milliseconds — injected for calculating 'expiresIn'
+     * seconds.
+     */
     @Value("${jwt.expiration}")
     private long jwtExpiration;
+
+    /** Refresh token lifetime in milliseconds. */
+    @Value("${jwt.refresh-expiration}")
+    private long refreshExpiration;
 
     // ------------------------------------------------------------------ //
     //  Public API                                                          //
     // ------------------------------------------------------------------ //
 
     /**
-     * Generates a JWT for the given UserDetails with no extra claims.
+     * Generates a standard access JWT for the given UserDetails.
      */
     public String generateToken(UserDetails userDetails) {
-        return generateToken(new HashMap<>(), userDetails);
+        return generateToken(new HashMap<>(), userDetails, jwtExpiration, "access");
     }
 
     /**
-     * Generates a JWT with additional custom claims (e.g. roles, userId).
-     *
-     * @param extraClaims any additional key-value pairs to embed in the token
-     * @param userDetails Spring Security user (subject = username)
+     * Generates a long-lived refresh token for the given UserDetails.
+     * Includes a unique JTI (JWT ID) for revocation/rotation tracking.
      */
-    public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
+    public String generateRefreshToken(UserDetails userDetails) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("jti", UUID.randomUUID().toString());
+        return generateToken(claims, userDetails, refreshExpiration, "refresh");
+    }
+
+    /**
+     * Internal helper to generate a JWT with specific claims and expiration.
+     */
+    public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails, long expiration,
+            String type) {
+        Map<String, Object> claims = new HashMap<>(extraClaims);
+        claims.put("type", type);
         return Jwts.builder()
-                .claims(extraClaims)                           // custom claims first
-                .subject(userDetails.getUsername())            // 'sub' standard claim
-                .issuedAt(new Date(System.currentTimeMillis())) // 'iat'
-                .expiration(new Date(System.currentTimeMillis() + jwtExpiration)) // 'exp'
-                .signWith(getSigningKey())                     // signs with HS256
+                .claims(claims)
+                .subject(userDetails.getUsername())
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + expiration))
+                .signWith(getSigningKey())
                 .compact();
     }
 
@@ -67,13 +85,46 @@ public class JwtService {
      * Returns true if the token belongs to the given user and is not expired.
      */
     public boolean isTokenValid(String token, UserDetails userDetails) {
-        final String username = extractUsername(token);
-        return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
+        return isTokenValid(token, userDetails, "access");
+    }
+
+    /**
+     * Validates a token for a specific user and expected type.
+     */
+    public boolean isTokenValid(String token, UserDetails userDetails, String expectedType) {
+        try {
+            final String username = extractUsername(token);
+            final String type = extractClaim(token, claims -> claims.get("type", String.class));
+            return (username.equals(userDetails.getUsername()))
+                    && type.equals(expectedType)
+                    && !isTokenExpired(token);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     /** Extracts the 'sub' claim (username) from the token. */
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
+    }
+
+    /**
+     * Extracts the "type" claim (access or refresh).
+     */
+    public String extractType(String token) {
+        return extractClaim(token, claims -> claims.get("type", String.class));
+    }
+
+    /**
+     * Extracts the "jti" (JWT ID) claim (primary for refresh tokens).
+     */
+    public String extractJti(String token) {
+        return extractClaim(token, Claims::getId);
+    }
+
+    /** Extracts the 'exp' claim from the token. */
+    public Date extractExpiration(String token) {
+        return extractClaim(token, Claims::getExpiration);
     }
 
     // ------------------------------------------------------------------ //

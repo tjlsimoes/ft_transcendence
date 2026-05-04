@@ -113,6 +113,15 @@
 	color: var(--color-defeat, #ef4444) !important;
 }
 
+.history-result.draw {
+	color: var(--text-dim, #888) !important;
+}
+
+.history-result.pending {
+	color: var(--text-muted, #666) !important;
+	font-style: italic;
+}
+
 .history-lp.positive {
 	color: var(--color-victory, #22c55e) !important;
 }

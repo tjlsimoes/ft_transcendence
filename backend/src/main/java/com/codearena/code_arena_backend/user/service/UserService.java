@@ -3,11 +3,15 @@ package com.codearena.code_arena_backend.user.service;
 import com.codearena.code_arena_backend.user.entity.User;
 import com.codearena.code_arena_backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.codearena.code_arena_backend.user.dto.UserProfileResponse;
 
 import java.util.List;
 import java.util.Optional;
@@ -50,6 +54,10 @@ public class UserService implements UserDetailsService {
         return userRepository.findByUsername(username);
     }
 
+    public Optional<User> findById(Long id) {
+        return userRepository.findById(id);
+    }
+
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
     }
@@ -66,6 +74,73 @@ public class UserService implements UserDetailsService {
         return userRepository.save(user);
     }
 
+    /**
+     * Enriches a UserProfileResponse with ranking context for Master/Legend players.
+     * - Determines if the player is in the top 1% of ALL players (Legend).
+     * - A player must also have elo >= 3000 (Master) to qualify.
+     * - For MASTER: sets legendThresholdLp (LP needed to reach Legend).
+     * - For LEGEND: sets globalRank and highestLp.
+     */
+    public UserProfileResponse enrichWithRankingContext(UserProfileResponse response) {
+        if (response.elo() < 3000) {
+            return response;
+        }
+
+        long totalPlayers = userRepository.countAllPlayers();
+        long legendCutoff = Math.max(1, (long) Math.ceil(totalPlayers * 0.01));
+
+        // The player's global rank (0-based count of players above them)
+        long playersAbove = userRepository.countPlayersWithEloAbove(response.elo());
+        // 1-based rank
+        long globalRank = playersAbove + 1;
+
+        boolean isLegend = globalRank <= legendCutoff;
+
+        // Find the Legend threshold: elo of the player at position legendCutoff
+        Integer legendThreshold = userRepository.findEloAtGlobalRank(legendCutoff - 1).orElse(3000);
+
+        if (isLegend) {
+            int highestLp = userRepository.findHighestElo().orElse(response.elo());
+            return response.withLegendContext((int) globalRank, highestLp);
+        } else {
+            return response.withMasterContext(legendThreshold);
+        }
+    }
+
+    /**
+     * Synchronises the stored league (derived from current elo and ranking position)
+     * and sets status to ONLINE.
+     * Called on login and registration so that the DB always reflects the correct state.
+     */
+    public void goOnline(User user) {
+        user.setLeague(User.League.valueOf(UserProfileResponse.leagueFromElo(user.getElo())));
+        user.setStatus(User.UserStatus.ONLINE);
+        userRepository.save(user);
+
+        // Recalculate Legend for all Master+ players so promotions/demotions propagate
+        if (user.getElo() >= 3000) {
+            recalculateLeagues();
+        }
+    }
+
+    /**
+     * Recalculates the stored league for ALL Master+ players in a single atomic SQL UPDATE.
+     * Uses DENSE_RANK so tied elo values share the same rank.
+     * Should be called after any elo change (match result, login).
+     */
+    @Transactional
+    public void recalculateLeagues() {
+        userRepository.recalculateMasterLeagues();
+    }
+
+    /**
+     * Sets the user status to OFFLINE (logout / session expiry).
+     */
+    public void goOffline(User user) {
+        user.setStatus(User.UserStatus.OFFLINE);
+        userRepository.save(user);
+    }
+
     // ------------------------------------------------------------------ //
     //  Private helpers                                                     //
     // ------------------------------------------------------------------ //
@@ -74,16 +149,15 @@ public class UserService implements UserDetailsService {
      * Converts our User entity into a Spring Security UserDetails.
      *
      * We use the built-in org.springframework.security.core.userdetails.User
-     * builder. At this stage there are no roles; an empty authorities list
-     * is fine — roles will be added in the authorisation issue.
+     * builder and expose the persisted role as a Spring authority
+     * (e.g. USER -> ROLE_USER, ADMIN -> ROLE_ADMIN).
      */
     private UserDetails toUserDetails(User user) {
+        String authority = "ROLE_" + user.getRole().name();
         return org.springframework.security.core.userdetails.User.builder()
                 .username(user.getUsername())
                 .password(user.getPassword()) // already BCrypt-hashed
-                // Explicit typed list avoids the ambiguous varargs overload.
-                // Roles/authorities will be added in the authorisation issue.
-                .authorities(List.<GrantedAuthority>of())
+            .authorities(List.<GrantedAuthority>of(new SimpleGrantedAuthority(authority)))
                 .build();
     }
 }
