@@ -247,10 +247,10 @@ lobby.ts
 
 **Fix:** Adicionado `matchHistoryError = signal(false)` ao `Lobby`. O `error` handler do subscribe ativa o signal; em sucesso é reposto a `false`. O `TerminalHistory` recebe o novo input opcional `errorLoading: input<boolean>(false)` e exibe "Failed to load match history. Please refresh the page." em vez do empty state genérico quando a flag está ativa. Falhas de rede, timeout ou 5xx deixam de ser silenciosas.
 
-### BUG #7 — `LoginRateLimiter` tem memory leak gradual
+### ~~BUG #7 — `LoginRateLimiter` tem memory leak gradual~~ ✅ RESOLVIDO
 LoginRateLimiter.java
 
-O `attemptsCache` (ConcurrentHashMap) cresce indefinidamente. Entradas bloqueadas são removidas apenas quando o mesmo IP tenta de novo após o block expirar. IPs que nunca retornam ficam na memória para sempre. Em produção com tráfego variado, isto drena memória progressivamente.
+**Fix:** Adicionado `@Scheduled(fixedRate = 600_000)` no método `evictExpiredEntries()` que corre a cada 10 minutos e remove do `attemptsCache` todas as entradas cujo `lastAttempt` seja anterior a `now - BLOCK_DURATION_MINUTES`. `@EnableScheduling` adicionado ao `CodeArenaBackendApplication`. IPs que nunca retornam são recolhidos automaticamente pelo scheduler — o mapa fica limitado aos IPs que tentaram login nos últimos 15 minutos.
 
 ### BUG #8 — Race condition no `addFriend`
 UserProfileService.java

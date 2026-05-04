@@ -1,5 +1,6 @@
 package com.codearena.code_arena_backend.auth;
 
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -61,6 +62,16 @@ public class LoginRateLimiter {
             }
             return new LoginAttempt(v.getAttempts() + 1, LocalDateTime.now());
         });
+    }
+
+    /**
+     * Removes entries whose last attempt is older than the block duration.
+     * Runs every 10 minutes to prevent unbounded memory growth.
+     */
+    @Scheduled(fixedRate = 600_000)
+    public void evictExpiredEntries() {
+        LocalDateTime cutoff = LocalDateTime.now().minusMinutes(BLOCK_DURATION_MINUTES);
+        attemptsCache.entrySet().removeIf(e -> e.getValue().getLastAttempt().isBefore(cutoff));
     }
 
     private static class LoginAttempt {
