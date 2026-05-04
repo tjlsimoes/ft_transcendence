@@ -17,4 +17,13 @@ export class RouteStateService {
     ),
     { initialValue: this.router.url.startsWith('/lobby') }
   );
+
+  /** Signal reativo que indica se a rota atual é a arena. */
+  isArena = toSignal(
+    this.router.events.pipe(
+      filter((e): e is NavigationEnd => e instanceof NavigationEnd),
+      map(e => e.urlAfterRedirects.startsWith('/arena'))
+    ),
+    { initialValue: this.router.url.startsWith('/arena') }
+  );
 }

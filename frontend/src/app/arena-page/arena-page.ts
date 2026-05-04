@@ -2,6 +2,7 @@ import { Component, signal, computed, ElementRef, ViewChild, OnDestroy } from '@
 import { FormsModule } from '@angular/forms';
 import { NgClass } from '@angular/common';
 import { ArenaTimer } from './arena-timer';
+import { CodeEditorComponent, EditorTheme } from './code-editor/code-editor';
 import {
   SubmissionResult,
   TestCaseResult,
@@ -16,12 +17,13 @@ export type PanelTab = 'Problem' | 'Submissions';
 
 @Component({
   selector: 'app-arena-page',
-  imports: [FormsModule, NgClass, ArenaTimer],
+  imports: [FormsModule, NgClass, ArenaTimer, CodeEditorComponent],
   templateUrl: './arena-page.html',
   styleUrl: './arena-page.css',
 })
 export class ArenaPage implements OnDestroy {
   @ViewChild('arenaShell') arenaShell!: ElementRef<HTMLElement>;
+  @ViewChild('editorPanel') editorPanel!: ElementRef<HTMLElement>;
   @ViewChild(ArenaTimer) arenaTimer!: ArenaTimer;
 
   readonly panelTabs: PanelTab[] = ['Problem', 'Submissions'];
@@ -30,8 +32,8 @@ export class ArenaPage implements OnDestroy {
   readonly languages = ['C', 'C++', 'Java', 'Python 3', 'JavaScript'];
   selectedLanguage = signal('C');
 
-  readonly themes = ['Dark', 'Light'];
-  selectedTheme = signal('Dark');
+  readonly themes: EditorTheme[] = ['Dark', 'Light'];
+  selectedTheme = signal<EditorTheme>('Dark');
 
   code = signal(
 `#include <stdio.h>
@@ -55,6 +57,38 @@ int main() {
   private readonly MAX_WIDTH = 750;
   private boundMouseMove = this.onMouseMove.bind(this);
   private boundMouseUp   = this.stopResize.bind(this);
+
+  // ── Footer vertical resize ──────────────────────────────────────────
+  private footerResizing = false;
+  private footerStartY = 0;
+  private footerStartHeight = 0;
+  private readonly MIN_FOOTER_HEIGHT = 55;
+  private readonly MAX_FOOTER_HEIGHT = 600;
+  private boundFooterMouseMove = this.onFooterMouseMove.bind(this);
+  private boundFooterMouseUp   = this.stopFooterResize.bind(this);
+
+  startFooterResize(e: MouseEvent): void {
+    this.footerResizing = true;
+    this.footerStartY = e.clientY;
+    const footer = this.editorPanel.nativeElement.querySelector('.editor-footer') as HTMLElement;
+    this.footerStartHeight = footer.getBoundingClientRect().height;
+    document.addEventListener('mousemove', this.boundFooterMouseMove);
+    document.addEventListener('mouseup',   this.boundFooterMouseUp);
+    e.preventDefault();
+  }
+
+  private onFooterMouseMove(e: MouseEvent): void {
+    if (!this.footerResizing) return;
+    const delta = this.footerStartY - e.clientY;
+    const newHeight = Math.min(this.MAX_FOOTER_HEIGHT, Math.max(this.MIN_FOOTER_HEIGHT, this.footerStartHeight + delta));
+    this.editorPanel.nativeElement.style.setProperty('--footer-height', `${newHeight}px`);
+  }
+
+  private stopFooterResize(): void {
+    this.footerResizing = false;
+    document.removeEventListener('mousemove', this.boundFooterMouseMove);
+    document.removeEventListener('mouseup',   this.boundFooterMouseUp);
+  }
 
   startResize(e: MouseEvent): void {
     this.resizing = true;
@@ -80,6 +114,7 @@ int main() {
 
   ngOnDestroy(): void {
     this.stopResize();
+    this.stopFooterResize();
     if (this.notifTimeoutId !== null) clearTimeout(this.notifTimeoutId);
   }
 

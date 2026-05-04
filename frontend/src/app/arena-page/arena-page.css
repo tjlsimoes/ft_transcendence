@@ -1,9 +1,8 @@
 /* ── Opponent-finished notification ──────────────────────────── */
 .opponent-notif {
   position: absolute;
-  top: 52px;
-  left: 50%;
-  transform: translateX(-50%);
+  top: 12px;
+  right: 24px;
   z-index: 100;
   display: flex;
   align-items: center;
@@ -19,8 +18,8 @@
 }
 
 @keyframes notif-in {
-  from { opacity: 0; transform: translateX(-50%) translateY(-8px); }
-  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .opponent-notif-icon {
@@ -73,7 +72,7 @@
   display: grid;
   grid-template-columns: var(--panel-width) 4px 1fr;
   position: fixed;
-  top: 64px;
+  top: 0;
   left: 0;
   right: 0;
   bottom: 0;
@@ -125,7 +124,7 @@
   white-space: nowrap;
 }
 
-/* ── Resize handle ────────────────────────────────────────────── */
+/* ── Resize handle (horizontal) ──────────────────────────────── */
 .resize-handle {
   width: 4px;
   cursor: col-resize;
@@ -138,6 +137,21 @@
 
 .resize-handle:hover,
 .resize-handle:active {
+  background: var(--accent);
+}
+
+/* ── Footer resize handle (vertical) ─────────────────────────── */
+.footer-resize-handle {
+  height: 4px;
+  cursor: row-resize;
+  background: var(--border);
+  transition: background 0.15s;
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.footer-resize-handle:hover,
+.footer-resize-handle:active {
   background: var(--accent);
 }
 
@@ -310,8 +324,6 @@
   font-size: 13px;
   line-height: 1.6;
   position: relative;
-  align-items: center;
-  justify-content: center;
 }
 
 .editor-area.theme-light {
@@ -378,6 +390,11 @@
   background: var(--bg-header);
   flex-shrink: 0;
   transition: border-top-color 0.2s;
+}
+
+.editor-footer.footer--expanded {
+  height: var(--footer-height, 275px);
+  min-height: 55px;
 }
 
 /* Colour the top border when a result is active */
@@ -454,7 +471,8 @@
   gap: 12px;
   padding: 12px 16px;
   overflow-y: auto;
-  max-height: 220px;
+  flex: 1;
+  min-height: 0;
   border-top: 1px solid var(--border);
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.1) transparent;

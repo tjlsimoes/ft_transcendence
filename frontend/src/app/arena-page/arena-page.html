@@ -104,7 +104,7 @@
   <div class="resize-handle" (mousedown)="startResize($event)" aria-hidden="true"></div>
 
   <!-- ── RIGHT PANEL: Code Editor ───────────────────────────── -->
-  <section class="editor-panel" aria-label="Code editor">
+  <section class="editor-panel" aria-label="Code editor" #editorPanel>
 
     <!-- Editor topbar -->
     <header class="editor-topbar">
@@ -127,10 +127,22 @@
     </header>
 
     <!-- Code editor area -->
-    <div class="editor-area"></div>
+    <div class="editor-area">
+      <app-code-editor
+        [value]="code()"
+        [language]="selectedLanguage()"
+        [theme]="selectedTheme()"
+        (valueChange)="code.set($event)"
+      />
+    </div>
 
     <!-- Editor footer (expands to show run/submit results inline) -->
     <footer class="editor-footer" [class.footer--expanded]="runPanelOpen() || resultPanelOpen()">
+
+      <!-- ── Vertical resize handle (only visible when expanded) ───── -->
+      @if (runPanelOpen() || resultPanelOpen()) {
+        <div class="footer-resize-handle" (mousedown)="startFooterResize($event)" aria-hidden="true"></div>
+      }
 
       <!-- ── Always-visible bar ─────────────────────────────────── -->
       <div class="footer-bar">

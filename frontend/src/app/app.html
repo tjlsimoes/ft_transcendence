@@ -1,5 +1,7 @@
 ﻿<app-floating-symbols />
-<app-navbar />
+@if (!routeState.isArena()) {
+  <app-navbar />
+}
 <app-sidebar />
 <main>
   <router-outlet />
