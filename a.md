@@ -242,17 +242,10 @@ sidebar.ts
 
 **Fix:** `ngOnInit` removido. Substituído por `effect()` registado no `constructor`. O `effect()` reavalia automaticamente sempre que o signal `isLobby` muda de valor — navegar para `/lobby` a partir de qualquer outra rota dispara `loadFriends()` correctamente. Com `ngOnInit`, a condição era avaliada uma única vez no arranque do componente, pelo que utilizadores que navegassem para `/lobby` depois de já estarem noutra rota nunca veriam a lista de amigos carregada.
 
-### BUG #6 — `Lobby.loadMatches()` sem error handler
+### ~~BUG #6 — `Lobby.loadMatches()` sem error handler~~ ✅ RESOLVIDO
 lobby.ts
 
-```ts
-this.userService.loadMatches().subscribe({
-    next: (matches) => this.matchHistory.set(matches),
-    // sem error: — falha silenciosa
-});
-```
-
-Se a request falhar (timeout, 401, 500), `matchHistory` fica vazio sem feedback para o utilizador.
+**Fix:** Adicionado `matchHistoryError = signal(false)` ao `Lobby`. O `error` handler do subscribe ativa o signal; em sucesso é reposto a `false`. O `TerminalHistory` recebe o novo input opcional `errorLoading: input<boolean>(false)` e exibe "Failed to load match history. Please refresh the page." em vez do empty state genérico quando a flag está ativa. Falhas de rede, timeout ou 5xx deixam de ser silenciosas.
 
 ### BUG #7 — `LoginRateLimiter` tem memory leak gradual
 LoginRateLimiter.java

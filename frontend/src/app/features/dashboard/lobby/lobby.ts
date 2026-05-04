@@ -20,6 +20,7 @@ import type { UserProfile, MatchHistory } from '../../../shared/models/user-prof
 export class Lobby implements OnInit {
   tabs: LobbyTab[] = LOBBY_TABS;
   matchHistory = signal<MatchHistory[]>([]);
+  matchHistoryError = signal(false);
 
   // Dados reais do utilizador autenticado.
   player = signal<PlayerIdentity>({ username: '...', league: '...', avatarUrl: '', isOnline: true });
@@ -45,7 +46,11 @@ export class Lobby implements OnInit {
     });
 
     this.userService.loadMatches().subscribe({
-      next: (matches) => this.matchHistory.set(matches),
+      next: (matches) => {
+        this.matchHistory.set(matches);
+        this.matchHistoryError.set(false);
+      },
+      error: () => this.matchHistoryError.set(true),
     });
   }
 

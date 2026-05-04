@@ -10,5 +10,6 @@ import type { MatchHistory } from '../../../../../shared/models/user-profile.mod
 })
 export class TerminalHistory {
   matchHistory = input.required<MatchHistory[]>();
+  errorLoading = input<boolean>(false);
   hasMatches = computed(() => this.matchHistory().length > 0);
 }

@@ -39,6 +39,11 @@
 					}
 				</tbody>
 			</table>
+			} @else if (errorLoading()) {
+			<div class="terminal-empty terminal-error">
+				<span class="prompt-symbol" aria-hidden="true">&gt;</span>
+				<span>Failed to load match history. Please refresh the page.</span>
+			</div>
 			} @else {
 			<div class="terminal-empty">
 				<span class="prompt-symbol" aria-hidden="true">&gt;</span>

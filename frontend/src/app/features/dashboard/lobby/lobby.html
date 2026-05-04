@@ -31,7 +31,7 @@
 				<app-profile-data [data]="profileData()" />
 
 				<!-- Terminal: Match History and Queue Events -->
-				<app-terminal-history [matchHistory]="matchHistory()" />
+				<app-terminal-history [matchHistory]="matchHistory()" [errorLoading]="matchHistoryError()" />
 
 			</section>
 		</div>
