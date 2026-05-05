@@ -3,6 +3,7 @@ package com.codearena.code_arena_backend.user.service;
 import com.codearena.code_arena_backend.friendship.entity.Friendship;
 import com.codearena.code_arena_backend.friendship.repository.FriendshipRepository;
 import com.codearena.code_arena_backend.user.dto.FriendSummaryResponse;
+import com.codearena.code_arena_backend.user.dto.PublicUserProfileResponse;
 import com.codearena.code_arena_backend.user.dto.UpdateUserProfileRequest;
 import com.codearena.code_arena_backend.user.dto.UserProfileResponse;
 import com.codearena.code_arena_backend.user.entity.User;
@@ -49,7 +50,6 @@ class UserProfileServiceTest {
         tempAvatarDir = Files.createTempDirectory("avatars-test-");
         ReflectionTestUtils.setField(userProfileService, "avatarStorageDir", tempAvatarDir.toString());
         ReflectionTestUtils.setField(userProfileService, "avatarBaseUrl", "/api/users/avatars");
-        ReflectionTestUtils.setField(userProfileService, "defaultAvatarFilename", "default-avatar.svg");
         ReflectionTestUtils.invokeMethod(userProfileService, "initAvatarStorage");
     }
 
@@ -64,7 +64,7 @@ class UserProfileServiceTest {
 
         when(userRepository.findById(7L)).thenReturn(Optional.of(user));
 
-        UserProfileResponse response = userProfileService.getProfileById(7L);
+        PublicUserProfileResponse response = userProfileService.getProfileById(7L);
 
         assertThat(response.id()).isEqualTo(7L);
         assertThat(response.username()).isEqualTo("player7");
@@ -168,7 +168,7 @@ class UserProfileServiceTest {
         user.setEmail(username + "@arena.com");
         user.setPassword("hash");
         user.setDisplayName(username);
-        user.setAvatar("/api/users/avatars/default-avatar.svg");
+        user.setAvatar(null);
         user.setWins(0);
         user.setLosses(0);
         user.setElo(0);

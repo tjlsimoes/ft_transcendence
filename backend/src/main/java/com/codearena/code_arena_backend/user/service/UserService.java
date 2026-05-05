@@ -8,6 +8,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -124,28 +125,33 @@ public class UserService implements UserDetailsService {
     }
 
     /**
-     * Synchronises the stored league (derived from current elo and ranking position)
-     * and sets status to ONLINE.
-     * Called on login and registration so that the DB always reflects the correct state.
+     * Sets status to ONLINE and persists.
+     * Does NOT touch the league column — league only changes when elo changes (match result).
+     * Login never changes elo, so it can never change who is LEGEND vs MASTER.
      */
     public void goOnline(User user) {
-        user.setLeague(User.League.valueOf(UserProfileResponse.leagueFromElo(user.getElo())));
         user.setStatus(User.UserStatus.ONLINE);
         userRepository.save(user);
-
-        // Recalculate Legend for all Master+ players so promotions/demotions propagate
-        if (user.getElo() >= 3000) {
-            recalculateLeagues();
-        }
     }
 
     /**
      * Recalculates the stored league for ALL Master+ players in a single atomic SQL UPDATE.
      * Uses DENSE_RANK so tied elo values share the same rank.
-     * Should be called after any elo change (match result, login).
+     * Call this after any elo change (match result), not on login.
      */
     @Transactional
     public void recalculateLeagues() {
+        userRepository.recalculateMasterLeagues();
+    }
+
+    /**
+     * Periodic safety net: keeps the stored league column in sync with the
+     * current elo rankings every 5 minutes.
+     * Runs asynchronously — the main request path is never blocked by this.
+     */
+    @Scheduled(fixedRate = 300_000)
+    @Transactional
+    public void scheduledLeagueRecalculation() {
         userRepository.recalculateMasterLeagues();
     }
 

@@ -4,6 +4,7 @@ import com.codearena.code_arena_backend.duel.repository.DuelRepository;
 import com.codearena.code_arena_backend.friendship.repository.FriendshipRepository;
 import com.codearena.code_arena_backend.user.dto.FriendSummaryResponse;
 import com.codearena.code_arena_backend.user.dto.UpdateUserProfileRequest;
+import com.codearena.code_arena_backend.user.dto.PublicUserProfileResponse;
 import com.codearena.code_arena_backend.user.dto.UserAvatarResource;
 import com.codearena.code_arena_backend.user.dto.UserProfileResponse;
 import com.codearena.code_arena_backend.user.entity.User;
@@ -64,14 +65,15 @@ class UserControllerTest {
     @Test
     @DisplayName("getProfileById returns HTTP 200 with profile payload")
     void getProfileById_returnsProfile() {
-        UserProfileResponse profile = testProfile(
+        PublicUserProfileResponse profile = new PublicUserProfileResponse(
                 5L, "player5", "Player Five", "bio",
                 "/api/users/avatars/default-avatar.svg",
-                10, 2, 1200, "SILVER", "ONLINE"
+                10, 2, 0, 1200, "SILVER", "ONLINE",
+                java.time.LocalDateTime.now()
         );
         when(userProfileService.getProfileById(5L)).thenReturn(profile);
 
-        ResponseEntity<UserProfileResponse> response = userController.getProfileById(5L);
+        ResponseEntity<PublicUserProfileResponse> response = userController.getProfileById(5L);
 
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         assertThat(response.getBody()).isNotNull();

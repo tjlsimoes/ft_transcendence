@@ -58,7 +58,6 @@ class AuthServiceTest {
     void setUp() {
         // Inject @Value field — jwt expiration (ms)
         ReflectionTestUtils.setField(authService, "jwtExpirationMs", 3_600_000L);
-        ReflectionTestUtils.setField(authService, "defaultAvatarUrl", "/api/users/avatars/default-avatar.svg");
     }
 
     // ------------------------------------------------------------------ //
@@ -93,7 +92,7 @@ class AuthServiceTest {
         verify(userService).save(userCaptor.capture());
         User savedUser = userCaptor.getValue();
         assertThat(savedUser.getDisplayName()).isEqualTo("player1");
-        assertThat(savedUser.getAvatar()).isEqualTo("/api/users/avatars/default-avatar.svg");
+        assertThat(savedUser.getAvatar()).isNull();
         assertThat(savedUser.getRole()).isEqualTo(User.Role.USER);
     }
 

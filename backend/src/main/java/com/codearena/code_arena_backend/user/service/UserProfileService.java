@@ -3,6 +3,7 @@ package com.codearena.code_arena_backend.user.service;
 import com.codearena.code_arena_backend.friendship.entity.Friendship;
 import com.codearena.code_arena_backend.friendship.repository.FriendshipRepository;
 import com.codearena.code_arena_backend.user.dto.FriendSummaryResponse;
+import com.codearena.code_arena_backend.user.dto.PublicUserProfileResponse;
 import com.codearena.code_arena_backend.user.dto.UpdateUserProfileRequest;
 import com.codearena.code_arena_backend.user.dto.UserAvatarResource;
 import com.codearena.code_arena_backend.user.dto.UserProfileResponse;
@@ -22,12 +23,10 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.nio.file.StandardOpenOption;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -58,22 +57,17 @@ public class UserProfileService {
     @Value("${user.avatar.base-url:/api/users/avatars}")
     private String avatarBaseUrl;
 
-    @Value("${user.avatar.default-filename:default-avatar.svg}")
-    private String defaultAvatarFilename;
-
     @PostConstruct
     void initAvatarStorage() {
         try {
-            Path storagePath = avatarStoragePath();
-            Files.createDirectories(storagePath);
-            ensureDefaultAvatarExists(storagePath);
+            Files.createDirectories(avatarStoragePath());
         } catch (IOException ex) {
             throw new IllegalStateException("Failed to initialize avatar storage", ex);
         }
     }
 
-    public UserProfileResponse getProfileById(Long id) {
-        return UserProfileResponse.from(requireUserById(id));
+    public PublicUserProfileResponse getProfileById(Long id) {
+        return PublicUserProfileResponse.from(requireUserById(id));
     }
 
     @Transactional
@@ -139,13 +133,12 @@ public class UserProfileService {
             throw new IllegalArgumentException("You cannot add yourself as a friend");
         }
 
-        if (!friendshipRepository.existsByUserIdAndFriendId(user.getId(), friend.getId())) {
-            friendshipRepository.save(new Friendship(user.getId(), friend.getId(), FRIENDSHIP_ACCEPTED));
-        }
-
-        if (!friendshipRepository.existsByUserIdAndFriendId(friend.getId(), user.getId())) {
-            friendshipRepository.save(new Friendship(friend.getId(), user.getId(), FRIENDSHIP_ACCEPTED));
-        }
+        // Use INSERT ... ON CONFLICT DO NOTHING to avoid the check-then-insert
+        // race condition: concurrent requests targeting the same pair both pass
+        // the existsBy check and then both attempt save(), causing a PK violation.
+        // The DB PK constraint (user_id, friend_id) is the single source of truth.
+        friendshipRepository.insertIgnoreConflict(user.getId(), friend.getId(), FRIENDSHIP_ACCEPTED);
+        friendshipRepository.insertIgnoreConflict(friend.getId(), user.getId(), FRIENDSHIP_ACCEPTED);
     }
 
     @Transactional
@@ -298,29 +291,4 @@ public class UserProfileService {
         return resolvedPath;
     }
 
-    private void ensureDefaultAvatarExists(Path storagePath) throws IOException {
-        Path defaultAvatarPath = storagePath.resolve(defaultAvatarFilename).normalize();
-        if (!defaultAvatarPath.startsWith(storagePath)) {
-            throw new IllegalStateException("Invalid default avatar filename");
-        }
-
-        if (Files.notExists(defaultAvatarPath)) {
-            Files.writeString(
-                    defaultAvatarPath,
-                    defaultAvatarSvg(),
-                    StandardCharsets.UTF_8,
-                    StandardOpenOption.CREATE_NEW
-            );
-        }
-    }
-
-    private String defaultAvatarSvg() {
-        return """
-                <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"256\" height=\"256\" viewBox=\"0 0 256 256\" fill=\"none\">
-                  <rect width=\"256\" height=\"256\" rx=\"32\" fill=\"#0A5D73\"/>
-                  <circle cx=\"128\" cy=\"96\" r=\"44\" fill=\"#E8F3F7\"/>
-                  <path d=\"M52 214c8-40 40-62 76-62s68 22 76 62\" fill=\"#E8F3F7\"/>
-                </svg>
-                """;
-    }
 }

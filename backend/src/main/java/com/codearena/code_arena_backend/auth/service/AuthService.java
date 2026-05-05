@@ -48,9 +48,6 @@ public class AuthService {
     @Value("${jwt.expiration}")
     private long jwtExpirationMs;
 
-    @Value("${user.avatar.default-url:/api/users/avatars/default-avatar.svg}")
-    private String defaultAvatarUrl;
-
     // ------------------------------------------------------------------ //
     //  Public API                                                          //
     // ------------------------------------------------------------------ //
@@ -75,7 +72,7 @@ public class AuthService {
         user.setEmail(request.getEmail());
         user.setRole(User.Role.USER);
         user.setDisplayName(request.getUsername());
-        user.setAvatar(defaultAvatarUrl);
+        user.setAvatar(null);
         // Never store plain-text passwords: BCrypt hashes are one-way.
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 

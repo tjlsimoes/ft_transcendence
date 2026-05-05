@@ -29,21 +29,20 @@ public class LeaderboardEntryResponse {
     private int totalDuels;
     private String winRate;
 
-    public static LeaderboardEntryResponse fromUser(int rank, User user) {
+    public static LeaderboardEntryResponse fromUser(int rank, User user, String league) {
         int total = user.getWins() + user.getLosses();
         String winRate = total > 0
                 ? Math.round((user.getWins() * 100.0) / total) + "%"
                 : "—";
 
-        String leagueName = user.getLeague().name();
         return LeaderboardEntryResponse.builder()
                 .rank(rank)
                 .username(user.getUsername())
                 .avatarUrl(user.getAvatar())
                 .elo(user.getElo())
-                .league(leagueName)
-                .mark(String.valueOf(leagueName.charAt(0)))
-                .tone("league-" + leagueName.toLowerCase())
+                .league(league)
+                .mark(String.valueOf(league.charAt(0)))
+                .tone("league-" + league.toLowerCase())
                 .wins(user.getWins())
                 .losses(user.getLosses())
                 .winStreak(user.getWinStreak())

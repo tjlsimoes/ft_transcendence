@@ -1,6 +1,7 @@
 package com.codearena.code_arena_backend.ranking.controller;
 
 import com.codearena.code_arena_backend.ranking.dto.LeaderboardEntryResponse;
+import com.codearena.code_arena_backend.user.dto.UserProfileResponse;
 import com.codearena.code_arena_backend.user.entity.User;
 import com.codearena.code_arena_backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +31,10 @@ public class LeaderboardController {
     /**
      * GET /api/leaderboard?limit=50
      * Returns the top players sorted by ELO descending.
-     * Rank is assigned sequentially (1-based).
+     *
+     * League is computed on-the-fly from rank so that LEGEND/MASTER distinction
+     * is always accurate — no bulk UPDATE required on login.
+     * Legend = top 1% of ALL players AND elo >= 3000.
      */
     @GetMapping
     public ResponseEntity<List<LeaderboardEntryResponse>> getLeaderboard(
@@ -39,11 +43,29 @@ public class LeaderboardController {
         int safeLimit = Math.min(Math.max(1, limit), MAX_LIMIT);
         List<User> players = userRepository.findTopPlayersByElo(safeLimit);
 
+        // One COUNT query to determine the legend cutoff. Legend = top 1% of all players.
+        long totalPlayers = userRepository.countAllPlayers();
+        long legendCutoff = Math.max(1, (long) Math.ceil(totalPlayers * 0.01));
+
         List<LeaderboardEntryResponse> response = new ArrayList<>(players.size());
         for (int i = 0; i < players.size(); i++) {
-            response.add(LeaderboardEntryResponse.fromUser(i + 1, players.get(i)));
+            int rank = i + 1;
+            User user = players.get(i);
+            String league = computeLeague(user.getElo(), rank, legendCutoff);
+            response.add(LeaderboardEntryResponse.fromUser(rank, user, league));
         }
 
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Derives the display league for a player given their elo and leaderboard rank.
+     * Does NOT rely on the stored league column — computed entirely from elo + rank.
+     */
+    private static String computeLeague(int elo, int rank, long legendCutoff) {
+        if (elo >= 3000) {
+            return rank <= legendCutoff ? "LEGEND" : "MASTER";
+        }
+        return UserProfileResponse.leagueFromElo(elo);
     }
 }

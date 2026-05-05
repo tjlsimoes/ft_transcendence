@@ -252,30 +252,19 @@ LoginRateLimiter.java
 
 **Fix:** Adicionado `@Scheduled(fixedRate = 600_000)` no método `evictExpiredEntries()` que corre a cada 10 minutos e remove do `attemptsCache` todas as entradas cujo `lastAttempt` seja anterior a `now - BLOCK_DURATION_MINUTES`. `@EnableScheduling` adicionado ao `CodeArenaBackendApplication`. IPs que nunca retornam são recolhidos automaticamente pelo scheduler — o mapa fica limitado aos IPs que tentaram login nos últimos 15 minutos.
 
-### BUG #8 — Race condition no `addFriend`
+### ~~BUG #8 — Race condition no `addFriend`~~ ✅ RESOLVIDO
 UserProfileService.java
 
-```java
-if (!friendshipRepository.existsByUserIdAndFriendId(userId, friendId)) {
-    friendshipRepository.save(...);   // janela de race condition aqui
-}
-```
-
-Dois requests simultâneos passam no `existsBy...` e ambos tentam `save()`. O `@Transactional` na classe não resolve isto porque a verificação e o save são operações distintas sem lock de BD. Necessita de `INSERT ... ON CONFLICT DO NOTHING` ou constraint única explorada.
+**Fix:** Substituído o padrão `existsBy → save()` (duas operações, janela de race condition) por `INSERT ... ON CONFLICT (user_id, friend_id) DO NOTHING` via `@Modifying` nativo no `FriendshipRepository`. A PK composta `(user_id, friend_id)` já existia na tabela — nenhuma migração Flyway necessária. Dois requests simultâneos para o mesmo par: o primeiro insere, o segundo faz `DO NOTHING` silenciosamente. Nenhuma exceção, nenhum registo duplicado.
 
 ---
 
 ## 2. Vulnerabilidades de Segurança
 
-### SEC #1 — Email de utilizadores exposto publicamente (ALTO)
+### ~~SEC #1 — Email de utilizadores exposto publicamente (ALTO)~~ ✅ RESOLVIDO
 UserController.java
 
-`GET /api/users/{id}` retorna `UserProfileResponse` que inclui o campo `email`. Qualquer utilizador autenticado pode obter o email de qualquer outro utilizador por ID sequencial. PII leakage trivial.
-
-```java
-public record UserProfileResponse(
-    Long id, String username, String email,  // ← email exposto em GET /api/users/{id}
-```
+**Fix:** Criado `PublicUserProfileResponse` (novo record sem o campo `email`). `GET /api/users/{id}` passa a retornar este DTO público. `GET /api/users/me` continua a usar `UserProfileResponse` completo — o utilizador autenticado ainda recebe o próprio email. `UserProfileService.getProfileById()` e o controller actualizados para o novo tipo. Nenhum utilizador consegue obter o email de outro por ID sequencial.
 
 ### SEC #2 — Access tokens blacklistados pelo JWT completo, não por JTI
 TokenBlacklistService.java
@@ -322,10 +311,10 @@ Anti-pattern Angular. Se dois instances do componente coexistirem, apanha o prim
 
 ## 3. Problemas de Performance
 
-### PERF #1 — `recalculateLeagues()` a cada login de Master+
-UserService.java
+### ~~PERF #1 — `recalculateLeagues()` a cada login de Master+~~ ✅ RESOLVIDO
+UserService.java, LeaderboardController.java, LeaderboardEntryResponse.java
 
-Cada login de um jogador com elo ≥ 3000 dispara um `UPDATE users SET league = CASE...` em **toda a tabela** de utilizadores com elo ≥ 3000. Com 10.000 utilizadores Master+, isto é um lock pesado na BD a cada login.
+**Fix:** Removido `recalculateLeagues()` de `goOnline()` — login não altera elo, logo nunca pode alterar quem é LEGEND. O `LeaderboardController` calcula LEGEND/MASTER on-the-fly por rank a cada `GET /api/leaderboard` (1 `COUNT` + lógica em memória), sem escrever na BD. O campo `league` na BD é mantido sincronizado por um `@Scheduled(fixedRate = 300_000)` em background no `UserService`, garantindo que contextos como o sidebar de amigos (`FriendSummaryResponse`) não fiquem permanentemente desatualizados após mudanças de elo em partidas futuras.
 
 ### PERF #2 — `enrichWithRankingContext` faz múltiplas queries por request `/me`
 UserService.java
