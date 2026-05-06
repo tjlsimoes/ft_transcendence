@@ -29,13 +29,13 @@ class JudgeServiceTest {
     private ObjectMapper mapper;
 
     @BeforeEach
-    void setUp() {
-        JudgeProperties props = new JudgeProperties("http://judge0-server:2358", 50, 10f, 128000);
+        void setUp() {
+                JudgeProperties props = new JudgeProperties("http://judge0-server:2358", 50, 10f, 128000, java.util.Map.of("c", 50));
         RestClient.Builder builder = RestClient.builder().baseUrl(props.judge0Url());
-        
+
         mockServer = MockRestServiceServer.bindTo(builder).build();
         RestClient restClient = builder.build();
-        
+
         judgeService = new JudgeService(props, restClient);
         mapper = new ObjectMapper();
     }
@@ -64,7 +64,7 @@ class JudgeServiceTest {
         assertThat(response.results()).hasSize(1);
         assertThat(response.results().get(0).actualOutput()).isEqualTo("42");
         assertThat(response.results().get(0).expectedOutput()).isEqualTo("42");
-        
+
         mockServer.verify();
     }
 

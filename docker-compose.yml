@@ -35,14 +35,13 @@ services:
       - codearena
 
   judge0-server:
-    image: judge0/judge0:latest-extra-dev
+    image: judge0/judge0:1.13.1-extra
     container_name: codearena-judge0-server
     volumes:
       - ./judge0.conf:/judge0.conf:ro
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
+    ports:
+      - "127.0.0.1:2358:2358"
+    privileged: true
     restart: unless-stopped
     depends_on:
       judge0-db:
@@ -53,17 +52,12 @@ services:
       - codearena
 
   judge0-worker:
-    image: judge0/judge0:latest-extra-dev
+    image: judge0/judge0:1.13.1-extra
     container_name: codearena-judge0-worker
     command: ["./scripts/workers"]
     volumes:
       - ./judge0.conf:/judge0.conf:ro
-    ports:
-      - "127.0.0.1:2358:2358"
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
+    privileged: true
     restart: unless-stopped
     depends_on:
       judge0-db:
