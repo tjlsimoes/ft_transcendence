@@ -33,6 +33,11 @@ export const routes: Routes = [
     path: 'profile',
     loadComponent: () => import('./features/dashboard/profile-settings/profile-settings').then(m => m.ProfileSettings),
   },
+  // pagina de jogo.
+  {
+    path: 'arena',
+    loadComponent: () => import('./arena-page/arena-page').then(m => m.ArenaPage),
+  },
   // Leaderboard (ranking global de jogadores).
   {
     path: 'leaderboard',
