@@ -16,4 +16,7 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
 
     @Query(value = "SELECT time_limit_secs FROM challenge_difficulty_settings WHERE difficulty = :difficulty", nativeQuery = true)
     Optional<Integer> findConfiguredTimeLimitByDifficulty(@Param("difficulty") String difficulty);
+
+    @Query(value = "SELECT * FROM challenges WHERE difficulty = :difficulty ORDER BY RANDOM() LIMIT 1", nativeQuery = true)
+    Optional<Challenge> findRandomByDifficulty(@Param("difficulty") String difficulty);
 }
