@@ -9,7 +9,7 @@ import java.util.List;
  * @param totalTests       total number of test cases evaluated
  * @param passedTests      number of test cases that passed
  * @param runtimeMs        total wall-clock time across all test executions
- * @param memoryKb         peak memory usage (best-effort from Docker stats)
+ * @param memoryKb         memory usage reported by Judge0, in KB
  * @param compilationError non-null if gcc compilation failed; test results will be empty
  * @param results          per-test-case results (empty when compilationError is set)
  */

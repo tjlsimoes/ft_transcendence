@@ -69,21 +69,28 @@ public class MatchmakingQueueService {
      * @return true if the player was in the queue and removed
      */
     public boolean dequeue(Long userId) {
-        String playerData = (String) redisTemplate.opsForHash().get(PLAYERS_KEY, userId.toString());
-        if (playerData == null) {
-            return false;
+        String field = userId.toString();
+
+        // Atomic Lua script: read hash value, construct member "userId:timestamp",
+        // remove member from ZSET and delete hash field in a single operation.
+        String lua = "local val = redis.call('HGET', KEYS[1], ARGV[1]) "
+                + "if not val then return 0 end "
+                + "local ts = string.match(val, '^[^:]+:(.+)$') or '' "
+                + "redis.call('ZREM', KEYS[2], ARGV[1] .. ':' .. ts) "
+                + "redis.call('HDEL', KEYS[1], ARGV[1]) "
+                + "return 1";
+
+        DefaultRedisScript<Long> script = new DefaultRedisScript<>(lua, Long.class);
+        Long result = redisTemplate.execute(script,
+                Arrays.asList(PLAYERS_KEY, QUEUE_KEY),
+                field);
+
+        if (result != null && result == 1L) {
+            log.info("Player {} dequeued", userId);
+            return true;
         }
 
-        // Parse "elo:timestamp" to reconstruct the sorted set member
-        String[] parts = playerData.split(":");
-        String timestamp = parts[1];
-        String member = userId + ":" + timestamp;
-
-        redisTemplate.opsForZSet().remove(QUEUE_KEY, member);
-        redisTemplate.opsForHash().delete(PLAYERS_KEY, userId.toString());
-
-        log.info("Player {} dequeued", userId);
-        return true;
+        return false;
     }
 
     /**

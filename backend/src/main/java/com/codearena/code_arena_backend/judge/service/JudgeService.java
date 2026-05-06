@@ -15,6 +15,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Code execution service that delegates to Judge0.
@@ -53,9 +57,11 @@ public class JudgeService {
         long peakMemoryKb = 0;
         int passedCount = 0;
 
+        int resolvedLanguageId = resolveLanguageId(request.language());
+
         for (int i = 0; i < totalTests; i++) {
             TestCaseInput tc = request.testCases().get(i);
-            Judge0Response j0Response = submitToJudge0(request.code(), tc);
+            Judge0Response j0Response = submitToJudge0(request.code(), tc, resolvedLanguageId);
 
             // Compilation Error (Status 6)
             if (j0Response.status() != null && j0Response.status().id() == 6) {
@@ -82,32 +88,77 @@ public class JudgeService {
                 totalRuntimeMs, peakMemoryKb, null, results);
     }
 
-    private Judge0Response submitToJudge0(String sourceCode, TestCaseInput testCase) {
+
+
+    private int resolveLanguageId(String requestedLanguage) {
+        if (requestedLanguage == null || requestedLanguage.isBlank()) {
+            return props.languageId();
+        }
+
+        String key = requestedLanguage.trim().toLowerCase();
+        if (props.languageMap() != null && props.languageMap().containsKey(key)) {
+            return props.languageMap().get(key);
+        }
+
+        try {
+            // Allow numeric language ids in the request (e.g. "50")
+            return Integer.parseInt(key);
+        } catch (NumberFormatException e) {
+            log.warn("Unknown judge language '{}', falling back to default languageId {}", requestedLanguage, props.languageId());
+            return props.languageId();
+        }
+    }
+
+    private Judge0Response submitToJudge0(String sourceCode, TestCaseInput testCase, int languageId) {
         Map<String, Object> body = new HashMap<>();
         body.put("source_code", sourceCode);
-        body.put("language_id", props.languageId());
-        
+        body.put("language_id", languageId);
+
         if (testCase.stdin() != null && !testCase.stdin().isEmpty()) {
             body.put("stdin", testCase.stdin());
         }
         if (testCase.expectedOutput() != null && !testCase.expectedOutput().isEmpty()) {
             body.put("expected_output", testCase.expectedOutput());
         }
-        
+
         body.put("cpu_time_limit", props.cpuTimeLimit());
         body.put("memory_limit", props.memoryLimit());
 
+        long timeoutMs = (long) (props.cpuTimeLimit() * 1000) + 1000; // small grace over CPU limit
+
         try {
-            return restClient.post()
-                    .uri("/submissions?wait=true")
-                    .body(body)
-                    .retrieve()
-                    .body(Judge0Response.class);
-        } catch (Exception e) {
-            log.error("Failed to call Judge0 API", e);
-            // Return a synthesized internal error response
+            CompletableFuture<Judge0Response> cf = CompletableFuture.supplyAsync(() -> {
+                try {
+                    return restClient.post()
+                            .uri("/submissions?wait=true")
+                            .body(body)
+                            .retrieve()
+                            .body(Judge0Response.class);
+                } catch (Exception ex) {
+                    throw new RuntimeException(ex);
+                }
+            });
+
+            return cf.get(timeoutMs, TimeUnit.MILLISECONDS);
+        } catch (TimeoutException te) {
+            log.warn("Timed out waiting for Judge0 response after {} ms (cpuTimeLimit={}s)", timeoutMs, props.cpuTimeLimit());
+            // Translate timeout into a deterministic TLE-like response
             return new Judge0Response(
-                    null, null, null, "Internal Error calling Judge0: " + e.getMessage(), 
+                    null, null, null, "Judge0 request timed out after " + timeoutMs + " ms",
+                    null, null, new Judge0Status(5, "Time limit exceeded")
+            );
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+            log.error("Interrupted while waiting for Judge0 response", ie);
+            return new Judge0Response(
+                    null, null, null, "Internal Error calling Judge0: interrupted",
+                    null, null, new Judge0Status(13, "Internal Error")
+            );
+        } catch (ExecutionException ee) {
+            Throwable cause = ee.getCause() != null ? ee.getCause() : ee;
+            log.error("Failed to call Judge0 API", cause);
+            return new Judge0Response(
+                    null, null, null, "Internal Error calling Judge0: " + cause.getMessage(),
                     null, null, new Judge0Status(13, "Internal Error")
             );
         }
@@ -116,7 +167,7 @@ public class JudgeService {
     private TestCaseResult mapResult(int index, TestCaseInput testCase, Judge0Response response) {
         int statusId = response.status() != null ? response.status().id() : 13;
         boolean passed = (statusId == 3); // 3 = Accepted
-        
+
         String errorMsg = null;
         if (!passed) {
             if (statusId == 5) {

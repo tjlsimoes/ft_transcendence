@@ -106,9 +106,9 @@ public class MatchmakingService {
                 log.warn("Failed to re-enqueue player {} after match creation error", player2Id, ex);
             }
 
-            // Ensure user statuses are back to ONLINE and notify via user-scoped destinations
+            // Ensure user statuses reflect re-enqueued state (IN_QUEUE) and notify via user-scoped destinations
             userRepository.findById(player1Id).ifPresent(u -> {
-                u.setStatus(User.UserStatus.ONLINE);
+                u.setStatus(User.UserStatus.IN_QUEUE);
                 userRepository.save(u);
                 try {
                     messagingTemplate.convertAndSendToUser(u.getUsername(), "/queue/matchmaking", MatchmakingEvent.queued());
@@ -117,7 +117,7 @@ public class MatchmakingService {
                 }
             });
             userRepository.findById(player2Id).ifPresent(u -> {
-                u.setStatus(User.UserStatus.ONLINE);
+                u.setStatus(User.UserStatus.IN_QUEUE);
                 userRepository.save(u);
                 try {
                     messagingTemplate.convertAndSendToUser(u.getUsername(), "/queue/matchmaking", MatchmakingEvent.queued());
