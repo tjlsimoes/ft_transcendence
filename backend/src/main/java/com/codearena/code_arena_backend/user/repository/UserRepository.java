@@ -21,19 +21,44 @@ public interface UserRepository extends JpaRepository<User, Long> {
     long countAllPlayers();
 
     /**
-     * Find the elo of the player at a given global rank position (0-based offset),
-     * ordered by elo descending. Used to determine the Legend threshold (top 1% of all players).
+     * Projection returned by {@link #findMasterRankingStats(int)}.
+     * Carries all data needed by {@code enrichWithRankingContext} in a single DB round-trip.
      */
-    @Query(value = "SELECT elo FROM users ORDER BY elo DESC LIMIT 1 OFFSET :offset", nativeQuery = true)
-    Optional<Integer> findEloAtGlobalRank(long offset);
+    interface MasterRankingStats {
+        Long getTotalPlayers();
+        Long getPlayersAbove();
+        Integer getLegendThresholdElo();
+        Integer getHighestElo();
+    }
 
-    /** Find the highest elo among all players. */
-    @Query("SELECT MAX(u.elo) FROM User u")
-    Optional<Integer> findHighestElo();
-
-    /** Count how many players have elo strictly greater than the given value. */
-    @Query("SELECT COUNT(u) FROM User u WHERE u.elo > :elo")
-    long countPlayersWithEloAbove(int elo);
+    /**
+     * Single-query replacement for the four individual ranking queries.
+     *
+     * Returns in one DB round-trip:
+     *   - total_players       : COUNT(*) of all users
+     *   - players_above       : COUNT of users with elo > playerElo (determines global rank)
+     *   - legend_threshold_elo: elo of the player at the legend cutoff position (top 1%)
+     *   - highest_elo         : MAX elo across all players
+     *
+     * The OFFSET for the legend threshold mirrors the Java formula:
+     *   GREATEST(1, CEIL(total * 0.01)) - 1
+     */
+    @Query(value = """
+        WITH totals AS (
+            SELECT COUNT(*) AS n FROM users
+        )
+        SELECT
+            t.n                                                                           AS total_players,
+            (SELECT COUNT(*) FROM users WHERE elo > :playerElo)                          AS players_above,
+            COALESCE(
+                (SELECT elo FROM users ORDER BY elo DESC
+                 LIMIT 1 OFFSET (GREATEST(1::BIGINT, CEIL(t.n * 0.01)::BIGINT) - 1)),
+                3000
+            )                                                                             AS legend_threshold_elo,
+            COALESCE((SELECT MAX(elo) FROM users), :playerElo)                            AS highest_elo
+        FROM totals t
+        """, nativeQuery = true)
+    MasterRankingStats findMasterRankingStats(int playerElo);
 
     /** All players with elo >= 3000, ordered by elo descending. */
     @Query("SELECT u FROM User u WHERE u.elo >= 3000 ORDER BY u.elo DESC")

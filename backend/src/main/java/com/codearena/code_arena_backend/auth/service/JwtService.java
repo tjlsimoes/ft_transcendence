@@ -66,7 +66,11 @@ public class JwtService {
     }
 
     /**
-     * Internal helper to generate a JWT with specific claims and expiration.
+     * Generates a JWT with specific claims and expiration.
+     * Public to allow test code to craft tokens with arbitrary expiration
+     * (e.g. already-expired tokens for integration tests).
+     * Production callers should use {@link #generateToken(UserDetails)}
+     * or {@link #generateRefreshToken(UserDetails)}.
      */
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails, long expiration,
             String type) {
@@ -145,7 +149,7 @@ public class JwtService {
     // ------------------------------------------------------------------ //
 
     /** Generic claim extractor – accepts any Claims → T function. */
-    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+    private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }

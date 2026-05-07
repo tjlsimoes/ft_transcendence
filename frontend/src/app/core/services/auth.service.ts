@@ -1,7 +1,7 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { finalize } from 'rxjs';
+import { finalize, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { UserService } from './user.service';
 
@@ -41,6 +41,18 @@ export class AuthService {
     return this.http.post<AuthResponse>(`${this.baseUrl}/login`, payload);
   }
 
+  /**
+   * Exchanges the stored refresh token for a new access+refresh token pair.
+   * Saves the new tokens to localStorage automatically via tap().
+   * Called exclusively by the auth interceptor on 401 responses.
+   */
+  refreshTokens() {
+    const refreshToken = this.getRefreshToken();
+    return this.http
+      .post<AuthResponse>(`${this.baseUrl}/refresh`, { refreshToken })
+      .pipe(tap((response) => this.saveToken(response)));
+  }
+
   saveToken(response: AuthResponse): void {
     localStorage.setItem(this.tokenKey, response.accessToken);
     localStorage.setItem(this.refreshTokenKey, response.refreshToken);
@@ -54,17 +66,42 @@ export class AuthService {
     return localStorage.getItem(this.refreshTokenKey);
   }
 
+  /**
+   * Returns true when the session is considered active.
+   *
+   * Session validity is determined by the REFRESH token, not the access token.
+   * The access token may be expired — the interceptor will transparently renew
+   * it on the next HTTP request. Only when the refresh token itself is absent or
+   * expired is the user truly logged out.
+   *
+   * Side effects:
+   *  - Clears both tokens when the refresh token is expired (full cleanup).
+   *  - Removes only the access token when it is expired but refresh is still
+   *    valid, so the interceptor is not sent a stale Bearer header.
+   */
   isLoggedIn(): boolean {
-    const token = this.getToken();
-    if (!token || token === 'undefined' || token === 'null') {
+    const refreshToken = this.getRefreshToken();
+
+    // No refresh token → definitely not logged in.
+    if (!refreshToken || refreshToken === 'undefined' || refreshToken === 'null') {
       return false;
     }
-    if (this.isTokenExpired(token)) {
-      // Proactively remove stale tokens so subsequent checks are clean.
+
+    // Refresh token itself is expired → full cleanup, session over.
+    if (this.isTokenExpired(refreshToken)) {
       localStorage.removeItem(this.tokenKey);
       localStorage.removeItem(this.refreshTokenKey);
       return false;
     }
+
+    // Refresh token is valid → session is active.
+    // Remove the expired access token so it is not sent in the Authorization header
+    // (the interceptor will obtain a fresh one on the first 401).
+    const accessToken = this.getToken();
+    if (accessToken && this.isTokenExpired(accessToken)) {
+      localStorage.removeItem(this.tokenKey);
+    }
+
     return true;
   }
 

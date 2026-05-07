@@ -261,4 +261,55 @@ class AuthIntegrationTest {
                                                 .writeValueAsString(java.util.Map.of("refreshToken", expiredToken))))
                                 .andExpect(status().isBadRequest());
         }
+
+        @Test
+        @DisplayName("Successful logins do NOT count against the rate limit")
+        void successfulLoginsDontTriggerRateLimit() throws Exception {
+                // Register a real user first.
+                RegisterRequest regReq = new RegisterRequest("rluser", "rl@arena.com", "SecurePass123");
+                mockMvc.perform(post("/api/auth/register")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(regReq)))
+                                .andExpect(status().isCreated());
+
+                LoginRequest loginReq = new LoginRequest("rluser", "SecurePass123");
+
+                // 6 consecutive successful logins — none should return 429.
+                // Before the fix, recordAttempt() was called on every request
+                // (success included), so the 6th would have been blocked.
+                for (int i = 0; i < 6; i++) {
+                        mockMvc.perform(post("/api/auth/login")
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content(objectMapper.writeValueAsString(loginReq)))
+                                        .andExpect(status().isOk());
+                }
+        }
+
+        @Test
+        @DisplayName("Rate limit tracks IP from X-Forwarded-For, not the proxy address")
+        void rateLimitUsesXForwardedForHeader() throws Exception {
+                LoginRequest loginReq = new LoginRequest("nouser", "nopass");
+
+                // 5 failed attempts from a specific client IP via the Nginx proxy header.
+                for (int i = 0; i < 5; i++) {
+                        mockMvc.perform(post("/api/auth/login")
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .header("X-Forwarded-For", "203.0.113.1")
+                                        .content(objectMapper.writeValueAsString(loginReq)));
+                }
+
+                // 6th attempt from the same client IP → blocked (429).
+                mockMvc.perform(post("/api/auth/login")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .header("X-Forwarded-For", "203.0.113.1")
+                                .content(objectMapper.writeValueAsString(loginReq)))
+                                .andExpect(status().isTooManyRequests());
+
+                // Different client IP → its own independent counter → gets 401, not 429.
+                mockMvc.perform(post("/api/auth/login")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .header("X-Forwarded-For", "203.0.113.2")
+                                .content(objectMapper.writeValueAsString(loginReq)))
+                                .andExpect(status().isUnauthorized());
+        }
 }

@@ -103,24 +103,15 @@ public class UserService implements UserDetailsService {
             return response;
         }
 
-        long totalPlayers = userRepository.countAllPlayers();
-        long legendCutoff = Math.max(1, (long) Math.ceil(totalPlayers * 0.01));
-
-        // The player's global rank (0-based count of players above them)
-        long playersAbove = userRepository.countPlayersWithEloAbove(response.elo());
-        // 1-based rank
-        long globalRank = playersAbove + 1;
-
+        UserRepository.MasterRankingStats stats = userRepository.findMasterRankingStats(response.elo());
+        long legendCutoff = Math.max(1, (long) Math.ceil(stats.getTotalPlayers() * 0.01));
+        long globalRank = stats.getPlayersAbove() + 1;
         boolean isLegend = globalRank <= legendCutoff;
 
-        // Find the Legend threshold: elo of the player at position legendCutoff
-        Integer legendThreshold = userRepository.findEloAtGlobalRank(legendCutoff - 1).orElse(3000);
-
         if (isLegend) {
-            int highestLp = userRepository.findHighestElo().orElse(response.elo());
-            return response.withLegendContext((int) globalRank, highestLp);
+            return response.withLegendContext((int) globalRank, stats.getHighestElo());
         } else {
-            return response.withMasterContext(legendThreshold);
+            return response.withMasterContext(stats.getLegendThresholdElo());
         }
     }
 

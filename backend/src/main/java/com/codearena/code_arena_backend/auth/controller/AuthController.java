@@ -62,16 +62,35 @@ public class AuthController {
     public ResponseEntity<AuthResponse> login(
             @Valid @RequestBody LoginRequest request,
             HttpServletRequest servletRequest) {
-        String clientIp = servletRequest.getRemoteAddr();
+        String clientIp = resolveClientIp(servletRequest);
 
         if (!rateLimiter.isAllowed(clientIp)) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                     .body(null); // Or a specific error DTO
         }
 
-        rateLimiter.recordAttempt(clientIp);
-        AuthResponse response = authService.login(request);
-        return ResponseEntity.ok(response);
+        try {
+            AuthResponse response = authService.login(request);
+            return ResponseEntity.ok(response);
+        } catch (org.springframework.security.authentication.BadCredentialsException ex) {
+            // Only count failures against the rate limit, not successful logins.
+            rateLimiter.recordAttempt(clientIp);
+            throw ex; // re-throw so the @ExceptionHandler below returns 401
+        }
+    }
+
+    /**
+     * Resolves the real client IP from the X-Forwarded-For header set by Nginx,
+     * falling back to the direct remote address when no proxy header is present.
+     * X-Forwarded-For can be a comma-separated list; the leftmost value is the
+     * original client.
+     */
+    private String resolveClientIp(HttpServletRequest request) {
+        String forwardedFor = request.getHeader("X-Forwarded-For");
+        if (forwardedFor != null && !forwardedFor.isBlank()) {
+            return forwardedFor.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 
     /**
