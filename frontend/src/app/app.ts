@@ -4,6 +4,7 @@ import { Navbar } from './shared/components/navbar/navbar';
 import { FloatingSymbols } from './shared/components/floating-symbols/floating-symbols';
 import { Sidebar } from './shared/components/sidebar/sidebar';
 import { AuthService } from './core/services/auth.service';
+import { RouteStateService } from './core/services/route-state.service';
 import { environment } from '../environments/environment';
 
 // Componente raiz da aplicação: monta layout base (fundo, navbar e área de rotas).
@@ -15,6 +16,7 @@ import { environment } from '../environments/environment';
 })
 export class App implements OnInit {
   private authService = inject(AuthService);
+  routeState = inject(RouteStateService);
 
   // sessionStorage sobrevive ao F5 (mesmo tab), mas é limpo ao fechar a aba.
   private readonly REFRESH_KEY = '__ca_refresh';
