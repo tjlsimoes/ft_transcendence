@@ -37,8 +37,20 @@ services:
   judge0-server:
     image: judge0/judge0:1.13.1-extra
     container_name: codearena-judge0-server
-    volumes:
-      - ./judge0.conf:/judge0.conf:ro
+    environment:
+      - REDIS_HOST=judge0-cache
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${JUDGE0_REDIS_PASSWORD}
+      - POSTGRES_HOST=judge0-db
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=${JUDGE0_POSTGRES_DB}
+      - POSTGRES_USER=${JUDGE0_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${JUDGE0_POSTGRES_PASSWORD}
+      - ENABLE_NETWORK=${JUDGE0_ENABLE_NETWORK:-false}
+      - CPU_TIME_LIMIT=${JUDGE0_CPU_TIME_LIMIT:-10}
+      - MEMORY_LIMIT=${JUDGE0_MEMORY_LIMIT:-128000}
+      - MAX_PROCESSES_AND_OR_THREADS=${JUDGE0_MAX_PROCESSES_AND_OR_THREADS:-60}
+      - MAX_FILE_SIZE=${JUDGE0_MAX_FILE_SIZE:-4096}
     ports:
       - "127.0.0.1:2358:2358"
     privileged: true
@@ -55,8 +67,20 @@ services:
     image: judge0/judge0:1.13.1-extra
     container_name: codearena-judge0-worker
     command: ["./scripts/workers"]
-    volumes:
-      - ./judge0.conf:/judge0.conf:ro
+    environment:
+      - REDIS_HOST=judge0-cache
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${JUDGE0_REDIS_PASSWORD}
+      - POSTGRES_HOST=judge0-db
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=${JUDGE0_POSTGRES_DB}
+      - POSTGRES_USER=${JUDGE0_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${JUDGE0_POSTGRES_PASSWORD}
+      - ENABLE_NETWORK=${JUDGE0_ENABLE_NETWORK:-false}
+      - CPU_TIME_LIMIT=${JUDGE0_CPU_TIME_LIMIT:-10}
+      - MEMORY_LIMIT=${JUDGE0_MEMORY_LIMIT:-128000}
+      - MAX_PROCESSES_AND_OR_THREADS=${JUDGE0_MAX_PROCESSES_AND_OR_THREADS:-60}
+      - MAX_FILE_SIZE=${JUDGE0_MAX_FILE_SIZE:-4096}
     privileged: true
     restart: unless-stopped
     depends_on:
@@ -70,10 +94,13 @@ services:
   judge0-db:
     image: postgres:16-alpine
     container_name: codearena-judge0-db
-    env_file: judge0.conf
+    environment:
+      POSTGRES_DB: ${JUDGE0_POSTGRES_DB}
+      POSTGRES_USER: ${JUDGE0_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${JUDGE0_POSTGRES_PASSWORD}
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -p 5432 -U judge0 -d judge0"]
+      test: ["CMD-SHELL", "pg_isready -p 5432 -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -83,11 +110,12 @@ services:
   judge0-cache:
     image: redis:7-alpine
     container_name: codearena-judge0-cache
+    environment:
+      REDIS_PASSWORD: ${JUDGE0_REDIS_PASSWORD}
     command: [
       "sh", "-c",
       'docker-entrypoint.sh --appendonly no --requirepass "$$REDIS_PASSWORD"'
     ]
-    env_file: judge0.conf
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", 'redis-cli -p 6379 -a "$$REDIS_PASSWORD" ping']
