@@ -4,8 +4,11 @@ import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Service;
 
+import com.codearena.code_arena_backend.duel.dto.DuelResultEvent;
 import com.codearena.code_arena_backend.duel.entity.Duel;
 import com.codearena.code_arena_backend.duel.repository.DuelRepository;
+import com.codearena.code_arena_backend.notification.NotificationService;
+import com.codearena.code_arena_backend.notification.entity.NotificationType;
 import com.codearena.code_arena_backend.ranking.service.RankingService;
 import com.codearena.code_arena_backend.user.entity.User;
 import com.codearena.code_arena_backend.user.repository.UserRepository;
@@ -19,6 +22,7 @@ public class DuelService {
     private final RankingService rankingService;
     private final DuelRepository duelRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
     
     @Transactional
     public void completeDuel(Long duelId, Long winnerId, boolean isDraw) {
@@ -88,6 +92,30 @@ public class DuelService {
         userRepository.save(opponent);
         
         userRepository.recalculateMasterLeagues();
+
+        // Send duel result notifications
+        DuelResultEvent challengerResult = DuelResultEvent.builder()
+            .duelId(duel.getId())
+            .result(isDraw ? "DRAW" : (winnerId.equals(challenger.getId()) ? "WIN" : "LOSS"))
+            .opponentId(opponent.getId())
+            .opponentName(opponent.getDisplayName())
+            .eloChange(challengerDelta)
+            .newElo(challenger.getElo())
+            .build();
+
+        notificationService.send(challenger.getId(), NotificationType.DUEL_RESULT, challengerResult);
+
+        DuelResultEvent opponentResult = DuelResultEvent.builder()
+            .duelId(duel.getId())
+            .result(isDraw ? "DRAW" : (winnerId.equals(opponent.getId()) ? "WIN" : "LOSS"))
+            .opponentId(challenger.getId())
+            .opponentName(challenger.getDisplayName())
+            .eloChange(opponentDelta)
+            .newElo(opponent.getElo())
+            .build();
+
+        notificationService.send(opponent.getId(), NotificationType.DUEL_RESULT, opponentResult);
+
     }
 }
 
