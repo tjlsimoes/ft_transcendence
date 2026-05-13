@@ -1,5 +1,6 @@
 import { Component, inject, signal, effect } from '@angular/core';
 import { RouteStateService } from '../../../core/services/route-state.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { UserService } from '../../../core/services/user.service';
 import type { FriendEntry } from '../../models/user-profile.model';
 
@@ -11,6 +12,7 @@ import type { FriendEntry } from '../../models/user-profile.model';
 })
 export class Sidebar {
   private routeState = inject(RouteStateService);
+  private authService = inject(AuthService);
   private userService = inject(UserService);
 
   username = this.userService.username;
@@ -27,9 +29,10 @@ export class Sidebar {
     // avalia uma única vez. Assim, navegar para /lobby após inicialização carrega
     // os amigos correctamente.
     effect(() => {
-      if (this.isLobby()) {
+      if (this.isLobby() && this.authService.isLoggedIn()) {
         this.userService.loadFriends().subscribe({
           next: (friends) => this.friends.set(friends),
+          error: () => { /* silently ignored — authGuard handles redirect */ },
         });
       }
     });

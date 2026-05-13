@@ -1,6 +1,7 @@
 package com.codearena.code_arena_backend.config;
 
 import com.codearena.code_arena_backend.auth.JwtAuthenticationFilter;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -96,6 +97,16 @@ public class SecurityConfig {
                  * configuration warning at startup. We now rely on Spring's auto-wiring to keep
                  * the startup logs clean and follow modern standards.
                  */
+
+                // Return 401 (Unauthorized) for requests without a valid token.
+                // Without this, Spring Security defaults to 403 (Forbidden), which
+                // prevents the Angular interceptor from detecting missing auth and
+                // triggering the token-refresh flow.
+                .exceptionHandling(ex -> ex
+                    .authenticationEntryPoint((request, response, authException) ->
+                        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized")
+                    )
+                )
 
                 // Run our JWT filter before Spring's default login filter.
                 // This ensures the SecurityContext is populated from the token

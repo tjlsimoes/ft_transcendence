@@ -4,7 +4,6 @@ import com.codearena.code_arena_backend.duel.dto.MatchHistoryResponse;
 import com.codearena.code_arena_backend.duel.entity.Duel;
 import com.codearena.code_arena_backend.duel.entity.Duel.DuelStatus;
 import com.codearena.code_arena_backend.duel.repository.DuelRepository;
-import com.codearena.code_arena_backend.friendship.dto.FriendResponse;
 import com.codearena.code_arena_backend.friendship.repository.FriendshipRepository;
 import com.codearena.code_arena_backend.user.dto.FriendSummaryResponse;
 import com.codearena.code_arena_backend.user.dto.PublicUserProfileResponse;
