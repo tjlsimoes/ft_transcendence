@@ -8,6 +8,7 @@ import { QueuePanel } from './components/queue-panel/queue-panel';
 import { UserService } from '../../../core/services/user.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { LOBBY_TABS } from '../../../shared/models/lobby.mock';
+import { getLeagueDisplayInfo } from '../../../shared/utils/league.utils';
 import type { LobbyTab, PlayerIdentity, ProfileData as ProfileDataModel, SummaryStat, RecordStat } from '../../../shared/models/lobby.model';
 import type { UserProfile, MatchHistory } from '../../../shared/models/user-profile.model';
 
@@ -67,7 +68,7 @@ export class Lobby implements OnInit {
     });
 
     // Profile data (rank display)
-    const leagueInfo = this.getLeagueInfo(user.league, user.elo, user);
+    const leagueInfo = getLeagueDisplayInfo(user);
     this.profileData.set({
       rankTier: leagueInfo.tier,
       leagueName: `${user.league} LEAGUE`,
@@ -92,48 +93,5 @@ export class Lobby implements OnInit {
       { id: 'losses', label: 'Losses', value: user.losses.toLocaleString() },
       { id: 'streak', label: 'Win Streak', value: user.winStreak.toString(), accent: true },
     ]);
-  }
-
-  private getLeagueInfo(league: string, elo: number, user: UserProfile) {
-    const leagues = ['BRONZE', 'SILVER', 'GOLD', 'MASTER', 'LEGEND'];
-    const leagueIndex = leagues.indexOf(league);
-
-    if (league === 'LEGEND') {
-      return {
-        tier: 'L',
-        currentLp: elo,
-        targetLp: elo, // No progression target for Legend
-        nextLeague: 'LEGEND',
-        globalRank: user.globalRank ?? undefined,
-        highestLp: user.highestLp ?? undefined,
-        legendThresholdLp: undefined,
-      };
-    }
-
-    if (league === 'MASTER') {
-      return {
-        tier: 'M',
-        currentLp: elo,
-        targetLp: user.legendThresholdLp ?? elo,
-        nextLeague: 'LEGEND',
-        legendThresholdLp: user.legendThresholdLp ?? undefined,
-        globalRank: undefined,
-        highestLp: undefined,
-      };
-    }
-
-    // Bronze, Silver, Gold — standard LP progress to next league
-    const currentLp = elo % 1000;
-    const nextLeague = leagueIndex < leagues.length - 1 ? leagues[leagueIndex + 1] : 'MASTER';
-
-    return {
-      tier: league.charAt(0),
-      currentLp,
-      targetLp: 1000,
-      nextLeague,
-      legendThresholdLp: undefined,
-      globalRank: undefined,
-      highestLp: undefined,
-    };
   }
 }

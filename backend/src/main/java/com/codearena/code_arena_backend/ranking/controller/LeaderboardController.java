@@ -1,7 +1,7 @@
 package com.codearena.code_arena_backend.ranking.controller;
 
 import com.codearena.code_arena_backend.ranking.dto.LeaderboardEntryResponse;
-import com.codearena.code_arena_backend.user.dto.UserProfileResponse;
+import com.codearena.code_arena_backend.ranking.util.LeagueUtils;
 import com.codearena.code_arena_backend.user.entity.User;
 import com.codearena.code_arena_backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -51,21 +51,10 @@ public class LeaderboardController {
         for (int i = 0; i < players.size(); i++) {
             int rank = i + 1;
             User user = players.get(i);
-            String league = computeLeague(user.getElo(), rank, legendCutoff);
+            String league = LeagueUtils.computeLeague(user.getElo(), rank, legendCutoff);
             response.add(LeaderboardEntryResponse.fromUser(rank, user, league));
         }
 
         return ResponseEntity.ok(response);
-    }
-
-    /**
-     * Derives the display league for a player given their elo and leaderboard rank.
-     * Does NOT rely on the stored league column — computed entirely from elo + rank.
-     */
-    private static String computeLeague(int elo, int rank, long legendCutoff) {
-        if (elo >= 3000) {
-            return rank <= legendCutoff ? "LEGEND" : "MASTER";
-        }
-        return UserProfileResponse.leagueFromElo(elo);
     }
 }

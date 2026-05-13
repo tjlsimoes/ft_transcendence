@@ -1,5 +1,6 @@
 package com.codearena.code_arena_backend.user.dto;
 
+import com.codearena.code_arena_backend.ranking.util.LeagueUtils;
 import com.codearena.code_arena_backend.user.entity.User;
 
 import java.time.LocalDateTime;
@@ -40,7 +41,7 @@ public record PublicUserProfileResponse(
                 user.getLosses(),
                 user.getWinStreak(),
                 user.getElo(),
-                UserProfileResponse.leagueFromElo(user.getElo()),
+                LeagueUtils.leagueFromElo(user.getElo()),
                 user.getStatus().name(),
                 user.getCreatedAt()
         );

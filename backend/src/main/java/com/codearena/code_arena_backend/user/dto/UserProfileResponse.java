@@ -1,5 +1,6 @@
 package com.codearena.code_arena_backend.user.dto;
 
+import com.codearena.code_arena_backend.ranking.util.LeagueUtils;
 import com.codearena.code_arena_backend.user.entity.User;
 
 import java.time.LocalDateTime;
@@ -57,7 +58,7 @@ public record UserProfileResponse(
                 user.getLosses(),
                 user.getWinStreak(),
                 user.getElo(),
-                leagueFromElo(user.getElo()),
+                LeagueUtils.leagueFromElo(user.getElo()),
                 user.getStatus().name(),
                 user.getCreatedAt(),
                 null, // legendThresholdLp
@@ -90,15 +91,4 @@ public record UserProfileResponse(
         );
     }
 
-    /**
-     * Derives league name from elo value.
-     * Bronze 0-999 | Silver 1000-1999 | Gold 2000-2999 | Master 3000+
-     * Legend status is determined separately (top 1% of all players).
-     */
-    public static String leagueFromElo(int elo) {
-        if (elo >= 3000) return "MASTER";
-        if (elo >= 2000) return "GOLD";
-        if (elo >= 1000) return "SILVER";
-        return "BRONZE";
-    }
 }
