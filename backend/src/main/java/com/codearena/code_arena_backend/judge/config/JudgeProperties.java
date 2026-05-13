@@ -11,6 +11,7 @@ import java.util.Map;
  * @param languageMap    Optional mapping from logical language names to Judge0 language IDs
  * @param cpuTimeLimit   CPU time limit in seconds
  * @param memoryLimit    Memory limit in kilobytes
+ * @param authToken      Authentication token for Judge0's AUTHN_TOKEN
  */
 @ConfigurationProperties(prefix = "judge")
 public record JudgeProperties(
@@ -18,5 +19,6 @@ public record JudgeProperties(
         int languageId,
         float cpuTimeLimit,
         int memoryLimit,
-        Map<String, Integer> languageMap
+        Map<String, Integer> languageMap,
+        String authToken
 ) {}

@@ -30,7 +30,7 @@ class JudgeServiceTest {
 
     @BeforeEach
         void setUp() {
-                JudgeProperties props = new JudgeProperties("http://judge0-server:2358", 50, 10f, 128000, java.util.Map.of("c", 50));
+                JudgeProperties props = new JudgeProperties("http://judge0-server:2358", 50, 10f, 128000, java.util.Map.of("c", 50), "test-token");
         RestClient.Builder builder = RestClient.builder().baseUrl(props.judge0Url());
 
         mockServer = MockRestServiceServer.bindTo(builder).build();

@@ -38,6 +38,7 @@ public class JudgeService {
         this.props = props;
         this.restClient = RestClient.builder()
                 .baseUrl(props.judge0Url())
+                .defaultHeader("X-Auth-Token", props.authToken())
                 .build();
     }
 
