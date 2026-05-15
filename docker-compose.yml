@@ -34,6 +34,98 @@ services:
     networks:
       - codearena
 
+  judge0-server:
+    image: judge0/judge0:1.13.1-extra
+    container_name: codearena-judge0-server
+    environment:
+      - REDIS_HOST=judge0-cache
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${JUDGE0_REDIS_PASSWORD}
+      - POSTGRES_HOST=judge0-db
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=${JUDGE0_POSTGRES_DB}
+      - POSTGRES_USER=${JUDGE0_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${JUDGE0_POSTGRES_PASSWORD}
+      - AUTHN_TOKEN=${JUDGE0_AUTH_TOKEN}
+      - ENABLE_NETWORK=${JUDGE0_ENABLE_NETWORK:-false}
+      - CPU_TIME_LIMIT=${JUDGE0_CPU_TIME_LIMIT:-10}
+      - MEMORY_LIMIT=${JUDGE0_MEMORY_LIMIT:-128000}
+      - MAX_PROCESSES_AND_OR_THREADS=${JUDGE0_MAX_PROCESSES_AND_OR_THREADS:-60}
+      - MAX_FILE_SIZE=${JUDGE0_MAX_FILE_SIZE:-4096}
+    privileged: true
+    restart: unless-stopped
+    depends_on:
+      judge0-db:
+        condition: service_healthy
+      judge0-cache:
+        condition: service_healthy
+    networks:
+      - codearena
+
+  judge0-worker:
+    image: judge0/judge0:1.13.1-extra
+    container_name: codearena-judge0-worker
+    command: ["./scripts/workers"]
+    environment:
+      - REDIS_HOST=judge0-cache
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${JUDGE0_REDIS_PASSWORD}
+      - POSTGRES_HOST=judge0-db
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=${JUDGE0_POSTGRES_DB}
+      - POSTGRES_USER=${JUDGE0_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${JUDGE0_POSTGRES_PASSWORD}
+      - AUTHN_TOKEN=${JUDGE0_AUTH_TOKEN}
+      - ENABLE_NETWORK=${JUDGE0_ENABLE_NETWORK:-false}
+      - CPU_TIME_LIMIT=${JUDGE0_CPU_TIME_LIMIT:-10}
+      - MEMORY_LIMIT=${JUDGE0_MEMORY_LIMIT:-128000}
+      - MAX_PROCESSES_AND_OR_THREADS=${JUDGE0_MAX_PROCESSES_AND_OR_THREADS:-60}
+      - MAX_FILE_SIZE=${JUDGE0_MAX_FILE_SIZE:-4096}
+    privileged: true
+    restart: unless-stopped
+    depends_on:
+      judge0-db:
+        condition: service_healthy
+      judge0-cache:
+        condition: service_healthy
+    networks:
+      - codearena
+
+  judge0-db:
+    image: postgres:16-alpine
+    container_name: codearena-judge0-db
+    environment:
+      POSTGRES_DB: ${JUDGE0_POSTGRES_DB}
+      POSTGRES_USER: ${JUDGE0_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${JUDGE0_POSTGRES_PASSWORD}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -p 5432 -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - codearena
+
+  judge0-cache:
+    image: redis:7-alpine
+    container_name: codearena-judge0-cache
+    environment:
+      REDIS_PASSWORD: ${JUDGE0_REDIS_PASSWORD}
+    command: [
+      "sh", "-c",
+      'docker-entrypoint.sh --appendonly no --requirepass "$$REDIS_PASSWORD"'
+    ]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", 'redis-cli -p 6379 -a "$$REDIS_PASSWORD" ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - codearena
+
+
   backend:
     image: codearena-backend:1.0
     build:
@@ -61,6 +153,8 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-3600000}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
+      JUDGE0_URL: ${JUDGE0_URL:-http://judge0-server:2358}
+      JUDGE0_AUTH_TOKEN: ${JUDGE0_AUTH_TOKEN}
     volumes:
       - ./backend/uploads:/app/uploads
     healthcheck:

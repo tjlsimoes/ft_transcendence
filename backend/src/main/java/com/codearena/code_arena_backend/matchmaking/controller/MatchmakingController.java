@@ -6,6 +6,8 @@ import com.codearena.code_arena_backend.matchmaking.service.MatchmakingService;
 import com.codearena.code_arena_backend.user.entity.User;
 import com.codearena.code_arena_backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -26,6 +28,8 @@ import java.util.NoSuchElementException;
 @RequestMapping("/api/matchmaking")
 @RequiredArgsConstructor
 public class MatchmakingController {
+
+    private static final Logger log = LoggerFactory.getLogger(MatchmakingController.class);
 
     private final MatchmakingQueueService queueService;
     private final MatchmakingService matchmakingService;
@@ -57,10 +61,8 @@ public class MatchmakingController {
             try {
                 messagingTemplate.convertAndSendToUser(user.getUsername(), "/queue/matchmaking", event);
             } catch (Exception e) {
-                // Fall back to logging if notification fails
-                // (user will still be enqueued)
-                // No need to expose transport failures to client here.
-
+                // Fall back to logging if notification fails (user will still be enqueued)
+                log.warn("Failed to send matchmaking notification to user {}", user.getUsername(), e);
             }
             return ResponseEntity.ok(event);
         }

@@ -5,7 +5,8 @@ import { environment } from '../../../environments/environment';
 import { UserService } from './user.service';
 
 export interface AuthResponse {
-  token: string;
+  accessToken: string;
+  refreshToken: string;
   tokenType: string;
   expiresIn: number;
 }
@@ -39,7 +40,7 @@ export class AuthService {
   }
 
   saveToken(response: AuthResponse): void {
-    localStorage.setItem(this.tokenKey, response.token);
+    localStorage.setItem(this.tokenKey, response.accessToken);
   }
 
   getToken(): string | null {
