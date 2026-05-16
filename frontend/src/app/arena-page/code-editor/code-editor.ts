@@ -67,7 +67,7 @@ export class CodeEditorComponent implements OnInit, OnChanges, OnDestroy {
         value: this.value,
         language: LANGUAGE_MAP[this.language] ?? 'plaintext',
         theme: this.resolveTheme(),
-        readOnly: true,           // ← read-only base; remove when implementing full editor
+        readOnly: false,
         automaticLayout: true,
         minimap: { enabled: false },
         scrollBeyondLastLine: false,
