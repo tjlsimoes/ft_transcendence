@@ -63,6 +63,7 @@ export class AuthService {
   }
 
   extractApiError(err: HttpErrorResponse): string {
+    if (err.status === 429) return 'Too many login attempts. Please wait 15 minutes before trying again.';
     if (err.error?.error) return err.error.error;
     if (err.error?.message) return err.error.message;
     if (err.status === 0) return 'Unable to reach the server. Check your connection.';

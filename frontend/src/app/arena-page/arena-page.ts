@@ -1,6 +1,7 @@
-import { Component, signal, computed, ElementRef, ViewChild, OnDestroy } from '@angular/core';
+import { Component, signal, computed, ElementRef, ViewChild, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgClass } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 import { ArenaTimer } from './arena-timer';
 import { CodeEditorComponent, EditorTheme } from './code-editor/code-editor';
 import {
@@ -21,10 +22,17 @@ export type PanelTab = 'Problem' | 'Submissions';
   templateUrl: './arena-page.html',
   styleUrl: './arena-page.css',
 })
-export class ArenaPage implements OnDestroy {
+export class ArenaPage implements OnInit, OnDestroy {
   @ViewChild('arenaShell') arenaShell!: ElementRef<HTMLElement>;
   @ViewChild('editorPanel') editorPanel!: ElementRef<HTMLElement>;
   @ViewChild(ArenaTimer) arenaTimer!: ArenaTimer;
+
+  private route = inject(ActivatedRoute);
+
+  // ── Contexto do Duel (recebido via query params do matchmaking) ───
+  readonly duelId = signal<number | null>(null);
+  readonly challengeId = signal<number | null>(null);
+  readonly opponentName = signal<string | null>(null);
 
   readonly panelTabs: PanelTab[] = ['Problem', 'Submissions'];
   activeTab = signal<PanelTab>('Problem');
@@ -49,6 +57,21 @@ int main() {
 
   testInput = signal('');
   showTestInput = signal(false);
+
+  ngOnInit(): void {
+    const params = this.route.snapshot.queryParams;
+    if (params['duelId']) {
+      this.duelId.set(Number(params['duelId']));
+    }
+    if (params['challengeId']) {
+      this.challengeId.set(Number(params['challengeId']));
+    }
+    if (params['opponent']) {
+      this.opponentName.set(params['opponent']);
+    }
+
+    console.log('Arena loaded — duelId:', this.duelId(), 'challengeId:', this.challengeId(), 'opponent:', this.opponentName());
+  }
 
   private resizing = false;
   private startX = 0;
