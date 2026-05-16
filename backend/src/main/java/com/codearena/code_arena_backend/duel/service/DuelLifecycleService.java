@@ -27,7 +27,7 @@ public class DuelLifecycleService {
     private final DuelRepository duelRepository;
     private final ChallengeRepository challengeRepository;
     private final SimpMessagingTemplate messagingTemplate;
-    
+
     // Inject Lazy to avoid circular dependency
     @org.springframework.beans.factory.annotation.Autowired
     @Lazy
@@ -35,6 +35,7 @@ public class DuelLifecycleService {
 
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(10);
     private final Map<Long, ScheduledFuture<?>> activeTimers = new ConcurrentHashMap<>();
+    private final Map<Long, Integer> remainingTimeMap = new ConcurrentHashMap<>();
 
     @Transactional
     public void startDuel(Long duelId) {
@@ -67,25 +68,30 @@ public class DuelLifecycleService {
     }
 
     private void scheduleTimer(Long duelId, int timeLimitSecs) {
-        // We need a mutable reference for remaining time
-        int[] remaining = { timeLimitSecs };
+        remainingTimeMap.put(duelId, timeLimitSecs);
 
         Runnable tickTask = () -> {
-            remaining[0] -= 10;
-            
-            if (remaining[0] <= 0) {
+            Integer current = remainingTimeMap.get(duelId);
+            if (current == null) {
+                cancelTimer(duelId);
+                return;
+            }
+            int next = current - 10;
+            remainingTimeMap.put(duelId, next);
+
+            if (next <= 0) {
                 // Time's up!
                 log.info("Duel #{} timer expired", duelId);
                 broadcastEvent(duelId, "DUEL_TIMEOUT", Map.of("timeLeftSecs", 0));
-                
+
                 // Stop the timer
                 cancelTimer(duelId);
-                
+
                 // Trigger evaluation
                 evaluationService.evaluateDuel(duelId);
             } else {
                 // Tick
-                broadcastEvent(duelId, "DUEL_TICK", Map.of("timeLeftSecs", remaining[0]));
+                broadcastEvent(duelId, "DUEL_TICK", Map.of("timeLeftSecs", next));
             }
         };
 
@@ -94,11 +100,25 @@ public class DuelLifecycleService {
         activeTimers.put(duelId, future);
     }
 
+    public void reduceTimeLimitTo(Long duelId, int maxSeconds) {
+        Integer current = remainingTimeMap.get(duelId);
+        if (current != null && current > maxSeconds) {
+            remainingTimeMap.put(duelId, maxSeconds);
+            log.info("Duel #{} time reduced to {}s", duelId, maxSeconds);
+            broadcastEvent(duelId, "DUEL_TIME_REDUCED", Map.of("timeLeftSecs", maxSeconds));
+        }
+    }
+
     public void cancelTimer(Long duelId) {
+        remainingTimeMap.remove(duelId);
         ScheduledFuture<?> future = activeTimers.remove(duelId);
         if (future != null) {
             future.cancel(false);
         }
+    }
+
+    public Integer getRemainingTime(Long duelId) {
+        return remainingTimeMap.get(duelId);
     }
 
     public void broadcastEvent(Long duelId, String type, Map<String, Object> payload) {

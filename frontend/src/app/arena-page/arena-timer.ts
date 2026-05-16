@@ -71,14 +71,13 @@ export class ArenaTimer implements OnInit, OnDestroy {
    * - If more than 60 s remain → forces the clock to exactly 60 s and marks
    *   the timer as urgent (turns red).
    * - If 60 s or fewer remain → the timer continues unchanged (already close
-   *   to the end; no need to modify it).
+   *   to the end; no need to modify it), but still marks as urgent.
    */
   opponentFinished(): void {
     if (this.remaining() > 60) {
       this.remaining.set(60);
-      this.isUrgent.set(true);
     }
-    // ≤ 60 s: do nothing — timer runs normally to zero
+    this.isUrgent.set(true);
   }
 
   private stop(): void {

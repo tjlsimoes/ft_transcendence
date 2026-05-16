@@ -53,7 +53,7 @@ public class DuelSubmissionService {
         submission.setUserId(user.getId());
         submission.setCode(code);
         submission.setLanguage(language);
-        
+
         long secondsTaken = Duration.between(duel.getStartedAt(), LocalDateTime.now()).getSeconds();
         submission.setTimeTakenSecs((int) secondsTaken);
 
@@ -63,7 +63,8 @@ public class DuelSubmissionService {
         // Check if both players have submitted
         List<Submission> submissions = submissionRepository.findByDuelId(duelId);
         if (submissions.size() == 1) {
-            log.info("First player submitted for Duel {}. Notifying opponent.", duelId);
+            log.info("First player submitted for Duel {}. Notifying opponent and reducing time if needed.", duelId);
+            lifecycleService.reduceTimeLimitTo(duelId, 60);
             lifecycleService.broadcastEvent(duelId, "DUEL_OPPONENT_FINISHED", Map.of(
                 "username", username
             ));

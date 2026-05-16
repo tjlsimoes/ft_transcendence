@@ -3,6 +3,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { UserService } from './user.service';
+import { WebSocketService } from './websocket.service';
 
 export interface AuthResponse {
   accessToken: string;
@@ -27,6 +28,7 @@ export class AuthService {
   private http = inject(HttpClient);
   private router = inject(Router);
   private userService = inject(UserService);
+  private wsService = inject(WebSocketService);
   private baseUrl = `${environment.apiUrl}/auth`;
 
   private tokenKey = 'auth_token';
@@ -59,6 +61,7 @@ export class AuthService {
     }
     localStorage.removeItem(this.tokenKey);
     this.userService.clear();
+    this.wsService.disconnect();
     this.router.navigate(['/login']);
   }
 

@@ -1,10 +1,10 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { Client, IMessage } from '@stomp/stompjs';
-import { BehaviorSubject, Observable, filter, first, map } from 'rxjs';
+import { BehaviorSubject, Observable, filter, first, switchMap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
-/** 
- * Connection states for our service 
+/**
+ * Connection states for our service
  */
 export enum SocketState {
   DISCONNECTED,
@@ -35,27 +35,27 @@ export class WebSocketService implements OnDestroy {
 
     this.client = new Client({
       brokerURL,
-      
+
       // Pass the JWT in the STOMP CONNECT frame
       connectHeaders: {
         Authorization: `Bearer ${token}`
       },
-      
+
       // Automatic reconnect settings
       reconnectDelay: 5000,
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,
-      
+
       onConnect: () => {
         this.state.next(SocketState.CONNECTED);
         console.log('Successfully connected to WebSocket');
       },
-      
+
       onDisconnect: () => {
         this.state.next(SocketState.DISCONNECTED);
         console.log('Disconnected from WebSocket');
       },
-      
+
       onStompError: (frame: any) => {
         console.error('Broker reported error: ' + frame.headers['message']);
         console.error('Additional details: ' + frame.body);
@@ -89,25 +89,15 @@ export class WebSocketService implements OnDestroy {
       // Wait until we are actually CONNECTED
       filter(s => s === SocketState.CONNECTED),
       first(), // Take the first connected signal to initiate subscription
-      map(() => {
+      switchMap(() => {
         return new Observable<T>(observer => {
           const subscription = this.client?.subscribe(topic, (message: IMessage) => {
             observer.next(JSON.parse(message.body) as T);
           });
-          
+
           // Cleanup: unsubscribe from STOMP when the RxJS Observable is destroyed
           return () => subscription?.unsubscribe();
         });
-      }),
-      // FlatMap (switchMap) to the internal message observable
-      map(obs => obs)
-    ).pipe(
-      // This is a bit of RxJS magic to handle the nested Observables
-      (obs) => new Observable<T>(sub => {
-        const inner = obs.subscribe(innerObs => {
-          innerObs.subscribe(val => sub.next(val));
-        });
-        return () => inner.unsubscribe();
       })
     );
   }

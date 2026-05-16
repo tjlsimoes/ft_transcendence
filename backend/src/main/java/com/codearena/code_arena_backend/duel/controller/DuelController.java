@@ -5,6 +5,7 @@ import com.codearena.code_arena_backend.challenge.repository.ChallengeRepository
 import com.codearena.code_arena_backend.duel.entity.Duel;
 import com.codearena.code_arena_backend.duel.repository.DuelRepository;
 import com.codearena.code_arena_backend.duel.service.DuelSubmissionService;
+import com.codearena.code_arena_backend.duel.service.DuelLifecycleService;
 import com.codearena.code_arena_backend.submission.entity.Submission;
 import com.codearena.code_arena_backend.submission.repository.SubmissionRepository;
 import com.codearena.code_arena_backend.user.entity.User;
@@ -31,6 +32,7 @@ import java.util.Map;
 public class DuelController {
 
     private final DuelSubmissionService submissionService;
+    private final DuelLifecycleService lifecycleService;
     private final DuelRepository duelRepository;
     private final ChallengeRepository challengeRepository;
     private final UserRepository userRepository;
@@ -45,7 +47,7 @@ public class DuelController {
 
         User user = userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
-        
+
         Challenge challenge = challengeRepository.findById(duel.getChallengeId())
                 .orElseThrow(() -> new IllegalArgumentException("Challenge not found"));
 
@@ -62,19 +64,30 @@ public class DuelController {
         ));
 
         long timeLeftSecs = 0;
+        List<Submission> submissions = submissionRepository.findByDuelId(duel.getId());
+        boolean opponentHasSubmitted = submissions.stream().anyMatch(s -> !s.getUserId().equals(user.getId()));
+        response.put("opponentHasSubmitted", opponentHasSubmitted);
+
         if (duel.getStatus() == Duel.DuelStatus.IN_PROGRESS && duel.getStartedAt() != null) {
-            long elapsed = Duration.between(duel.getStartedAt(), LocalDateTime.now()).getSeconds();
-            timeLeftSecs = Math.max(0, challenge.getTimeLimitSecs() - elapsed);
+            long elapsedSinceStart = Duration.between(duel.getStartedAt(), LocalDateTime.now()).getSeconds();
+            long standardTimeLeft = Math.max(0, challenge.getTimeLimitSecs() - elapsedSinceStart);
+
+            if (submissions.size() == 1) {
+                long elapsedSinceSub = Duration.between(submissions.get(0).getSubmittedAt(), LocalDateTime.now()).getSeconds();
+                long reducedTimeLeft = Math.max(0, 60 - elapsedSinceSub);
+                timeLeftSecs = Math.min(standardTimeLeft, reducedTimeLeft);
+            } else {
+                timeLeftSecs = standardTimeLeft;
+            }
         } else if (duel.getStatus() == Duel.DuelStatus.MATCHED || duel.getStatus() == Duel.DuelStatus.WAITING) {
             timeLeftSecs = challenge.getTimeLimitSecs();
         }
         response.put("timeLeftSecs", timeLeftSecs);
 
         if (duel.getStatus() == Duel.DuelStatus.COMPLETED || duel.getStatus() == Duel.DuelStatus.DRAW) {
-            List<Submission> submissions = submissionRepository.findByDuelId(duel.getId());
             Submission s1 = submissions.stream().filter(s -> s.getUserId().equals(duel.getChallengerId())).findFirst().orElse(null);
             Submission s2 = submissions.stream().filter(s -> s.getUserId().equals(duel.getOpponentId())).findFirst().orElse(null);
-            
+
             response.put("challengerScore", s1 != null ? s1.getScore() : 0);
             response.put("opponentScore", s2 != null ? s2.getScore() : 0);
             response.put("challengerEloDelta", duel.getChallengerEloChange());
@@ -89,7 +102,7 @@ public class DuelController {
             @PathVariable Long duelId,
             @RequestBody Map<String, String> payload,
             @AuthenticationPrincipal UserDetails userDetails) {
-        
+
         String code = payload.get("code");
         String language = payload.getOrDefault("language", "C");
 

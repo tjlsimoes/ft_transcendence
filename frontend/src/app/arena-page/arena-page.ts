@@ -5,6 +5,8 @@ import { ActivatedRoute } from '@angular/router';
 import { ChallengeService } from '../core/services/challenge.service';
 import { DuelService } from '../core/services/duel.service';
 import { WebSocketService } from '../core/services/websocket.service';
+import { AuthService } from '../core/services/auth.service';
+import { UserService } from '../core/services/user.service';
 import { Subscription } from 'rxjs';
 import { ArenaTimer } from './arena-timer';
 import { CodeEditorComponent, EditorTheme } from './code-editor/code-editor';
@@ -35,6 +37,8 @@ export class ArenaPage implements OnInit, OnDestroy {
   private challengeService = inject(ChallengeService);
   private duelService = inject(DuelService);
   private wsService = inject(WebSocketService);
+  private authService = inject(AuthService);
+  private userService = inject(UserService);
 
   private subs = new Subscription();
 
@@ -76,6 +80,15 @@ int main() {
   showTestInput = signal(false);
 
   ngOnInit(): void {
+    const token = this.authService.getToken();
+    if (token) {
+      this.wsService.connect(token);
+    }
+
+    if (!this.userService.currentUser()) {
+      this.userService.loadMe().subscribe();
+    }
+
     const params = this.route.snapshot.queryParams;
     if (params['duelId']) {
       this.duelId.set(Number(params['duelId']));
@@ -119,6 +132,9 @@ int main() {
           if (this.arenaTimer && status.timeLeftSecs !== undefined) {
              this.arenaTimer.sync(status.timeLeftSecs);
           }
+          if (status.opponentHasSubmitted) {
+             this.opponentFinished();
+          }
           // If already submitted, show the waiting panel
           if (status.hasSubmitted && !this.submissionResult()) {
              this.submissionResult.set({
@@ -154,6 +170,11 @@ int main() {
           this.arenaTimer.sync(event.timeLeftSecs);
         }
         break;
+      case 'DUEL_TIME_REDUCED':
+        if (this.arenaTimer) {
+          this.arenaTimer.sync(event.timeLeftSecs);
+        }
+        break;
       case 'DUEL_TIMEOUT':
         this.onTimeUp();
         break;
@@ -163,7 +184,7 @@ int main() {
         this.submissionResult.set({
            verdict: 'evaluating',
            headline: 'Evaluating...',
-           summary: 'Waiting for both players and judging code',
+           summary: 'Judging code',
            testCases: []
         });
         break;
@@ -178,19 +199,16 @@ int main() {
         });
         break;
       case 'DUEL_OPPONENT_FINISHED':
-        this.opponentFinished();
+        if (event.username !== this.userService.username()) {
+          this.opponentFinished();
+        }
         break;
     }
   }
 
   // Need myId to determine win/loss
-  // We can get it from AuthService, but for now we just show generic
   myId(): number {
-     const currentUserStr = localStorage.getItem('currentUser');
-     if (currentUserStr) {
-        return JSON.parse(currentUserStr).id;
-     }
-     return 0;
+     return this.userService.currentUser()?.id ?? 0;
   }
 
   private resizing = false;
@@ -260,6 +278,7 @@ int main() {
     this.stopFooterResize();
     if (this.notifTimeoutId !== null) clearTimeout(this.notifTimeoutId);
     this.subs.unsubscribe();
+    this.wsService.disconnect();
   }
 
   setTab(tab: PanelTab): void {
@@ -374,13 +393,5 @@ int main() {
       clearTimeout(this.notifTimeoutId);
       this.notifTimeoutId = null;
     }
-  }
-
-  /**
-   * Mock: simulates the opponent finishing.
-   * Call this from the template (e.g. a dev button) or from a WebSocket handler.
-   */
-  mockOpponentFinished(): void {
-    this.opponentFinished();
   }
 }

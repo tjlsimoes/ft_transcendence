@@ -66,8 +66,7 @@ export class Lobby implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    // Desconectar WebSocket ao sair do lobby para libertar recursos.
-    this.wsService.disconnect();
+    // Unsubscribe from local component observables if any, but do NOT disconnect the global WebSocket.
   }
 
   /**
