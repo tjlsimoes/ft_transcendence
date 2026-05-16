@@ -2,6 +2,7 @@ package com.codearena.code_arena_backend.user.service;
 
 import com.codearena.code_arena_backend.friendship.entity.Friendship;
 import com.codearena.code_arena_backend.friendship.repository.FriendshipRepository;
+import com.codearena.code_arena_backend.ranking.service.RankingService;
 import com.codearena.code_arena_backend.user.dto.FriendSummaryResponse;
 import com.codearena.code_arena_backend.user.dto.UpdateUserProfileRequest;
 import com.codearena.code_arena_backend.user.dto.UserProfileResponse;
@@ -39,6 +40,9 @@ class UserProfileServiceTest {
     @Mock
     private FriendshipRepository friendshipRepository;
 
+    @Mock
+    private RankingService rankingService;
+
     @InjectMocks
     private UserProfileService userProfileService;
 
@@ -63,6 +67,7 @@ class UserProfileServiceTest {
         user.setLeague(User.League.SILVER);
 
         when(userRepository.findById(7L)).thenReturn(Optional.of(user));
+        when(rankingService.getLeagueFromElo(1460)).thenReturn("SILVER");
 
         UserProfileResponse response = userProfileService.getProfileById(7L);
 
@@ -80,6 +85,7 @@ class UserProfileServiceTest {
         User user = user(1L, "player1", User.UserStatus.OFFLINE);
         when(userRepository.findByUsername("player1")).thenReturn(Optional.of(user));
         when(userRepository.save(user)).thenReturn(user);
+        when(rankingService.getLeagueFromElo(0)).thenReturn("BRONZE");
 
         UserProfileResponse response = userProfileService.updateMyProfile(
                 "player1",
@@ -144,6 +150,7 @@ class UserProfileServiceTest {
         User me = user(1L, "me", User.UserStatus.ONLINE);
         when(userRepository.findByUsername("me")).thenReturn(Optional.of(me));
         when(userRepository.save(me)).thenReturn(me);
+        when(rankingService.getLeagueFromElo(0)).thenReturn("BRONZE");
 
         MockMultipartFile file = new MockMultipartFile(
                 "file",
