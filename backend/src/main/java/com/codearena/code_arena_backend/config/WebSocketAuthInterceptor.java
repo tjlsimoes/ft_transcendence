@@ -132,10 +132,6 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
             // Require authenticated principal and that the principal is authorized
             // for chat topics (i.e. that the principal is one of the two users in the chat)
             if (dest.startsWith("/topic/chat/")) {
-                if (accessor.getUser() == null) {
-                    log.warn("Blocking subscription to {} because session is unauthenticated", dest);
-                    return null;
-                }
                 Pattern pattern = Pattern.compile("/topic/chat/(\\d+)-(\\d+)");
                 Matcher matcher = pattern.matcher(dest);
                 String currentUserId = currentUser.getId().toString();
