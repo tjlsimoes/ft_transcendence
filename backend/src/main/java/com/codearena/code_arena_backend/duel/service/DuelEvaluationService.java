@@ -36,7 +36,8 @@ public class DuelEvaluationService {
     private final ChallengeRepository challengeRepository;
     private final UserRepository userRepository;
     private final JudgeService judgeService;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper()
+            .configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     
     @Autowired
     @Lazy
@@ -79,7 +80,7 @@ public class DuelEvaluationService {
             Submission sub1 = getOrCreateDummySubmission(duelId, duel.getChallengerId(), challenge.getTimeLimitSecs());
             Submission sub2 = getOrCreateDummySubmission(duelId, duel.getOpponentId(), challenge.getTimeLimitSecs());
 
-            // Judge both sequentially (or could be parallel, but sequentially is safer for judge API limits)
+            // Judge both sequentially
             JudgeResponse resp1 = judgeSubmission(sub1, testCases);
             JudgeResponse resp2 = judgeSubmission(sub2, testCases);
 
@@ -96,7 +97,30 @@ public class DuelEvaluationService {
 
         } catch (Exception e) {
             log.error("Error evaluating duel {}", duelId, e);
+            // If evaluation fails, we should at least mark the duel as DRAW or COMPLETED with 0 scores
+            // to avoid sticking in EVALUATING.
+            handleEvaluationFailure(duelId);
         }
+    }
+
+    @Transactional
+    protected void handleEvaluationFailure(Long duelId) {
+        duelRepository.findById(duelId).ifPresent(duel -> {
+            if (duel.getStatus() == Duel.DuelStatus.EVALUATING) {
+                log.warn("Force completing duel {} due to evaluation failure", duelId);
+                duel.setStatus(Duel.DuelStatus.DRAW);
+                duel.setEndedAt(LocalDateTime.now());
+                duelRepository.save(duel);
+                lifecycleService.broadcastEvent(duelId, "DUEL_COMPLETED", Map.of(
+                    "winnerId", "DRAW",
+                    "challengerScore", 0,
+                    "opponentScore", 0,
+                    "challengerEloDelta", 0,
+                    "opponentEloDelta", 0,
+                    "reason", "ERROR"
+                ));
+            }
+        });
     }
 
     private Submission getOrCreateDummySubmission(Long duelId, Long userId, int timeLimitSecs) {
@@ -109,6 +133,7 @@ public class DuelEvaluationService {
                     dummy.setLanguage("C");
                     dummy.setTimeTakenSecs(timeLimitSecs); // Took max time
                     dummy.setScore(0);
+                    dummy.setTimedOut(true);
                     return submissionRepository.save(dummy);
                 });
     }
@@ -170,8 +195,20 @@ public class DuelEvaluationService {
             winnerId = opponent.getId();
             duel.setStatus(Duel.DuelStatus.COMPLETED);
         } else {
-            // Draw
-            duel.setStatus(Duel.DuelStatus.DRAW);
+            // Scores are equal. Tie-break by time.
+            if (sub1.getTimeTakenSecs() < sub2.getTimeTakenSecs()) {
+                winnerId = challenger.getId();
+                duel.setStatus(Duel.DuelStatus.COMPLETED);
+                log.info("Duel {} - Challenger won by speed tie-break (score={})", duel.getId(), sub1.getScore());
+            } else if (sub2.getTimeTakenSecs() < sub1.getTimeTakenSecs()) {
+                winnerId = opponent.getId();
+                duel.setStatus(Duel.DuelStatus.COMPLETED);
+                log.info("Duel {} - Opponent won by speed tie-break (score={})", duel.getId(), sub2.getScore());
+            } else {
+                // Exactly same score and same time
+                duel.setStatus(Duel.DuelStatus.DRAW);
+                log.info("Duel {} - Draw (score={}, time={})", duel.getId(), sub1.getScore(), sub1.getTimeTakenSecs());
+            }
         }
 
         duel.setWinnerId(winnerId);
@@ -203,7 +240,8 @@ public class DuelEvaluationService {
             "challengerScore", sub1.getScore(),
             "opponentScore", sub2.getScore(),
             "challengerEloDelta", eloChanges[0],
-            "opponentEloDelta", eloChanges[1]
+            "opponentEloDelta", eloChanges[1],
+            "reason", "SCORE"
         ));
     }
 

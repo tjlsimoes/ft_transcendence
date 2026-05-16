@@ -19,6 +19,7 @@ public record JudgeRequest(
      * A single test case: stdin piped to the compiled binary,
      * and expected stdout to compare against.
      */
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
     public record TestCaseInput(
             @JsonAlias({"input", "stdin"}) String stdin,
             @JsonAlias({"expected_output", "expectedOutput"}) String expectedOutput

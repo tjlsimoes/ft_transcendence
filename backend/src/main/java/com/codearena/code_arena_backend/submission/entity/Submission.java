@@ -63,6 +63,9 @@ public class Submission {
     @Column(name = "time_taken_secs")
     private Integer timeTakenSecs = 0;
 
+    @Column(name = "timed_out")
+    private boolean timedOut = false;
+
     @CreationTimestamp
     @Column(name = "submitted_at", nullable = false, updatable = false)
     private LocalDateTime submittedAt;

@@ -118,8 +118,12 @@
           }
         </div>
         <div class="footer-right">
-          <button class="run-btn" type="button" (click)="runCode()">Run Code</button>
-          <button class="submit-btn" type="button" (click)="submitCode()">Submit Code</button>
+          @if (submissionResult()?.verdict === 'success') {
+            <button class="leave-btn" type="button" (click)="leaveArena()">Leave Arena</button>
+          } @else {
+            <button class="run-btn" type="button" (click)="runCode()">Run Code</button>
+            <button class="submit-btn" type="button" (click)="submitCode()">Submit Code</button>
+          }
         </div>
       </div>
 

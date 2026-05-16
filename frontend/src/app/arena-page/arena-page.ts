@@ -1,7 +1,7 @@
 import { Component, signal, computed, ElementRef, ViewChild, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgClass } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ChallengeService } from '../core/services/challenge.service';
 import { DuelService } from '../core/services/duel.service';
 import { WebSocketService } from '../core/services/websocket.service';
@@ -34,6 +34,7 @@ export class ArenaPage implements OnInit, OnDestroy {
   @ViewChild(ArenaTimer) arenaTimer!: ArenaTimer;
 
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private challengeService = inject(ChallengeService);
   private duelService = inject(DuelService);
   private wsService = inject(WebSocketService);
@@ -191,12 +192,19 @@ int main() {
       case 'DUEL_COMPLETED':
         // Handle completed state
         this.resultPanelOpen.set(true);
+        let headline = event.winnerId === 'DRAW' ? 'Draw!' : (event.winnerId === this.myId() ? 'You Won!' : 'You Lost!');
+        if (event.reason === 'TIMEOUT' && event.winnerId !== 'DRAW') {
+          headline = event.winnerId === this.myId() ? 'Won by Timeout!' : 'Lost by Timeout!';
+        }
         this.submissionResult.set({
            verdict: 'success',
-           headline: event.winnerId === 'DRAW' ? 'Draw!' : (event.winnerId === this.myId() ? 'You Won!' : 'You Lost!'),
+           headline: headline,
            summary: `Score: ${event.challengerScore} vs ${event.opponentScore}. Elo: ${event.challengerEloDelta > 0 ? '+' : ''}${event.challengerEloDelta}`,
            testCases: []
         });
+        
+        // Auto-redirect to lobby after 10 seconds
+        setTimeout(() => this.leaveArena(), 10000);
         break;
       case 'DUEL_OPPONENT_FINISHED':
         if (event.username !== this.userService.username()) {
@@ -393,5 +401,9 @@ int main() {
       clearTimeout(this.notifTimeoutId);
       this.notifTimeoutId = null;
     }
+  }
+
+  leaveArena(): void {
+    this.router.navigate(['/lobby']);
   }
 }
