@@ -43,6 +43,11 @@ public class ChallengeController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<ChallengeListItemResponse> getChallenge(@PathVariable Long id) {
+        return ResponseEntity.ok(ChallengeListItemResponse.from(challengeService.getChallenge(id)));
+    }
+
     @PostMapping
     public ResponseEntity<ChallengeAdminResponse> createChallenge(
             @Valid @RequestBody ChallengeUpsertRequest request

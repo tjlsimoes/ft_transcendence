@@ -2,6 +2,7 @@ import { Component, signal, computed, ElementRef, ViewChild, OnDestroy, OnInit, 
 import { FormsModule } from '@angular/forms';
 import { NgClass } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
+import { ChallengeService } from '../core/services/challenge.service';
 import { ArenaTimer } from './arena-timer';
 import { CodeEditorComponent, EditorTheme } from './code-editor/code-editor';
 import {
@@ -28,11 +29,20 @@ export class ArenaPage implements OnInit, OnDestroy {
   @ViewChild(ArenaTimer) arenaTimer!: ArenaTimer;
 
   private route = inject(ActivatedRoute);
+  private challengeService = inject(ChallengeService);
 
   // ── Contexto do Duel (recebido via query params do matchmaking) ───
   readonly duelId = signal<number | null>(null);
   readonly challengeId = signal<number | null>(null);
   readonly opponentName = signal<string | null>(null);
+
+  // ── Dados do Challenge ───
+  readonly challengeTitle = signal<string>('Loading challenge...');
+  readonly challengeDescription = signal<string>('Please wait while we fetch the problem details...');
+  readonly formattedDescription = computed(() => {
+    // Replace literal '\n' string with HTML line breaks
+    return this.challengeDescription().replace(/\\n/g, '<br>');
+  });
 
   readonly panelTabs: PanelTab[] = ['Problem', 'Submissions'];
   activeTab = signal<PanelTab>('Problem');
@@ -71,6 +81,21 @@ int main() {
     }
 
     console.log('Arena loaded — duelId:', this.duelId(), 'challengeId:', this.challengeId(), 'opponent:', this.opponentName());
+
+    const cid = this.challengeId();
+    if (cid) {
+      this.challengeService.getChallenge(cid).subscribe({
+        next: (challenge) => {
+          this.challengeTitle.set(challenge.title);
+          this.challengeDescription.set(challenge.description);
+        },
+        error: (err) => {
+          console.error('Failed to load challenge details:', err);
+          this.challengeTitle.set('Error loading challenge');
+          this.challengeDescription.set('Could not fetch the problem details from the server.');
+        }
+      });
+    }
   }
 
   private resizing = false;
