@@ -3,6 +3,9 @@ import { FormsModule } from '@angular/forms';
 import { NgClass } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { ChallengeService } from '../core/services/challenge.service';
+import { DuelService } from '../core/services/duel.service';
+import { WebSocketService } from '../core/services/websocket.service';
+import { Subscription } from 'rxjs';
 import { ArenaTimer } from './arena-timer';
 import { CodeEditorComponent, EditorTheme } from './code-editor/code-editor';
 import {
@@ -30,6 +33,10 @@ export class ArenaPage implements OnInit, OnDestroy {
 
   private route = inject(ActivatedRoute);
   private challengeService = inject(ChallengeService);
+  private duelService = inject(DuelService);
+  private wsService = inject(WebSocketService);
+
+  private subs = new Subscription();
 
   // ── Contexto do Duel (recebido via query params do matchmaking) ───
   readonly duelId = signal<number | null>(null);
@@ -96,6 +103,94 @@ int main() {
         }
       });
     }
+
+    const did = this.duelId();
+    if (did) {
+      this.subs.add(
+        this.wsService.subscribe<any>(`/topic/duel/${did}`).subscribe((event) => {
+          this.handleDuelEvent(event);
+        })
+      );
+
+      // Sync initial state on load/refresh
+      this.duelService.getDuelStatus(did).subscribe({
+        next: (status) => {
+          console.log('Initial duel status sync:', status);
+          if (this.arenaTimer && status.timeLeftSecs !== undefined) {
+             this.arenaTimer.sync(status.timeLeftSecs);
+          }
+          // If already submitted, show the waiting panel
+          if (status.hasSubmitted && !this.submissionResult()) {
+             this.submissionResult.set({
+                verdict: 'submitted',
+                headline: 'Code Submitted',
+                summary: 'Waiting for opponent to finish...',
+                testCases: []
+             });
+             this.resultPanelOpen.set(true);
+          }
+          // If already evaluating or completed, we might want to update the UI
+          if (status.status === 'EVALUATING') {
+            this.handleDuelEvent({ type: 'DUEL_EVALUATING' });
+          } else if (status.status === 'COMPLETED' || status.status === 'DRAW') {
+             this.handleDuelEvent({
+                type: 'DUEL_COMPLETED',
+                winnerId: status.winnerId,
+                challengerScore: status.challengerScore,
+                opponentScore: status.opponentScore,
+                challengerEloDelta: status.challengerEloDelta
+             });
+          }
+        }
+      });
+    }
+  }
+
+  private handleDuelEvent(event: any): void {
+    console.log('Duel WS Event:', event);
+    switch (event.type) {
+      case 'DUEL_TICK':
+        if (this.arenaTimer) {
+          this.arenaTimer.sync(event.timeLeftSecs);
+        }
+        break;
+      case 'DUEL_TIMEOUT':
+        this.onTimeUp();
+        break;
+      case 'DUEL_EVALUATING':
+        // The server is judging submissions
+        this.resultPanelOpen.set(true);
+        this.submissionResult.set({
+           verdict: 'evaluating',
+           headline: 'Evaluating...',
+           summary: 'Waiting for both players and judging code',
+           testCases: []
+        });
+        break;
+      case 'DUEL_COMPLETED':
+        // Handle completed state
+        this.resultPanelOpen.set(true);
+        this.submissionResult.set({
+           verdict: 'success',
+           headline: event.winnerId === 'DRAW' ? 'Draw!' : (event.winnerId === this.myId() ? 'You Won!' : 'You Lost!'),
+           summary: `Score: ${event.challengerScore} vs ${event.opponentScore}. Elo: ${event.challengerEloDelta > 0 ? '+' : ''}${event.challengerEloDelta}`,
+           testCases: []
+        });
+        break;
+      case 'DUEL_OPPONENT_FINISHED':
+        this.opponentFinished();
+        break;
+    }
+  }
+
+  // Need myId to determine win/loss
+  // We can get it from AuthService, but for now we just show generic
+  myId(): number {
+     const currentUserStr = localStorage.getItem('currentUser');
+     if (currentUserStr) {
+        return JSON.parse(currentUserStr).id;
+     }
+     return 0;
   }
 
   private resizing = false;
@@ -164,6 +259,7 @@ int main() {
     this.stopResize();
     this.stopFooterResize();
     if (this.notifTimeoutId !== null) clearTimeout(this.notifTimeoutId);
+    this.subs.unsubscribe();
   }
 
   setTab(tab: PanelTab): void {
@@ -230,15 +326,25 @@ int main() {
   }
 
   submitCode(): void {
-    // TODO: replace with real backend call;
-    // map HTTP response to SubmissionResult using the model and set the signal.
-    const result = mockWrongAnswerResult(); // swap to mockCorrectAnswerResult() to test
-    this.submissionResult.set(result);
-    this.activeTestCase.set(result.testCases[0] ?? null);
-    this.resultPanelOpen.set(true);
-    // Close run panel to avoid overlap
-    this.closeRunPanel();
-    console.log('Submitting code:', this.code());
+    const did = this.duelId();
+    if (!did || this.submissionResult()?.verdict === 'submitted' || this.submissionResult()?.verdict === 'evaluating') return;
+
+    this.duelService.submitCode(did, { code: this.code(), language: this.selectedLanguage() }).subscribe({
+      next: (res) => {
+        console.log('Submission accepted by server:', res);
+        this.submissionResult.set({
+           verdict: 'submitted',
+           headline: 'Code Submitted',
+           summary: 'Waiting for opponent to finish...',
+           testCases: []
+        });
+        this.resultPanelOpen.set(true);
+        this.closeRunPanel();
+      },
+      error: (err) => {
+        console.error('Failed to submit code:', err);
+      }
+    });
   }
 
   /** Called by the timer when it reaches zero — auto-submits the code. */

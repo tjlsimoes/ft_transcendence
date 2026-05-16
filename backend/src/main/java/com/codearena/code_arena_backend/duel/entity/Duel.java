@@ -63,6 +63,7 @@ public class Duel {
         WAITING,
         MATCHED,
         IN_PROGRESS,
+        EVALUATING,
         COMPLETED,
         CANCELLED,
         DRAW

@@ -45,6 +45,24 @@ public class Submission {
     @Column(nullable = false)
     private Integer score = 0;
 
+    @Column(name = "time_score")
+    private Integer timeScore = 0;
+
+    @Column(name = "perf_score")
+    private Integer perfScore = 0;
+
+    @Column(name = "correctness_score")
+    private Integer correctnessScore = 0;
+
+    @Column(name = "quality_score")
+    private Integer qualityScore = 0;
+
+    @Column(name = "runtime_ms")
+    private Long runtimeMs = 0L;
+
+    @Column(name = "time_taken_secs")
+    private Integer timeTakenSecs = 0;
+
     @CreationTimestamp
     @Column(name = "submitted_at", nullable = false, updatable = false)
     private LocalDateTime submittedAt;

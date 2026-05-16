@@ -8,6 +8,7 @@ import com.codearena.code_arena_backend.duel.repository.DuelRepository;
 import com.codearena.code_arena_backend.matchmaking.dto.MatchmakingEvent;
 import com.codearena.code_arena_backend.user.entity.User;
 import com.codearena.code_arena_backend.user.repository.UserRepository;
+import com.codearena.code_arena_backend.duel.service.DuelLifecycleService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -37,6 +38,7 @@ public class MatchmakingService {
     private final ChallengeRepository challengeRepository;
     private final UserRepository userRepository;
     private final SimpMessagingTemplate messagingTemplate;
+    private final DuelLifecycleService duelLifecycleService;
 
     /**
      * Creates a match between two players.
@@ -93,6 +95,9 @@ public class MatchmakingService {
 
         messagingTemplate.convertAndSendToUser(player1.getUsername(), "/queue/matchmaking", event1);
         messagingTemplate.convertAndSendToUser(player2.getUsername(), "/queue/matchmaking", event2);
+
+        // 6. Start the duel timer
+        duelLifecycleService.startDuel(duel.getId());
         } catch (Exception e) {
             // Attempt to put players back into the queue and restore their status.
             try {

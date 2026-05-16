@@ -2,6 +2,7 @@ package com.codearena.code_arena_backend.judge.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import com.fasterxml.jackson.annotation.JsonAlias;
 
 import java.util.List;
 
@@ -19,7 +20,7 @@ public record JudgeRequest(
      * and expected stdout to compare against.
      */
     public record TestCaseInput(
-            String stdin,
-            String expectedOutput
+            @JsonAlias({"input", "stdin"}) String stdin,
+            @JsonAlias({"expected_output", "expectedOutput"}) String expectedOutput
     ) {}
 }

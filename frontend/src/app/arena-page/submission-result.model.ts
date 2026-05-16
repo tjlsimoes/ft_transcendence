@@ -11,7 +11,7 @@ export interface TestCaseResult {
   expectedOutput?: string;
 }
 
-export type SubmissionVerdict = 'correct' | 'wrong' | 'runtime_error' | 'time_limit';
+export type SubmissionVerdict = 'correct' | 'wrong' | 'runtime_error' | 'time_limit' | 'submitted' | 'evaluating' | 'success';
 
 export interface SubmissionResult {
   verdict: SubmissionVerdict;

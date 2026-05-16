@@ -63,10 +63,13 @@ export class AuthService {
   }
 
   extractApiError(err: HttpErrorResponse): string {
-    if (err.status === 429) return 'Too many login attempts. Please wait 15 minutes before trying again.';
+    if (err.status === 429) return 'Too many login attempts. Please wait a moment before trying again.';
+    if (err.status === 401) return 'Invalid username or password.';
+    if (err.status === 403) return 'Access denied. You do not have permission.';
+    if (err.status >= 500) return 'Internal server error. The service might be temporarily down or restarting.';
     if (err.error?.error) return err.error.error;
     if (err.error?.message) return err.error.message;
-    if (err.status === 0) return 'Unable to reach the server. Check your connection.';
-    return 'An unexpected error occurred. Please try again.';
+    if (err.status === 0) return 'Unable to reach the server. Please check your internet connection or try again later.';
+    return `An unexpected error occurred (Status: ${err.status} ${err.statusText || ''}). Please try again.`;
   }
 }

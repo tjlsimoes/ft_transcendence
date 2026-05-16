@@ -55,6 +55,17 @@ export class ArenaTimer implements OnInit, OnDestroy {
   }
 
   /**
+   * Syncs the remaining time with the backend.
+   * If the time is vastly different (e.g., more than 2 seconds out of sync), update it.
+   */
+  sync(seconds: number): void {
+    const diff = Math.abs(this.remaining() - seconds);
+    if (diff > 2) {
+      this.remaining.set(seconds);
+    }
+  }
+
+  /**
    * Call this when the opponent submits a correct solution.
    *
    * - If more than 60 s remain → forces the clock to exactly 60 s and marks

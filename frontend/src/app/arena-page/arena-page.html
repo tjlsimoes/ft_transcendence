@@ -107,7 +107,10 @@
             <button class="footer-close-btn" type="button" (click)="closeRunPanel()" aria-label="Close output">✕</button>
           }
           @if (submissionResult()) {
-            <span class="footer-status-label" [class.verdict-correct]="submissionResult()!.verdict === 'correct'" [class.verdict-wrong]="submissionResult()!.verdict !== 'correct'">
+            <span class="footer-status-label" 
+              [class.verdict-correct]="submissionResult()!.verdict === 'correct' || submissionResult()!.verdict === 'success'" 
+              [class.verdict-evaluating]="submissionResult()!.verdict === 'evaluating' || submissionResult()!.verdict === 'submitted'"
+              [class.verdict-wrong]="submissionResult()!.verdict !== 'correct' && submissionResult()!.verdict !== 'success' && submissionResult()!.verdict !== 'evaluating' && submissionResult()!.verdict !== 'submitted'">
               {{ submissionResult()!.headline }}
             </span>
             <span class="footer-status-summary">{{ submissionResult()!.summary }}</span>

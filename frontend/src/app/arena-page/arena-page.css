@@ -600,6 +600,15 @@
 
 .verdict-wrong   { color: var(--color-defeat); }
 .verdict-correct { color: var(--color-victory); }
+.verdict-evaluating { 
+  color: var(--accent);
+  animation: pulse-verdict 1.5s infinite ease-in-out;
+}
+
+@keyframes pulse-verdict {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
 
 .run-headline--error { color: var(--color-defeat); }
 
