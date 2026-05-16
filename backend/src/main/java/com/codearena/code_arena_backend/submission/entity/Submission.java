@@ -64,7 +64,7 @@ public class Submission {
     private Integer timeTakenSecs = 0;
 
     @Column(name = "timed_out")
-    private boolean timedOut = false;
+    private Boolean timedOut = false;
 
     @CreationTimestamp
     @Column(name = "submitted_at", nullable = false, updatable = false)

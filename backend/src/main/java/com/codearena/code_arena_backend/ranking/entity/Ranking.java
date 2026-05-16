@@ -29,7 +29,8 @@ public class Ranking {
     private Integer elo = 0;
 
     @Column(nullable = false, length = 50)
-    private String league = "BRONZE";
+    @jakarta.persistence.Enumerated(jakarta.persistence.EnumType.STRING)
+    private com.codearena.code_arena_backend.user.entity.User.League league = com.codearena.code_arena_backend.user.entity.User.League.BRONZE;
 
     @Column(name = "win_streak", nullable = false)
     private Integer winStreak = 0;
