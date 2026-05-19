@@ -8,6 +8,8 @@ import com.codearena.code_arena_backend.duel.repository.DuelRepository;
 import com.codearena.code_arena_backend.matchmaking.dto.MatchmakingEvent;
 import com.codearena.code_arena_backend.user.entity.User;
 import com.codearena.code_arena_backend.user.repository.UserRepository;
+import com.codearena.code_arena_backend.notification.NotificationService;
+import com.codearena.code_arena_backend.notification.entity.NotificationType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -49,6 +51,9 @@ class MatchmakingServiceReenqueueTest {
     @Mock
     private SimpMessagingTemplate messagingTemplate;
 
+    @Mock
+    private NotificationService notificationService;
+
     @InjectMocks
     private MatchmakingService matchmakingService;
 
@@ -89,9 +94,9 @@ class MatchmakingServiceReenqueueTest {
         verify(queueService).enqueue(1L, 1200);
         verify(queueService).enqueue(2L, 1250);
 
-        // Verify players' statuses were restored to ONLINE
-        assertThat(player1.getStatus()).isEqualTo(User.UserStatus.ONLINE);
-        assertThat(player2.getStatus()).isEqualTo(User.UserStatus.ONLINE);
+        // Verify players' statuses were restored to IN_QUEUE
+        assertThat(player1.getStatus()).isEqualTo(User.UserStatus.IN_QUEUE);
+        assertThat(player2.getStatus()).isEqualTo(User.UserStatus.IN_QUEUE);
 
         // Verify notification was sent
         ArgumentCaptor<MatchmakingEvent> eventCaptor = ArgumentCaptor.forClass(MatchmakingEvent.class);
@@ -149,9 +154,10 @@ class MatchmakingServiceReenqueueTest {
         verify(queueService, times(2)).dequeue(anyLong());
         verify(queueService, never()).enqueue(anyLong(), anyInt());
 
-        // Verify MATCHED event was sent
+        // Verify MATCHED event was sent via notificationService
         ArgumentCaptor<MatchmakingEvent> eventCaptor = ArgumentCaptor.forClass(MatchmakingEvent.class);
-        verify(messagingTemplate, times(2)).convertAndSendToUser(anyString(), eq("/queue/matchmaking"), eventCaptor.capture());
+        verify(notificationService).send(eq(1L), eq(NotificationType.MATCH_FOUND), eventCaptor.capture());
+        verify(notificationService).send(eq(2L), eq(NotificationType.MATCH_FOUND), any(MatchmakingEvent.class));
 
         MatchmakingEvent event = eventCaptor.getValue();
         assertThat(event.type()).isEqualTo("MATCHED");

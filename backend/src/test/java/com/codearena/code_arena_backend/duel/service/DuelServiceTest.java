@@ -5,6 +5,7 @@ import com.codearena.code_arena_backend.duel.repository.DuelRepository;
 import com.codearena.code_arena_backend.ranking.service.RankingService;
 import com.codearena.code_arena_backend.user.entity.User;
 import com.codearena.code_arena_backend.user.repository.UserRepository;
+import com.codearena.code_arena_backend.notification.NotificationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,7 @@ class DuelServiceTest {
     @Mock private DuelRepository duelRepository;
     @Mock private UserRepository userRepository;
     @Mock private RankingService rankingService;
+    @Mock private NotificationService notificationService;
 
     @InjectMocks private DuelService duelService;
 
