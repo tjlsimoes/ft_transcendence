@@ -10,6 +10,7 @@ import com.codearena.code_arena_backend.message.service.ChatService;
 import com.codearena.code_arena_backend.user.entity.User;
 import com.codearena.code_arena_backend.user.repository.UserRepository;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @Controller
@@ -19,7 +20,7 @@ public class ChatController {
     private final UserRepository userRepository;
 
     @MessageMapping("/chat")
-    public void sendMessage(Principal principal, ChatMessageRequest request) {
+    public void sendMessage(Principal principal, @Valid ChatMessageRequest request) {
         User user = userRepository.findByUsername(principal.getName())
             .orElseThrow(() -> new RuntimeException("User not found"));
         chatService.send(user.getId(), request);
