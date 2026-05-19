@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.lang.reflect.Type;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
@@ -77,7 +79,7 @@ public class WebSocketIntegrationTest {
         userA.setPassword("password");
         userA.setElo(1000);
         userA = userRepository.save(userA);
-        
+
         UserDetails userDetails = org.springframework.security.core.userdetails.User.builder()
             .username(userA.getUsername())
             .password(userA.getPassword())
@@ -113,7 +115,7 @@ public class WebSocketIntegrationTest {
                 new StompSessionHandlerAdapter() {}
             ).get(5, TimeUnit.SECONDS);
     }
-    
+
     @Test
     void testConnect_WithValidToken_ShouldSucceed() throws Exception {
         StompSession session = connect(userAToken);
@@ -152,12 +154,12 @@ public class WebSocketIntegrationTest {
         // 1. User A connects and subscrives to their chat with User B
         StompSession sessionA = connect(userAToken);
         String chatTopic = "/topic/chat/" + Math.min(userA.getId(), userB.getId()) + "-" + Math.max(userA.getId(), userB.getId());
-        
+
         sessionA.subscribe(chatTopic, new StompFrameHandler() {
             @Override
             public Type getPayloadType(StompHeaders headers) { return ChatMessageResponse.class; }
             @Override
-            public void handleFrame(StompHeaders headers, Object payload) { 
+            public void handleFrame(StompHeaders headers, Object payload) {
                 messageQueue.add((ChatMessageResponse)payload);
             }
         });
@@ -170,11 +172,40 @@ public class WebSocketIntegrationTest {
         // 3. Verify the message arrives in the queue within 5 seconds
 
         ChatMessageResponse received = messageQueue.poll(5, TimeUnit.SECONDS);
-        
+
         assertThat(received).isNotNull();
         assertThat(received.getContent()).isEqualTo("Hello User B!");
         assertThat(received.getRecipientId()).isEqualTo(userB.getId());
         assertThat(received.getSenderId()).isEqualTo(userA.getId());
     }
+
+    @Test
+    void testChat_InvalidMessage_ShouldReturnValidationError() throws Exception {
+        // 1. Connect and subscribe to the error queue
+        StompSession sessionA = connect(userAToken);
+        BlockingQueue<Map> errorQueue = new java.util.concurrent.LinkedBlockingQueue<>();
+
+        sessionA.subscribe("/user/queue/errors", new StompFrameHandler() {
+            @Override
+            public Type getPayloadType(StompHeaders headers) { return Map.class; }
+            @Override
+            public void handleFrame(StompHeaders headers, Object payload) {
+                errorQueue.add((Map) payload);
+            }
+        });
+
+        // 2. Send an invalid message (blank content)
+        ChatMessageRequest invalidRequest = new ChatMessageRequest(userB.getId(), "");
+        sessionA.send("/app/chat", invalidRequest);
+
+        // 3. Verify validation error was received
+        Map<?, ?> errorResponse = errorQueue.poll(5, TimeUnit.SECONDS);
+        assertThat(errorResponse).isNotNull();
+        assertThat(errorResponse.get("error")).isEqualTo("Validation failed");
+
+        List<?> details = (List<?>) errorResponse.get("details");
+        assertThat(details.toString()).contains("Content must not be blank");
+    }
+
 
 }
