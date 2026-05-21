@@ -3,12 +3,13 @@ import { RouterOutlet } from '@angular/router';
 import { Navbar } from './shared/components/navbar/navbar';
 import { FloatingSymbols } from './shared/components/floating-symbols/floating-symbols';
 import { Sidebar } from './shared/components/sidebar/sidebar';
+import { MatchmakingOverlay } from './shared/components/matchmaking-overlay/matchmaking-overlay';
 import { RouteStateService } from './core/services/route-state.service';
 
 // Componente raiz da aplicação: monta layout base (fundo, navbar e área de rotas).
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, Navbar, FloatingSymbols, Sidebar],
+  imports: [RouterOutlet, Navbar, FloatingSymbols, Sidebar, MatchmakingOverlay],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })

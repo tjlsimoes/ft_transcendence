@@ -1,0 +1,25 @@
+@if (state.phase() === 'matched' || state.phase() === 'loading') {
+  <div class="overlay" [class.phase-matched]="state.phase() === 'matched'" [class.phase-loading]="state.phase() === 'loading'">
+    <div class="overlay-content">
+
+      @if (state.phase() === 'matched' || state.phase() === 'loading') {
+        <!-- Match encontrado -->
+        <div class="match-found">
+          <div class="match-icon">⚔</div>
+          <div class="match-headline">OPPONENT FOUND</div>
+          <div class="match-opponent">{{ state.opponentName() }}</div>
+        </div>
+
+        <div class="loading-section">
+          <span class="loading-label">Preparing arena...</span>
+          @if (state.phase() === 'loading') {
+            <div class="progress-bar" role="progressbar" aria-label="Loading arena">
+              <div class="progress-fill"></div>
+            </div>
+          }
+        </div>
+      }
+
+    </div>
+  </div>
+}

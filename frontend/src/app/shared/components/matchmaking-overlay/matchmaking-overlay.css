@@ -1,0 +1,129 @@
+/* ── Overlay base ─────────────────────────────────────────────────── */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(6, 8, 9, 0.97);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: overlay-enter 0.35s ease-out;
+  backdrop-filter: blur(4px);
+}
+
+@keyframes overlay-enter {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.overlay.phase-matched::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 243, 61, 0.18);
+  animation: overlay-flash 0.6s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes overlay-flash {
+  0%   { opacity: 0; }
+  25%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ── Layout interno ──────────────────────────────────────────────── */
+.overlay-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 36px;
+  text-align: center;
+}
+
+/* ── Match encontrado ────────────────────────────────────────────── */
+.match-found {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  animation: match-reveal 0.5s ease-out;
+}
+
+@keyframes match-reveal {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+.match-icon {
+  font-size: 3.2rem;
+  filter: drop-shadow(0 0 18px var(--accent));
+  animation: icon-glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes icon-glow {
+  from { filter: drop-shadow(0 0 14px var(--accent)); }
+  to   { filter: drop-shadow(0 0 30px var(--accent)) drop-shadow(0 0 8px #fff); }
+}
+
+.match-headline {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+
+.match-opponent {
+  font-family: var(--font-mono);
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.05em;
+  animation: name-reveal 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s both;
+}
+
+@keyframes name-reveal {
+  from { opacity: 0; transform: scale(0.85); }
+  to   { opacity: 1; transform: scale(1);    }
+}
+
+/* ── Secção de loading ───────────────────────────────────────────── */
+.loading-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 300px;
+  min-height: 36px;
+}
+
+.loading-label {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+/* ── Barra de progresso ──────────────────────────────────────────── */
+.progress-bar {
+  width: 100%;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow);
+  animation: progress-sweep 1.6s ease-in-out infinite;
+  transform-origin: left;
+}
+
+@keyframes progress-sweep {
+  0%   { transform: translateX(-100%) scaleX(0.4); }
+  50%  { transform: translateX(60%)   scaleX(0.6); }
+  100% { transform: translateX(200%)  scaleX(0.4); }
+}

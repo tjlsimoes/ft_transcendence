@@ -9,6 +9,8 @@ import { QueuePanel } from './components/queue-panel/queue-panel';
 import { UserService } from '../../../core/services/user.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { WebSocketService } from '../../../core/services/websocket.service';
+import { ChallengeService } from '../../../core/services/challenge.service';
+import { MatchmakingStateService } from '../../../core/services/matchmaking-state.service';
 import { MatchmakingEvent } from '../../../core/services/matchmaking.service';
 import { LOBBY_TABS } from '../../../shared/models/lobby.mock';
 import type { LobbyTab, PlayerIdentity, ProfileData as ProfileDataModel, SummaryStat, RecordStat } from '../../../shared/models/lobby.model';
@@ -35,6 +37,8 @@ export class Lobby implements OnInit, OnDestroy {
     private userService: UserService,
     private authService: AuthService,
     private wsService: WebSocketService,
+    private challengeService: ChallengeService,
+    private matchmakingState: MatchmakingStateService,
     private router: Router,
   ) {}
 
@@ -71,16 +75,52 @@ export class Lobby implements OnInit, OnDestroy {
 
   /**
    * Chamado pelo QueuePanel quando o backend confirma um match.
-   * Navega para a arena com o contexto do duel.
+   * 1. Transiciona o overlay para "matched" com o nome do oponente.
+   * 2. Após a animação (1.5 s), inicia o pré-carregamento do challenge.
+   * 3. Quando o challenge está pronto, navega para a arena — o overlay
+   *    permanece visível até a ArenaPage consumir o cache e o descartar.
    */
   onMatchFound(event: MatchmakingEvent): void {
-    this.router.navigate(['/arena'], {
-      queryParams: {
-        duelId: event.duelId,
-        challengeId: event.challengeId,
-        opponent: event.opponentName,
-      },
-    });
+    const opponentName = event.opponentName ?? 'Opponent';
+    this.matchmakingState.onMatched(opponentName);
+
+    const navigateToArena = () => {
+      this.router.navigate(['/arena'], {
+        queryParams: {
+          duelId: event.duelId,
+          challengeId: event.challengeId,
+          opponent: opponentName,
+        },
+      });
+    };
+
+    const cid = event.challengeId;
+    if (!cid) {
+      // Sem challenge para pré-carregar: avança após animação.
+      setTimeout(() => {
+        this.matchmakingState.reset();
+        navigateToArena();
+      }, 1500);
+      return;
+    }
+
+    // Aguarda a animação "OPPONENT FOUND" e depois inicia o loading.
+    setTimeout(() => {
+      this.matchmakingState.onLoading();
+
+      this.challengeService.getChallenge(cid).subscribe({
+        next: (challenge) => {
+          this.matchmakingState.cacheChallenge(challenge);
+          navigateToArena();
+          // O overlay é descartado pela ArenaPage após consumir o cache.
+        },
+        error: () => {
+          // Falha no pré-carregamento: navegar mesmo assim, a arena faz retry.
+          this.matchmakingState.reset();
+          navigateToArena();
+        },
+      });
+    }, 1500);
   }
 
   private applyUserData(user: UserProfile): void {

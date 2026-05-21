@@ -1,6 +1,7 @@
-import { Component, OnDestroy, Output, EventEmitter, signal, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, Output, EventEmitter, signal, inject } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { MatchmakingService, MatchmakingEvent } from '../../../../../core/services/matchmaking.service';
+import { MatchmakingStateService } from '../../../../../core/services/matchmaking-state.service';
 import { WebSocketService } from '../../../../../core/services/websocket.service';
 
 @Component({
@@ -9,7 +10,7 @@ import { WebSocketService } from '../../../../../core/services/websocket.service
   templateUrl: './queue-panel.html',
   styleUrl: './queue-panel.css',
 })
-export class QueuePanel implements OnDestroy {
+export class QueuePanel implements OnInit, OnDestroy {
   /** Emitido quando o backend confirma um match. O Lobby trata a navegação. */
   @Output() matchFound = new EventEmitter<MatchmakingEvent>();
 
@@ -21,7 +22,18 @@ export class QueuePanel implements OnDestroy {
   private wsSub: Subscription | null = null;
 
   private matchmakingService = inject(MatchmakingService);
+  private matchmakingState = inject(MatchmakingStateService);
   private wsService = inject(WebSocketService);
+  private cancelSub: Subscription | null = null;
+
+  ngOnInit(): void {
+    // Escuta cancelamentos vindos do overlay global.
+    this.cancelSub = this.matchmakingState.cancelRequested$.subscribe(() => {
+      if (this.isQueueing()) {
+        this.cancelQueue();
+      }
+    });
+  }
 
   toggleQueue(): void {
     if (this.isQueueing()) {
@@ -106,7 +118,9 @@ export class QueuePanel implements OnDestroy {
       seconds++;
       const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
       const secs = (seconds % 60).toString().padStart(2, '0');
-      this.queueTime.set(`${mins}:${secs}`);
+      const formatted = `${mins}:${secs}`;
+      this.queueTime.set(formatted);
+      this.matchmakingState.setQueueTime(formatted);
     }, 1000);
   }
 
@@ -139,5 +153,6 @@ export class QueuePanel implements OnDestroy {
   ngOnDestroy(): void {
     this.clearQueueInterval();
     this.unsubscribeWs();
+    this.cancelSub?.unsubscribe();
   }
 }

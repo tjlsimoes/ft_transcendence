@@ -7,6 +7,7 @@ import { DuelService } from '../core/services/duel.service';
 import { WebSocketService } from '../core/services/websocket.service';
 import { AuthService } from '../core/services/auth.service';
 import { UserService } from '../core/services/user.service';
+import { MatchmakingStateService } from '../core/services/matchmaking-state.service';
 import { Subscription } from 'rxjs';
 import { ArenaTimer } from './arena-timer';
 import { CodeEditorComponent, EditorTheme } from './code-editor/code-editor';
@@ -40,6 +41,7 @@ export class ArenaPage implements OnInit, OnDestroy {
   private wsService = inject(WebSocketService);
   private authService = inject(AuthService);
   private userService = inject(UserService);
+  private matchmakingState = inject(MatchmakingStateService);
 
   private subs = new Subscription();
 
@@ -105,17 +107,26 @@ int main() {
 
     const cid = this.challengeId();
     if (cid) {
-      this.challengeService.getChallenge(cid).subscribe({
-        next: (challenge) => {
-          this.challengeTitle.set(challenge.title);
-          this.challengeDescription.set(challenge.description);
-        },
-        error: (err) => {
-          console.error('Failed to load challenge details:', err);
-          this.challengeTitle.set('Error loading challenge');
-          this.challengeDescription.set('Could not fetch the problem details from the server.');
-        }
-      });
+      // Tenta usar o challenge pré-carregado pelo Lobby (via matchmaking overlay).
+      const cached = this.matchmakingState.consumeCachedChallenge();
+      if (cached) {
+        this.challengeTitle.set(cached.title);
+        this.challengeDescription.set(cached.description);
+        // Challenge consumido — descartar overlay de matchmaking.
+        this.matchmakingState.reset();
+      } else {
+        this.challengeService.getChallenge(cid).subscribe({
+          next: (challenge) => {
+            this.challengeTitle.set(challenge.title);
+            this.challengeDescription.set(challenge.description);
+          },
+          error: (err) => {
+            console.error('Failed to load challenge details:', err);
+            this.challengeTitle.set('Error loading challenge');
+            this.challengeDescription.set('Could not fetch the problem details from the server.');
+          }
+        });
+      }
     }
 
     const did = this.duelId();
@@ -202,7 +213,7 @@ int main() {
            summary: `Score: ${event.challengerScore} vs ${event.opponentScore}. Elo: ${event.challengerEloDelta > 0 ? '+' : ''}${event.challengerEloDelta}`,
            testCases: []
         });
-        
+
         // Auto-redirect to lobby after 10 seconds
         setTimeout(() => this.leaveArena(), 10000);
         break;
