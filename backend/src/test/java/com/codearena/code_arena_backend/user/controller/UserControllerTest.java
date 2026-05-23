@@ -82,7 +82,7 @@ class UserControllerTest {
     @DisplayName("updateMyProfile uses authenticated username")
     void updateMyProfile_usesAuthenticationName() {
         TestingAuthenticationToken auth = new TestingAuthenticationToken("player1", null);
-        UpdateUserProfileRequest request = new UpdateUserProfileRequest("New Name", "new bio");
+        UpdateUserProfileRequest request = new UpdateUserProfileRequest("New Name", "email@email.com", "new bio");
         UserProfileResponse profile = testProfile(
                 1L, "player1", "New Name", "new bio",
                 "/api/users/avatars/default-avatar.svg",
