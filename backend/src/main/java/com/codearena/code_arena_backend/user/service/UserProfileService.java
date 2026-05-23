@@ -3,6 +3,7 @@ package com.codearena.code_arena_backend.user.service;
 import com.codearena.code_arena_backend.friendship.entity.Friendship;
 import com.codearena.code_arena_backend.friendship.repository.FriendshipRepository;
 import com.codearena.code_arena_backend.user.dto.FriendSummaryResponse;
+import com.codearena.code_arena_backend.user.dto.UpdatePasswordRequest;
 import com.codearena.code_arena_backend.user.dto.UpdateUserProfileRequest;
 import com.codearena.code_arena_backend.user.dto.UserAvatarResource;
 import com.codearena.code_arena_backend.user.dto.UserProfileResponse;
@@ -14,6 +15,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -51,6 +53,7 @@ public class UserProfileService {
 
     private final UserRepository userRepository;
     private final FriendshipRepository friendshipRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Value("${user.avatar.storage-dir:/app/uploads/avatars}")
     private String avatarStorageDir;
@@ -78,8 +81,8 @@ public class UserProfileService {
 
     @Transactional
     public UserProfileResponse updateMyProfile(String username, UpdateUserProfileRequest request) {
-        if (request.getDisplayName() == null && request.getBio() == null) {
-            throw new IllegalArgumentException("At least one field must be provided: displayName or bio");
+        if (request.getDisplayName() == null && request.getBio() == null && request.getEmail() == null) {
+            throw new IllegalArgumentException("At least one field must be provided: displayName, bio or email");
         }
 
         User user = requireUserByUsername(username);
@@ -97,8 +100,42 @@ public class UserProfileService {
             user.setBio(bio.isEmpty() ? null : bio);
         }
 
+        if (request.getEmail() != null) {
+            String email = request.getEmail().trim();
+            if (email.isEmpty()) {
+                throw new IllegalArgumentException("Email cannot be blank");
+            }
+            if (!email.equals(user.getEmail()) && userRepository.existsByEmail(email)) {
+                throw new IllegalArgumentException("Email already exists");
+            }
+            user.setEmail(email);
+        }
+
         return UserProfileResponse.from(userRepository.save(user));
     }
+
+
+    @Transactional
+    public void updatePassword(String username, UpdatePasswordRequest request) {
+        User user = requireUserByUsername(username);
+
+       if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("Incorrect current password");
+       }
+
+       String newPassword = request.getNewPassword().trim();
+       if (newPassword.isEmpty()) {
+           throw new IllegalArgumentException("New password cannot be empty");
+       }
+
+       if (newPassword.equals(request.getCurrentPassword())) {
+            throw new IllegalArgumentException("New password cannot be the same as current password");
+       }
+
+       user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+       userRepository.save(user);
+    }
+
 
     @Transactional
     public UserProfileResponse uploadMyAvatar(String username, MultipartFile file) {

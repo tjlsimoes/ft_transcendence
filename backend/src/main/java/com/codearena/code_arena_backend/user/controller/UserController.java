@@ -7,6 +7,7 @@ import com.codearena.code_arena_backend.duel.repository.DuelRepository;
 import com.codearena.code_arena_backend.friendship.dto.FriendResponse;
 import com.codearena.code_arena_backend.friendship.repository.FriendshipRepository;
 import com.codearena.code_arena_backend.user.dto.FriendSummaryResponse;
+import com.codearena.code_arena_backend.user.dto.UpdatePasswordRequest;
 import com.codearena.code_arena_backend.user.dto.UpdateUserProfileRequest;
 import com.codearena.code_arena_backend.user.dto.UserAvatarResource;
 import com.codearena.code_arena_backend.user.dto.UserProfileResponse;
@@ -84,6 +85,16 @@ public class UserController {
     ) {
         String username = authentication.getName();
         return ResponseEntity.ok(userProfileService.updateMyProfile(username, request));
+    }
+
+    @PutMapping("/me/password")
+    public ResponseEntity<Void> updateMyPassword(
+            Authentication authentication,
+            @Valid @RequestBody UpdatePasswordRequest request
+    ) {
+        String username = authentication.getName();
+        userProfileService.updatePassword(username, request);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping(value = "/me/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
