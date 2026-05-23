@@ -89,9 +89,9 @@ class MatchmakingServiceReenqueueTest {
         verify(queueService).enqueue(1L, 1200);
         verify(queueService).enqueue(2L, 1250);
 
-        // Verify players' statuses were restored to ONLINE
-        assertThat(player1.getStatus()).isEqualTo(User.UserStatus.ONLINE);
-        assertThat(player2.getStatus()).isEqualTo(User.UserStatus.ONLINE);
+        // Verify players' statuses are set to IN_QUEUE
+        assertThat(player1.getStatus()).isEqualTo(User.UserStatus.IN_QUEUE);
+        assertThat(player2.getStatus()).isEqualTo(User.UserStatus.IN_QUEUE);
 
         // Verify notification was sent
         ArgumentCaptor<MatchmakingEvent> eventCaptor = ArgumentCaptor.forClass(MatchmakingEvent.class);
