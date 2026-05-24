@@ -61,4 +61,11 @@ export class UserService {
       tap((user) => this.currentUser.set(user)),
     );
   }
+
+  deleteAccount(): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/me`)
+    .pipe(
+      tap(() => this.clear())
+    );
+  }
 }

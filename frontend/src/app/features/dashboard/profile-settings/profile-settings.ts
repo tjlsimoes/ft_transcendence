@@ -38,6 +38,7 @@ export class ProfileSettings implements OnInit {
   savingPersonal = signal(false);
   savingPassword = signal(false);
   savingAvatar = signal(false);
+  savingDelete = signal(false);
 
   // Feedback visual (toast).
   toastMessage = signal('');
@@ -224,11 +225,22 @@ export class ProfileSettings implements OnInit {
     this.showDeleteConfirm.update(v => !v);
   }
 
-  async deleteAccount(): Promise<void> {
-    // TODO: integrar com API (DELETE /api/profile).
-    await this.simulateDelay(500);
-    this.showToast('Account deletion requested', 'success');
-    this.showDeleteConfirm.set(false);
+  deleteAccount(): void {
+    this.savingDelete.set(true);
+    this.userService.deleteAccount().subscribe({
+      next: () => {
+        this.showToast('Account deleted successfully', 'success');
+        this.showDeleteConfirm.set(false);
+        this.savingDelete.set(false);
+        // Navigate after a short delay to ensure toast displays
+        setTimeout(() => this.router.navigate(['/login']), 500);
+      },
+      error: (err) => {
+        const errMsg = err.error?.error || 'Failed to delete account';
+        this.showToast(errMsg, 'error');
+        this.savingDelete.set(false);
+      }
+    });
   }
 
   // ── Helpers ──

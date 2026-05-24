@@ -12,8 +12,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.codearena.code_arena_backend.user.dto.UserProfileResponse;
+import com.codearena.code_arena_backend.matchmaking.service.MatchmakingQueueService;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 /**
@@ -32,6 +34,7 @@ import java.util.Optional;
 public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
+    private final MatchmakingQueueService matchmakingQueueService;
 
     /**
      * Called by Spring Security (and by JwtAuthenticationFilter) to load a user.
@@ -159,5 +162,13 @@ public class UserService implements UserDetailsService {
                 .password(user.getPassword()) // already BCrypt-hashed
             .authorities(List.<GrantedAuthority>of(new SimpleGrantedAuthority(authority)))
                 .build();
+    }
+
+    @Transactional
+    public void deleteAccount(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new NoSuchElementException("User not found: " + username));
+        matchmakingQueueService.dequeue(user.getId());
+        userRepository.delete(user);
     }
 }

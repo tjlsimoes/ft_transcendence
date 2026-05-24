@@ -99,7 +99,7 @@
 				<form [formGroup]="personalForm" (ngSubmit)="savePersonalInfo()" class="settings-form">
 					<div class="form-group">
 						<label for="profile-username" class="form-label">Username (read-only)</label>
-						<input 
+						<input
 							id="profile-username"
 							type="text"
 							formControlName="username"
@@ -108,7 +108,7 @@
 
 					<div class="form-group">
 						<label for="profile-displayname" class="form-label">Display Name</label>
-						<input 
+						<input
 							id="profile-displayname"
 							type="text"
 							formControlName="displayName"
@@ -282,17 +282,17 @@
 			</p>
 
 			@if (!showDeleteConfirm()) {
-				<button type="button" class="btn-danger" (click)="toggleDeleteConfirm()">
+				<button type="button" class="btn-danger" (click)="toggleDeleteConfirm()" [disabled]="savingDelete()">
 					DELETE_ACCOUNT
 				</button>
 			} @else {
 				<div class="delete-confirm">
 					<span class="confirm-text">Are you sure? This is irreversible.</span>
 					<div class="confirm-actions">
-						<button type="button" class="btn-danger-confirm" (click)="deleteAccount()">
-							CONFIRM_DELETE
+						<button type="button" class="btn-danger-confirm" (click)="deleteAccount()" [disabled]="savingDelete()">
+							{{ savingDelete() ? 'DELETING...' : 'CONFIRM_DELETE' }}
 						</button>
-						<button type="button" class="btn-cancel-sm" (click)="toggleDeleteConfirm()">
+						<button type="button" class="btn-cancel-sm" (click)="toggleDeleteConfirm()" [disabled]="savingDelete()">
 							CANCEL
 						</button>
 					</div>
