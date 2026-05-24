@@ -2,7 +2,7 @@ import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { UserProfile, MatchHistory, FriendEntry } from '../../shared/models/user-profile.model';
+import { UserProfile, MatchHistory, FriendEntry, UpdatePasswordPayload, UpdateProfilePayload } from '../../shared/models/user-profile.model';
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
@@ -40,5 +40,25 @@ export class UserService {
   /** Limpa o estado ao fazer logout. */
   clear(): void {
     this.currentUser.set(null);
+  }
+
+  updateProfile(payload: UpdateProfilePayload): Observable<UserProfile> {
+    return this.http.put<UserProfile>(`${this.baseUrl}/me`, payload)
+    .pipe(
+      tap((user) => this.currentUser.set(user)),
+    );
+  }
+
+  updatePassword(payload: UpdatePasswordPayload): Observable<void> {
+    return this.http.put<void>(`${this.baseUrl}/me/password`, payload);
+  }
+
+  uploadAvatar(file: File): Observable<UserProfile> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<UserProfile>(`${this.baseUrl}/me/avatar`, formData)
+    .pipe(
+      tap((user) => this.currentUser.set(user)),
+    );
   }
 }

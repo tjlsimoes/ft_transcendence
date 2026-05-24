@@ -10,8 +10,8 @@ import {
 } from '@angular/forms';
 import { Title } from '@angular/platform-browser';
 import { Router, RouterLink } from '@angular/router';
-import { PLAYER_PROFILE_MOCK } from '../../../shared/models/profile.mock';
-import type { PlayerProfile } from '../../../shared/models/profile.model';
+import { UserService } from '../../../core/services/user.service';
+
 
 // Página de configurações de perfil do jogador.
 // Permite editar username, email, senha e foto de perfil.
@@ -22,9 +22,6 @@ import type { PlayerProfile } from '../../../shared/models/profile.model';
   styleUrls: ['../../../auth/auth-shared.css', './profile-settings.css'],
 })
 export class ProfileSettings implements OnInit {
-  // Dados do perfil carregados (mock → API futura).
-  profile: PlayerProfile = PLAYER_PROFILE_MOCK;
-
   // Formulário de dados pessoais (username + email).
   personalForm!: FormGroup;
   // Formulário de alteração de senha.
@@ -34,6 +31,8 @@ export class ProfileSettings implements OnInit {
   avatarPreview = signal<string | null>(null);
   // Arquivo de avatar selecionado para upload.
   avatarFile = signal<File | null>(null);
+
+  formsInitialized = signal(false);
 
   // Estados de loading por seção.
   savingPersonal = signal(false);
@@ -57,18 +56,33 @@ export class ProfileSettings implements OnInit {
     private fb: FormBuilder,
     private titleService: Title,
     private router: Router,
+    public userService: UserService
   ) {}
 
   ngOnInit(): void {
     this.titleService.setTitle('Profile Settings — Code Arena');
-    this.initForms();
+    const currentUser = this.userService.currentUser();
+    if (currentUser) {
+      this.initForms(currentUser);
+    } else {
+      this.userService.loadMe().subscribe({
+        next: (user) => {
+          this.initForms(user);
+        },
+        error: (err) => {
+          console.error('Failed to load profile:', err);
+          this.initForms({ username: '', displayName: '', email: '' });
+        }
+      });
+    }
   }
 
   // Inicializa os reactive forms com dados do perfil atual.
-  private initForms(): void {
+  private initForms(user: any): void {
     this.personalForm = this.fb.group({
-      username: [this.profile.username, [Validators.required, Validators.minLength(3)]],
-      email: [this.profile.email, [Validators.required, Validators.email]],
+      username: [{ value: user.username, disabled: true }],
+      displayName: [user.displayName || user.username, [Validators.required, Validators.minLength(3)]],
+      email: [user.email, [ Validators.required, Validators.email] ],
     });
 
     this.passwordForm = this.fb.group(
@@ -79,6 +93,8 @@ export class ProfileSettings implements OnInit {
       },
       { validators: this.passwordMatchValidator }
     );
+
+    this.formsInitialized.set(true);
   }
 
   // Validação de grupo: new password e confirm devem ser iguais.
@@ -127,21 +143,20 @@ export class ProfileSettings implements OnInit {
   }
 
   // Salva avatar (mock → API futura via FormData).
-  async saveAvatar(): Promise<void> {
-    if (!this.avatarFile()) return;
+  saveAvatar(): void {
+    const file = this.avatarFile();
+    if (!file) return;
 
     this.savingAvatar.set(true);
-    try {
-      // TODO: integrar com API (enviar FormData com o arquivo).
-      await this.simulateDelay(800);
-      this.profile.avatarUrl = this.avatarPreview()!;
-      this.avatarFile.set(null);
-      this.showToast('Avatar updated successfully', 'success');
-    } catch {
-      this.showToast('Failed to update avatar', 'error');
-    } finally {
-      this.savingAvatar.set(false);
-    }
+    this.userService.uploadAvatar(file).subscribe({
+      next: () => {
+        this.avatarFile.set(null);
+        this.avatarPreview.set(null);
+        this.showToast('Avatar updated successfully', 'success');
+      },
+      error: () => this.showToast('Failed to update avatar', 'error'),
+      complete: () => this.savingAvatar.set(false),
+    });
   }
 
   // Remove preview sem salvar.
@@ -152,43 +167,43 @@ export class ProfileSettings implements OnInit {
 
   // ── Personal Info ──
 
-  // Salva dados pessoais (username e/ou email).
-  async savePersonalInfo(): Promise<void> {
+  // Salva dados pessoais (displayName e/ou email).
+  savePersonalInfo(): void {
     this.personalForm.markAllAsTouched();
     if (this.personalForm.invalid) return;
 
     this.savingPersonal.set(true);
-    try {
-      // TODO: integrar com API (PUT /api/profile).
-      const payload = this.personalForm.value;
-      await this.simulateDelay(600);
-      this.profile.username = payload.username;
-      this.profile.email = payload.email;
-      this.showToast('Profile updated successfully', 'success');
-    } catch {
-      this.showToast('Failed to update profile', 'error');
-    } finally {
-      this.savingPersonal.set(false);
-    }
+    const { displayName, email } = this.personalForm.value;
+    this.userService.updateProfile({ displayName, email }).subscribe({
+      next: () => this.showToast('Profile updated successfully', 'success'),
+      error: (err) => {
+        const errMsg = err.error?.error || 'Failed to update profile';
+        this.showToast(errMsg, 'error');
+      },
+      complete: () => this.savingPersonal.set(false)
+    });
   }
 
   // ── Password ──
 
-  async savePassword(): Promise<void> {
+  savePassword(): void {
     this.passwordForm.markAllAsTouched();
     if (this.passwordForm.invalid) return;
 
     this.savingPassword.set(true);
-    try {
-      // TODO: integrar com API (PUT /api/profile/password).
-      await this.simulateDelay(800);
-      this.passwordForm.reset();
-      this.showToast('Password changed successfully', 'success');
-    } catch {
-      this.showToast('Failed to change password', 'error');
-    } finally {
-      this.savingPassword.set(false);
-    }
+    const { currentPassword, newPassword } = this.passwordForm.value;
+
+    this.userService.updatePassword({ currentPassword, newPassword }).subscribe({
+      next: () => {
+        this.passwordForm.reset();
+        this.showToast('Password changed successfully', 'success');
+      },
+      error: (err) => {
+        const errMsg = err.error?.error || 'Failed to change password';
+        this.showToast(errMsg, 'error');
+      },
+      complete: () => this.savingPassword.set(false)
+    });
   }
 
   toggleCurrentPassword(): void {

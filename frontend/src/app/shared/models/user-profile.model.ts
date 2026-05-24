@@ -3,6 +3,7 @@ export interface UserProfile {
   id: number;
   username: string;
   email: string;
+  displayName: string;
   avatarUrl: string | null;
   elo: number;
   wins: number;
@@ -39,4 +40,14 @@ export interface FriendEntry {
   avatarUrl: string | null;
   league: string;
   status: string;
+}
+
+export interface UpdateProfilePayload {
+  displayName: string;
+  email: string;
+}
+
+export interface UpdatePasswordPayload {
+  currentPassword: string;
+  newPassword: string;
 }
