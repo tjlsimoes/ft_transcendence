@@ -54,7 +54,6 @@ class UserProfileServiceTest {
         tempAvatarDir = Files.createTempDirectory("avatars-test-");
         ReflectionTestUtils.setField(userProfileService, "avatarStorageDir", tempAvatarDir.toString());
         ReflectionTestUtils.setField(userProfileService, "avatarBaseUrl", "/api/users/avatars");
-        ReflectionTestUtils.setField(userProfileService, "defaultAvatarFilename", "default-avatar.svg");
         ReflectionTestUtils.invokeMethod(userProfileService, "initAvatarStorage");
     }
 
@@ -250,7 +249,6 @@ class UserProfileServiceTest {
         user.setEmail(username + "@arena.com");
         user.setPassword("hash");
         user.setDisplayName(username);
-        user.setAvatar("/api/users/avatars/default-avatar.svg");
         user.setWins(0);
         user.setLosses(0);
         user.setElo(0);
