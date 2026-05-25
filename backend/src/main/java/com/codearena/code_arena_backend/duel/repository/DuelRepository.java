@@ -2,6 +2,7 @@ package com.codearena.code_arena_backend.duel.repository;
 
 import com.codearena.code_arena_backend.duel.entity.Duel;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -16,4 +17,12 @@ public interface DuelRepository extends JpaRepository<Duel, Long> {
             ORDER BY COALESCE(d.endedAt, d.startedAt) DESC NULLS LAST
             """)
     List<Duel> findByUserId(Long userId);
+
+	@Modifying
+	@Query("UPDATE Duel d SET d.challengerId = null WHERE d.challengerId = :userId")
+	void nullifyChallengerById(Long userId);
+
+	@Modifying
+	@Query("UPDATE Duel d SET d.opponentId = null WHERE d.opponentId = :userId")
+	void nullifyOpponentById(Long userId);
 }

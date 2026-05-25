@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.codearena.code_arena_backend.user.dto.UserProfileResponse;
+import com.codearena.code_arena_backend.duel.repository.DuelRepository;
+import com.codearena.code_arena_backend.friendship.repository.FriendshipRepository;
 import com.codearena.code_arena_backend.matchmaking.service.MatchmakingQueueService;
 
 import java.io.IOException;
@@ -40,6 +42,8 @@ public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
     private final MatchmakingQueueService matchmakingQueueService;
+	private final DuelRepository duelRepository;
+	private final FriendshipRepository friendshipRepository;
 
     @Value("${user.avatar.storage-dir:/app/uploads/avatars}")
     private String avatarStorageDir;
@@ -160,6 +164,9 @@ public class UserService implements UserDetailsService {
             deleteAvatarFile(user.getAvatar());
         }
         matchmakingQueueService.dequeue(user.getId());
+		duelRepository.nullifyChallengerById(user.getId());
+		duelRepository.nullifyOpponentById(user.getId());
+		friendshipRepository.deleteAllByParticipant(user.getId());
         userRepository.delete(user);
     }
 
