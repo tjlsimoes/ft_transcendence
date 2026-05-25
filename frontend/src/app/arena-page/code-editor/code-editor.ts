@@ -1,13 +1,12 @@
 import {
+  AfterViewInit,
   Component,
   ElementRef,
   Input,
   OnChanges,
   OnDestroy,
-  OnInit,
   SimpleChanges,
   ViewChild,
-  input,
   output,
 } from '@angular/core';
 import loader from '@monaco-editor/loader';
@@ -37,7 +36,7 @@ const LANGUAGE_MAP: Record<string, string> = {
     .code-editor-container { width: 100%; height: 100%; }
   `],
 })
-export class CodeEditorComponent implements OnInit, OnChanges, OnDestroy {
+export class CodeEditorComponent implements AfterViewInit, OnChanges, OnDestroy {
   @ViewChild('editorContainer', { static: true })
   private containerRef!: ElementRef<HTMLDivElement>;
 
@@ -56,38 +55,44 @@ export class CodeEditorComponent implements OnInit, OnChanges, OnDestroy {
   private editor: Monaco.editor.IStandaloneCodeEditor | null = null;
   private monaco: typeof Monaco | null = null;
 
-  ngOnInit(): void {
-    loader.config({ paths: { vs: 'assets/monaco/vs' } });
+  ngAfterViewInit(): void {
+    // Delay by one animation frame so the browser finishes flex layout
+    // before Monaco reads the container dimensions. Without this, SPA
+    // navigation (Angular Router) can create the editor at 0×0 because
+    // the cached Monaco loader resolves before the browser has painted.
+    requestAnimationFrame(() => {
+      loader.config({ paths: { vs: 'assets/monaco/vs' } });
 
-    loader.init().then((monaco) => {
-      this.monaco = monaco;
-      this.defineCustomThemes(monaco);
+      loader.init().then((monaco) => {
+        this.monaco = monaco;
+        this.defineCustomThemes(monaco);
 
-      const editor = monaco.editor.create(this.containerRef.nativeElement, {
-        value: this.value,
-        language: LANGUAGE_MAP[this.language] ?? 'plaintext',
-        theme: this.resolveTheme(),
-        readOnly: false,
-        automaticLayout: true,
-        minimap: { enabled: false },
-        scrollBeyondLastLine: false,
-        fontFamily: '"JetBrains Mono", "Courier New", monospace',
-        fontSize: 13,
-        lineHeight: 20,
-        renderLineHighlight: 'none',
-        overviewRulerLanes: 0,
-        hideCursorInOverviewRuler: true,
-        scrollbar: {
-          verticalScrollbarSize: 6,
-          horizontalScrollbarSize: 6,
-        },
-        padding: { top: 12, bottom: 12 },
-      });
-      this.editor = editor;
+        const editor = monaco.editor.create(this.containerRef.nativeElement, {
+          value: this.value,
+          language: LANGUAGE_MAP[this.language] ?? 'plaintext',
+          theme: this.resolveTheme(),
+          readOnly: false,
+          automaticLayout: true,
+          minimap: { enabled: false },
+          scrollBeyondLastLine: false,
+          fontFamily: '"JetBrains Mono", "Courier New", monospace',
+          fontSize: 13,
+          lineHeight: 20,
+          renderLineHighlight: 'none',
+          overviewRulerLanes: 0,
+          hideCursorInOverviewRuler: true,
+          scrollbar: {
+            verticalScrollbarSize: 6,
+            horizontalScrollbarSize: 6,
+          },
+          padding: { top: 12, bottom: 12 },
+        });
+        this.editor = editor;
 
-      // Forward content changes for future use
-      editor.onDidChangeModelContent(() => {
-        this.valueChange.emit(editor.getValue());
+        // Forward content changes for future use
+        editor.onDidChangeModelContent(() => {
+          this.valueChange.emit(editor.getValue());
+        });
       });
     });
   }
