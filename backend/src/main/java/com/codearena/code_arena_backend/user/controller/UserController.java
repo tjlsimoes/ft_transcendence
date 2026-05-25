@@ -159,9 +159,9 @@ public class UserController {
         List<MatchHistoryResponse> history = duelRepository.findByUserId(user.getId())
                 .stream()
                 .map(duel -> {
-                    boolean isChallenger = duel.getChallengerId().equals(user.getId());
+                    boolean isChallenger = user.getId().equals(duel.getChallengerId());
                     Long opponentId = isChallenger ? duel.getOpponentId() : duel.getChallengerId();
-                    String opponentName = userService.findById(opponentId)
+                    String opponentName = opponentId == null ? "Unknown" : userService.findById(opponentId)
                             .map(User::getUsername)
                             .orElse("Unknown");
 

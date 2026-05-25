@@ -3,6 +3,7 @@ package com.codearena.code_arena_backend.user.service;
 import com.codearena.code_arena_backend.user.entity.User;
 import com.codearena.code_arena_backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -14,6 +15,10 @@ import org.springframework.transaction.annotation.Transactional;
 import com.codearena.code_arena_backend.user.dto.UserProfileResponse;
 import com.codearena.code_arena_backend.matchmaking.service.MatchmakingQueueService;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -35,6 +40,9 @@ public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
     private final MatchmakingQueueService matchmakingQueueService;
+
+    @Value("${user.avatar.storage-dir:/app/uploads/avatars}")
+    private String avatarStorageDir;
 
     /**
      * Called by Spring Security (and by JwtAuthenticationFilter) to load a user.
@@ -144,6 +152,17 @@ public class UserService implements UserDetailsService {
         userRepository.save(user);
     }
 
+    @Transactional
+    public void deleteAccount(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new NoSuchElementException("User not found: " + username));
+        if (user.getAvatar() != null) {
+            deleteAvatarFile(user.getAvatar());
+        }
+        matchmakingQueueService.dequeue(user.getId());
+        userRepository.delete(user);
+    }
+
     // ------------------------------------------------------------------ //
     //  Private helpers                                                     //
     // ------------------------------------------------------------------ //
@@ -164,11 +183,17 @@ public class UserService implements UserDetailsService {
                 .build();
     }
 
-    @Transactional
-    public void deleteAccount(String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new NoSuchElementException("User not found: " + username));
-        matchmakingQueueService.dequeue(user.getId());
-        userRepository.delete(user);
+    private void deleteAvatarFile(String avatarUrl) {
+        String filename = avatarUrl.substring(avatarUrl.lastIndexOf('/') + 1);
+        Path storagePath = Paths.get(avatarStorageDir).toAbsolutePath().normalize();
+        Path avatarPath = storagePath.resolve(filename).normalize();
+        if (!avatarPath.startsWith(storagePath)) {
+            return;
+        }
+        try {
+            Files.deleteIfExists(avatarPath);
+        } catch (IOException ex) {
+            System.err.println("Failed to delete avatar file: " + ex.getMessage());
+        }
     }
 }

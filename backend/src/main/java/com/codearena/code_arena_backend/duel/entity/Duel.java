@@ -31,10 +31,10 @@ public class Duel {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "challenger_id", nullable = false)
+    @Column(name = "challenger_id", nullable = true)
     private Long challengerId;
 
-    @Column(name = "opponent_id", nullable = false)
+    @Column(name = "opponent_id", nullable = true)
     private Long opponentId;
 
     @Column(name = "challenge_id", nullable = false)
