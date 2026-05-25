@@ -1,14 +1,4 @@
-import { Component, OnInit, OnDestroy, output, signal, computed } from '@angular/core';
-
-// ── Mock ──────────────────────────────────────────────────────────────────────
-/**
- * Simulates fetching the total match duration from the backend.
- * Replace with a real HTTP call when the backend is ready.
- */
-export function mockGetMatchDurationSeconds(): number {
-  return 5 * 60; // 5 minutes
-}
-// ─────────────────────────────────────────────────────────────────────────────
+import { Component, OnDestroy, output, signal, computed } from '@angular/core';
 
 @Component({
   selector: 'app-arena-timer',
@@ -16,14 +6,12 @@ export function mockGetMatchDurationSeconds(): number {
   templateUrl: './arena-timer.html',
   styleUrl: './arena-timer.css',
 })
-export class ArenaTimer implements OnInit, OnDestroy {
+export class ArenaTimer implements OnDestroy {
   /** Emitted when the countdown reaches zero. Parent should auto-submit. */
   readonly timeUp = output<void>();
 
-  private totalSeconds = mockGetMatchDurationSeconds();
-
   /** Remaining seconds — driven by the frontend interval. */
-  readonly remaining = signal<number>(this.totalSeconds);
+  readonly remaining = signal<number>(0);
 
   /**
    * True when the opponent finished and we forced the clock to 1 minute.
@@ -41,7 +29,8 @@ export class ArenaTimer implements OnInit, OnDestroy {
 
   private intervalId: ReturnType<typeof setInterval> | null = null;
 
-  ngOnInit(): void {
+  private startInterval(): void {
+    if (this.intervalId !== null) return;
     this.intervalId = setInterval(() => {
       const next = this.remaining() - 1;
       if (next <= 0) {
@@ -56,9 +45,15 @@ export class ArenaTimer implements OnInit, OnDestroy {
 
   /**
    * Syncs the remaining time with the backend.
-   * If the time is vastly different (e.g., more than 2 seconds out of sync), update it.
+   * On the first call, sets the initial time and starts the countdown.
+   * On subsequent calls, only corrects if the drift is more than 2 seconds.
    */
   sync(seconds: number): void {
+    if (!this.intervalId) {
+      this.remaining.set(seconds);
+      this.startInterval();
+      return;
+    }
     const diff = Math.abs(this.remaining() - seconds);
     if (diff > 2) {
       this.remaining.set(seconds);
