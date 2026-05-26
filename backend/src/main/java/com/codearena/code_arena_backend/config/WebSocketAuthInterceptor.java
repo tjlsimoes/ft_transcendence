@@ -1,7 +1,8 @@
 package com.codearena.code_arena_backend.config;
 
 import com.codearena.code_arena_backend.auth.service.JwtService;
-import com.codearena.code_arena_backend.user.service.UserService;
+import com.codearena.code_arena_backend.duel.repository.DuelRepository;
+import com.codearena.code_arena_backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;
@@ -13,6 +14,7 @@ import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -31,7 +33,9 @@ import org.springframework.stereotype.Component;
 public class WebSocketAuthInterceptor implements ChannelInterceptor {
 
     private final JwtService jwtService;
-    private final UserService userService;
+    private final UserDetailsService userDetailsService;
+    private final DuelRepository duelRepository;
+    private final UserRepository userRepository;
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -54,7 +58,7 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
             String token = authHeader.substring(7);
             try {
                 String username = jwtService.extractUsername(token);
-                UserDetails userDetails = userService.loadUserByUsername(username);
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
                 if (jwtService.isTokenValid(token, userDetails)) {
                     UsernamePasswordAuthenticationToken auth =
@@ -73,12 +77,11 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
             }
         }
 
-        // Handle SUBSCRIBE: prevent subscriptions to public matchmaking topics and
-        // require an authenticated principal for user-scoped queues.
+        // Handle SUBSCRIBE: enforce access control on all relevant destinations.
         if (StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
             String dest = accessor.getDestination();
             if (dest != null) {
-                // Deny old public matchmaking topics
+                // Deny legacy public matchmaking topics (defence-in-depth)
                 if (dest.startsWith("/topic/matchmaking") || dest.equals("/queue/matchmaking")) {
                     log.warn("Blocking subscription to public matchmaking destination: {}", dest);
                     return null;
@@ -88,6 +91,39 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
                 if (dest.startsWith("/user/") || dest.startsWith("/queue/")) {
                     if (accessor.getUser() == null) {
                         log.warn("Blocking subscription to {} because session is unauthenticated", dest);
+                        return null;
+                    }
+                }
+
+                // Require participation for duel-specific topics.
+                // /topic/duel/{duelId} broadcasts game events — only the two participants
+                // should receive them. Reject subscriptions from any other authenticated user.
+                if (dest.startsWith("/topic/duel/")) {
+                    if (accessor.getUser() == null) {
+                        log.warn("Blocking unauthenticated subscription to duel topic: {}", dest);
+                        return null;
+                    }
+                    try {
+                        String segment = dest.substring("/topic/duel/".length());
+                        Long duelId = Long.parseLong(segment);
+                        String username = accessor.getUser().getName();
+
+                        boolean isParticipant = duelRepository.findById(duelId)
+                                .map(duel -> userRepository.findByUsername(username)
+                                        .map(user -> duel.getChallengerId().equals(user.getId())
+                                                  || duel.getOpponentId().equals(user.getId()))
+                                        .orElse(false))
+                                .orElse(false);
+
+                        if (!isParticipant) {
+                            log.warn("Blocking subscription to {} — user '{}' is not a participant", dest, username);
+                            return null;
+                        }
+                    } catch (NumberFormatException e) {
+                        log.warn("Blocking subscription to malformed duel topic: {}", dest);
+                        return null;
+                    } catch (Exception e) {
+                        log.warn("Error checking duel participation for topic {}: {}", dest, e.getMessage());
                         return null;
                     }
                 }

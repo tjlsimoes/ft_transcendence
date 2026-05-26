@@ -8,6 +8,14 @@ export interface SubmitPayload {
   language: string;
 }
 
+export interface ActiveDuel {
+  duelId: number;
+  challengeId: number;
+  opponentId: number;
+  opponentName: string;
+  status: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class DuelService {
   private http = inject(HttpClient);
@@ -19,5 +27,10 @@ export class DuelService {
 
   getDuelStatus(duelId: number): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}/${duelId}`);
+  }
+
+  /** Retorna o duel ativo (MATCHED ou IN_PROGRESS) do user autenticado, ou 404 se não houver. */
+  getActiveDuel(): Observable<ActiveDuel> {
+    return this.http.get<ActiveDuel>(`${this.baseUrl}/active`);
   }
 }

@@ -14,6 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
@@ -86,18 +88,34 @@ public class MatchmakingService {
             duel.getId(), player1.getUsername(), player2.getUsername(),
             challenge.getId(), difficulty);
 
-        // 5. Notify both players via user-scoped WebSocket destinations to avoid
-        // unauthorized subscription guessing (use /user/queue/matchmaking)
-        MatchmakingEvent event1 = MatchmakingEvent.matched(
-            duel.getId(), player2Id, player2.getDisplayName(), challenge.getId());
-        MatchmakingEvent event2 = MatchmakingEvent.matched(
-            duel.getId(), player1Id, player1.getDisplayName(), challenge.getId());
+        // 5+6. Notify both players AND start the duel timer AFTER the transaction
+        //       commits. This ensures the Duel row is visible in the DB before
+        //       the client receives the MATCHED event and navigates to /arena.
+        //       Without this, the arena guard's getActiveDuel() call would see
+        //       no duel yet (race condition).
+        String player1DisplayName = player1.getDisplayName() != null ? player1.getDisplayName() : player1.getUsername();
+        String player2DisplayName = player2.getDisplayName() != null ? player2.getDisplayName() : player2.getUsername();
 
-        messagingTemplate.convertAndSendToUser(player1.getUsername(), "/queue/matchmaking", event1);
-        messagingTemplate.convertAndSendToUser(player2.getUsername(), "/queue/matchmaking", event2);
+        final MatchmakingEvent event1 = MatchmakingEvent.matched(
+            duel.getId(), player2Id, player2DisplayName, challenge.getId());
+        final MatchmakingEvent event2 = MatchmakingEvent.matched(
+            duel.getId(), player1Id, player1DisplayName, challenge.getId());
 
-        // 6. Start the duel timer
-        duelLifecycleService.startDuel(duel.getId());
+        final String p1Username = player1.getUsername();
+        final String p2Username = player2.getUsername();
+        final Long duelId = duel.getId();
+
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                // Send WS notifications — DB row is now committed and visible
+                messagingTemplate.convertAndSendToUser(p1Username, "/queue/matchmaking", event1);
+                messagingTemplate.convertAndSendToUser(p2Username, "/queue/matchmaking", event2);
+
+                // Start the duel lifecycle (timer, DUEL_STARTED broadcast)
+                duelLifecycleService.startDuel(duelId);
+            }
+        });
         } catch (Exception e) {
             // Attempt to put players back into the queue and restore their status.
             try {

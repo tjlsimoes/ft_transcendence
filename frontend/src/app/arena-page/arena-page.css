@@ -740,3 +740,116 @@
   color: #f87171;
 }
 
+/* ── Leave Arena Confirmation Modal ──────────────────────────── */
+.leave-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: overlay-fade-in 0.15s ease;
+}
+
+@keyframes overlay-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.leave-confirm-dialog {
+  background: #1a1c1f;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 12px;
+  padding: 32px 36px;
+  max-width: 460px;
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.04);
+  animation: dialog-slide-in 0.2s ease;
+}
+
+@keyframes dialog-slide-in {
+  from { opacity: 0; transform: translateY(-12px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.leave-confirm-icon {
+  font-size: 36px;
+  line-height: 1;
+}
+
+.leave-confirm-title {
+  font-family: var(--font-system);
+  font-size: 18px;
+  font-weight: 700;
+  color: #fbbf24;
+  margin: 0;
+  text-align: center;
+  letter-spacing: 0.01em;
+}
+
+.leave-confirm-body {
+  font-family: var(--font-system);
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-muted);
+  text-align: center;
+  margin: 0;
+}
+
+.leave-confirm-body strong {
+  color: #f87171;
+  font-weight: 700;
+}
+
+.leave-confirm-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+  width: 100%;
+}
+
+.leave-cancel-btn {
+  flex: 1;
+  font-family: var(--font-system);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.leave-cancel-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.leave-confirm-btn {
+  flex: 1;
+  font-family: var(--font-system);
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(239, 68, 68, 0.18);
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  border-radius: 6px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+
+.leave-confirm-btn:hover {
+  background: rgba(239, 68, 68, 0.3);
+  border-color: rgba(239, 68, 68, 0.8);
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.3);
+}

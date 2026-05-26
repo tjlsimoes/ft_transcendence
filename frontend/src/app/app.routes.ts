@@ -1,48 +1,63 @@
 import { Routes } from '@angular/router';
+import { arenaGuard } from './core/guards/arena.guard';
+import { arenaDeactivateGuard } from './core/guards/arena-deactivate.guard';
+import { lobbyGuard } from './core/guards/lobby.guard';
 
-// Mapa central de rotas públicas da aplicação.
-// Todas as rotas usam lazy loading para reduzir o bundle inicial.
+// Mapa central de rotas da aplicação.
+//
+// Segurança de navegação durante duelos:
+// - lobbyGuard: verifica auth + duel ativo → redireciona para /arena se IN_DUEL.
+//   Aplicado a TODAS as rotas protegidas fora da arena.
+// - arenaGuard: verifica auth + existência de duel ativo no backend.
+//   O URL é apenas /arena — sem query params. Dados vêm do backend.
+// - arenaDeactivateGuard: bloqueia TODA a navegação fora da arena durante duel ativo.
 export const routes: Routes = [
-  // Landing page.
+  // Landing page — pública.
   {
     path: '',
     loadComponent: () => import('./features/home/pages/home/home').then(m => m.Home),
   },
-  // Tela de autenticação de entrada.
+  // Tela de autenticação — pública.
   {
     path: 'login',
     loadComponent: () => import('./auth/login/login').then(m => m.LoginComponent),
   },
-  // Tela de criação de conta.
+  // Tela de criação de conta — pública.
   {
     path: 'register',
     loadComponent: () => import('./auth/register/register').then(m => m.RegisterComponent),
   },
-  // Pagina de about.
+  // About — pública.
   {
     path: 'about',
     loadComponent: () => import('./features/about/about').then(m => m.About),
   },
-  // Lobby do dashboard.
+  // Lobby — requer autenticação + sem duel ativo.
   {
     path: 'lobby',
+    canActivate: [lobbyGuard],
     loadComponent: () => import('./features/dashboard/lobby/lobby').then(m => m.Lobby),
   },
-  // Configurações de perfil do jogador.
+  // Perfil — requer autenticação + sem duel ativo.
   {
     path: 'profile',
+    canActivate: [lobbyGuard],
     loadComponent: () => import('./features/dashboard/profile-settings/profile-settings').then(m => m.ProfileSettings),
   },
-  // pagina de jogo.
+  // Arena — requer autenticação + duel ativo no backend.
+  // Sem query params — toda a informação vem do backend.
   {
     path: 'arena',
+    canActivate: [arenaGuard],
+    canDeactivate: [arenaDeactivateGuard],
     loadComponent: () => import('./arena-page/arena-page').then(m => m.ArenaPage),
   },
-  // Leaderboard (ranking global de jogadores).
+  // Leaderboard — requer autenticação + sem duel ativo.
   {
     path: 'leaderboard',
+    canActivate: [lobbyGuard],
     loadComponent: () => import('./features/ranking/ranking').then(m => m.Ranking),
   },
-  // Fallback: rota desconhecida redireciona para home.
+  // Fallback.
   { path: '**', redirectTo: '' },
 ];

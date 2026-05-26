@@ -71,16 +71,11 @@ export class Lobby implements OnInit, OnDestroy {
 
   /**
    * Chamado pelo QueuePanel quando o backend confirma um match.
-   * Navega para a arena com o contexto do duel.
+   * Navega para a arena — sem query params.
+   * A arena obtém todos os dados do duel via backend (getActiveDuel).
    */
-  onMatchFound(event: MatchmakingEvent): void {
-    this.router.navigate(['/arena'], {
-      queryParams: {
-        duelId: event.duelId,
-        challengeId: event.challengeId,
-        opponent: event.opponentName,
-      },
-    });
+  onMatchFound(_event: MatchmakingEvent): void {
+    this.router.navigate(['/arena']);
   }
 
   private applyUserData(user: UserProfile): void {

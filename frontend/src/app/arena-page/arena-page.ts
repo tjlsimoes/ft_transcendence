@@ -1,7 +1,7 @@
 import { Component, signal, computed, ElementRef, ViewChild, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgClass } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { ChallengeService } from '../core/services/challenge.service';
 import { DuelService } from '../core/services/duel.service';
 import { WebSocketService } from '../core/services/websocket.service';
@@ -33,7 +33,7 @@ export class ArenaPage implements OnInit, OnDestroy {
   @ViewChild('editorPanel') editorPanel!: ElementRef<HTMLElement>;
   @ViewChild(ArenaTimer) arenaTimer!: ArenaTimer;
 
-  private route = inject(ActivatedRoute);
+
   private router = inject(Router);
   private challengeService = inject(ChallengeService);
   private duelService = inject(DuelService);
@@ -43,10 +43,17 @@ export class ArenaPage implements OnInit, OnDestroy {
 
   private subs = new Subscription();
 
-  // ── Contexto do Duel (recebido via query params do matchmaking) ───
+  // ── Contexto do Duel (carregado do backend via getActiveDuel) ───
   readonly duelId = signal<number | null>(null);
   readonly challengeId = signal<number | null>(null);
   readonly opponentName = signal<string | null>(null);
+
+  /**
+   * Indica se o duel está em curso (IN_PROGRESS).
+   * Usado pelo arenaDeactivateGuard para bloquear navegação durante o duel.
+   * Fica false quando o duel termina (COMPLETED, DRAW) ou quando não foi iniciado.
+   */
+  readonly isDuelActive = signal<boolean>(false);
 
   // ── Dados do Challenge ───
   readonly challengeTitle = signal<string>('Loading challenge...');
@@ -90,77 +97,83 @@ int main() {
       this.userService.loadMe().subscribe();
     }
 
-    const params = this.route.snapshot.queryParams;
-    if (params['duelId']) {
-      this.duelId.set(Number(params['duelId']));
-    }
-    if (params['challengeId']) {
-      this.challengeId.set(Number(params['challengeId']));
-    }
-    if (params['opponent']) {
-      this.opponentName.set(params['opponent']);
-    }
+    // ── Carregar contexto do duel inteiramente do backend ───────────
+    // Sem query params — o challengeId vem do duel record na DB,
+    // tornando impossível manipular o URL para ver outro challenge.
+    this.duelService.getActiveDuel().subscribe({
+      next: (activeDuel) => {
+        this.duelId.set(activeDuel.duelId);
+        this.challengeId.set(activeDuel.challengeId);
+        this.opponentName.set(activeDuel.opponentName);
 
-    console.log('Arena loaded — duelId:', this.duelId(), 'challengeId:', this.challengeId(), 'opponent:', this.opponentName());
+        console.log('Arena loaded — duelId:', activeDuel.duelId,
+          'challengeId:', activeDuel.challengeId, 'opponent:', activeDuel.opponentName);
 
-    const cid = this.challengeId();
-    if (cid) {
-      this.challengeService.getChallenge(cid).subscribe({
-        next: (challenge) => {
-          this.challengeTitle.set(challenge.title);
-          this.challengeDescription.set(challenge.description);
-        },
-        error: (err) => {
-          console.error('Failed to load challenge details:', err);
-          this.challengeTitle.set('Error loading challenge');
-          this.challengeDescription.set('Could not fetch the problem details from the server.');
-        }
-      });
-    }
+        // Carregar o challenge a partir do challengeId do duel (backend)
+        this.challengeService.getChallenge(activeDuel.challengeId).subscribe({
+          next: (challenge) => {
+            this.challengeTitle.set(challenge.title);
+            this.challengeDescription.set(challenge.description);
+          },
+          error: (err) => {
+            console.error('Failed to load challenge details:', err);
+            this.challengeTitle.set('Error loading challenge');
+            this.challengeDescription.set('Could not fetch the problem details from the server.');
+          }
+        });
 
-    const did = this.duelId();
-    if (did) {
-      this.subs.add(
-        this.wsService.subscribe<any>(`/topic/duel/${did}`).subscribe((event) => {
-          this.handleDuelEvent(event);
-        })
-      );
+        // Subscrever ao WebSocket do duel
+        this.subs.add(
+          this.wsService.subscribe<any>(`/topic/duel/${activeDuel.duelId}`).subscribe((event) => {
+            this.handleDuelEvent(event);
+          })
+        );
 
-      // Sync initial state on load/refresh
-      this.duelService.getDuelStatus(did).subscribe({
-        next: (status) => {
-          console.log('Initial duel status sync:', status);
-          if (this.arenaTimer && status.timeLeftSecs !== undefined) {
-             this.arenaTimer.sync(status.timeLeftSecs);
+        // Sync initial state on load/refresh
+        this.duelService.getDuelStatus(activeDuel.duelId).subscribe({
+          next: (status) => {
+            console.log('Initial duel status sync:', status);
+            if (this.arenaTimer && status.timeLeftSecs !== undefined) {
+               this.arenaTimer.sync(status.timeLeftSecs);
+            }
+            if (status.opponentHasSubmitted) {
+               this.opponentFinished();
+            }
+            // Mark duel as active if IN_PROGRESS
+            if (status.status === 'IN_PROGRESS') {
+              this.isDuelActive.set(true);
+            }
+            // If already submitted, show the waiting panel
+            if (status.hasSubmitted && !this.submissionResult()) {
+               this.submissionResult.set({
+                  verdict: 'submitted',
+                  headline: 'Code Submitted',
+                  summary: 'Waiting for opponent to finish...',
+                  testCases: []
+               });
+               this.resultPanelOpen.set(true);
+            }
+            if (status.status === 'EVALUATING') {
+              this.handleDuelEvent({ type: 'DUEL_EVALUATING' });
+            } else if (status.status === 'COMPLETED' || status.status === 'DRAW') {
+               this.handleDuelEvent({
+                  type: 'DUEL_COMPLETED',
+                  winnerId: status.winnerId,
+                  challengerScore: status.challengerScore,
+                  opponentScore: status.opponentScore,
+                  challengerEloDelta: status.challengerEloDelta
+               });
+            }
           }
-          if (status.opponentHasSubmitted) {
-             this.opponentFinished();
-          }
-          // If already submitted, show the waiting panel
-          if (status.hasSubmitted && !this.submissionResult()) {
-             this.submissionResult.set({
-                verdict: 'submitted',
-                headline: 'Code Submitted',
-                summary: 'Waiting for opponent to finish...',
-                testCases: []
-             });
-             this.resultPanelOpen.set(true);
-          }
-          // If already evaluating or completed, we might want to update the UI
-          if (status.status === 'EVALUATING') {
-            this.handleDuelEvent({ type: 'DUEL_EVALUATING' });
-          } else if (status.status === 'COMPLETED' || status.status === 'DRAW') {
-             this.handleDuelEvent({
-                type: 'DUEL_COMPLETED',
-                winnerId: status.winnerId,
-                challengerScore: status.challengerScore,
-                opponentScore: status.opponentScore,
-                challengerEloDelta: status.challengerEloDelta
-             });
-          }
-        }
-      });
-    }
+        });
+      },
+      error: (err) => {
+        console.error('Failed to load active duel:', err);
+        // Se não há duel ativo, o guard já deveria ter bloqueado.
+        // Redirect de segurança.
+        this.router.navigate(['/lobby']);
+      }
+    });
   }
 
   private handleDuelEvent(event: any): void {
@@ -176,10 +189,15 @@ int main() {
           this.arenaTimer.sync(event.timeLeftSecs);
         }
         break;
+      case 'DUEL_STARTED':
+        this.isDuelActive.set(true);
+        break;
       case 'DUEL_TIMEOUT':
+        this.isDuelActive.set(false);
         this.onTimeUp();
         break;
       case 'DUEL_EVALUATING':
+        this.isDuelActive.set(false);
         // The server is judging submissions
         this.resultPanelOpen.set(true);
         this.submissionResult.set({
@@ -190,6 +208,7 @@ int main() {
         });
         break;
       case 'DUEL_COMPLETED':
+        this.isDuelActive.set(false);
         // Handle completed state
         this.resultPanelOpen.set(true);
         let headline = event.winnerId === 'DRAW' ? 'Draw!' : (event.winnerId === this.myId() ? 'You Won!' : 'You Lost!');
@@ -204,7 +223,7 @@ int main() {
         });
         
         // Auto-redirect to lobby after 10 seconds
-        setTimeout(() => this.leaveArena(), 10000);
+        setTimeout(() => this.router.navigate(['/lobby']), 10000);
         break;
       case 'DUEL_OPPONENT_FINISHED':
         if (event.username !== this.userService.username()) {
@@ -403,6 +422,11 @@ int main() {
     }
   }
 
+  /**
+   * Chamado quando o utilizador clica o botão "Leave Arena" (pós-duel).
+   * O botão só aparece quando o duel terminou (verdict === 'success').
+   * Durante o duel, a navegação é bloqueada pelo arenaDeactivateGuard.
+   */
   leaveArena(): void {
     this.router.navigate(['/lobby']);
   }
