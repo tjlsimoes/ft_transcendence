@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -36,6 +37,7 @@ public class DuelEvaluationService {
     private final ChallengeRepository challengeRepository;
     private final UserRepository userRepository;
     private final JudgeService judgeService;
+    private final TransactionTemplate transactionTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper()
             .configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     
@@ -93,13 +95,13 @@ public class DuelEvaluationService {
             submissionRepository.save(sub2);
 
             // Determine winner and calculate ELO
-            finalizeDuel(duel, sub1, sub2);
+            transactionTemplate.executeWithoutResult(status -> finalizeDuel(duel, sub1, sub2));
 
         } catch (Exception e) {
             log.error("Error evaluating duel {}", duelId, e);
             // If evaluation fails, we should at least mark the duel as DRAW or COMPLETED with 0 scores
             // to avoid sticking in EVALUATING.
-            handleEvaluationFailure(duelId);
+            transactionTemplate.executeWithoutResult(status -> handleEvaluationFailure(duelId));
         }
     }
 
