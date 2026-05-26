@@ -110,7 +110,8 @@ public class DuelController {
                 "challengerId", duel.getChallengerId(),
                 "opponentId", duel.getOpponentId(),
                 "hasSubmitted", hasSubmitted,
-                "winnerId", duel.getWinnerId() != null ? duel.getWinnerId() : "NONE"
+                "winnerId", duel.getWinnerId() != null ? duel.getWinnerId()
+                        : (duel.getStatus() == Duel.DuelStatus.DRAW ? "DRAW" : "NONE")
         ));
 
         long timeLeftSecs = 0;
