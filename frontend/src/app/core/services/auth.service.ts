@@ -128,7 +128,9 @@ export class AuthService {
       this.router.navigate(['/login']);
     };
 
-    if (token) {
+    // Try server-side logout whenever we still have at least one credential.
+    // This covers the "refresh-only" case where access token is missing.
+    if (token || refreshToken) {
       const body = refreshToken ? { refreshToken } : {};
       // Wait for the backend to blacklist the tokens before clearing local state.
       // finalize() runs on both success and error, so UX is never blocked.
