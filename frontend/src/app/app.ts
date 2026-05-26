@@ -52,8 +52,9 @@ export class App implements OnInit {
         refreshToken: string | null;
         timestamp: number;
       };
-      // Ignora se os dados são mais antigos que o tempo de vida do JWT (1 hora).
-      if (Date.now() - timestamp > 3_600_000) return;
+      const accessTokenExpiresAt = this.getJwtExpirationMs(token);
+      // Ignora logout adiado quando o access token já expirou antes desta tentativa.
+      if (accessTokenExpiresAt !== null && Date.now() > accessTokenExpiresAt) return;
 
       fetch(`${environment.apiUrl}/auth/logout`, {
         method: 'POST',
@@ -87,5 +88,19 @@ export class App implements OnInit {
       this.PENDING_LOGOUT_KEY,
       JSON.stringify({ token, refreshToken, timestamp: Date.now() })
     );
+  }
+
+  private getJwtExpirationMs(token: string): number | null {
+    try {
+      const payloadBase64 = token.split('.')[1];
+      if (!payloadBase64) return null;
+      const base64 = payloadBase64.replace(/-/g, '+').replace(/_/g, '/');
+      const padded = base64 + '=='.slice(0, (4 - base64.length % 4) % 4);
+      const decoded = JSON.parse(atob(padded));
+      if (typeof decoded.exp !== 'number') return null;
+      return decoded.exp * 1000;
+    } catch {
+      return null;
+    }
   }
 }
