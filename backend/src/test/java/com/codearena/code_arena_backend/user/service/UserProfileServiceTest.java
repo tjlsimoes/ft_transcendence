@@ -49,8 +49,6 @@ class UserProfileServiceTest {
         tempAvatarDir = Files.createTempDirectory("avatars-test-");
         ReflectionTestUtils.setField(userProfileService, "avatarStorageDir", tempAvatarDir.toString());
         ReflectionTestUtils.setField(userProfileService, "avatarBaseUrl", "/api/users/avatars");
-        ReflectionTestUtils.setField(userProfileService, "defaultAvatarFilename", "default-avatar.svg");
-        ReflectionTestUtils.invokeMethod(userProfileService, "initAvatarStorage");
     }
 
     @Test
