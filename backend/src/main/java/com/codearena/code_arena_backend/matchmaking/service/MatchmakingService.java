@@ -105,17 +105,24 @@ public class MatchmakingService {
         final String p2Username = player2.getUsername();
         final Long duelId = duel.getId();
 
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                // Send WS notifications — DB row is now committed and visible
-                messagingTemplate.convertAndSendToUser(p1Username, "/queue/matchmaking", event1);
-                messagingTemplate.convertAndSendToUser(p2Username, "/queue/matchmaking", event2);
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    // Send WS notifications — DB row is now committed and visible
+                    messagingTemplate.convertAndSendToUser(p1Username, "/queue/matchmaking", event1);
+                    messagingTemplate.convertAndSendToUser(p2Username, "/queue/matchmaking", event2);
 
-                // Start the duel lifecycle (timer, DUEL_STARTED broadcast)
-                duelLifecycleService.startDuel(duelId);
-            }
-        });
+                    // Start the duel lifecycle (timer, DUEL_STARTED broadcast)
+                    duelLifecycleService.startDuel(duelId);
+                }
+            });
+        } else {
+            // Fallback for non-transactional execution (e.g., plain unit tests)
+            messagingTemplate.convertAndSendToUser(p1Username, "/queue/matchmaking", event1);
+            messagingTemplate.convertAndSendToUser(p2Username, "/queue/matchmaking", event2);
+            duelLifecycleService.startDuel(duelId);
+        }
         } catch (Exception e) {
             // Attempt to put players back into the queue and restore their status.
             try {
