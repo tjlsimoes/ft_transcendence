@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -33,13 +34,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleDataIntegrity(
             DataIntegrityViolationException ex) {
 
-        String msg = ex.getMostSpecificCause().getMessage();
+        String constraintName = findConstraintName(ex);
 
-        if (msg != null && msg.contains("login")) {
+        if (matchesConstraint(constraintName, "login")) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body(Map.of("error", "Username already taken"));
         }
-        if (msg != null && msg.contains("email")) {
+        if (matchesConstraint(constraintName, "email")) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body(Map.of("error", "Email already registered"));
         }
@@ -47,5 +48,20 @@ public class GlobalExceptionHandler {
         // Generic fallback — still 409 but without leaking constraint details.
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(Map.of("error", "A duplicate entry was detected"));
+    }
+
+    private String findConstraintName(Throwable ex) {
+        Throwable current = ex;
+        while (current != null) {
+            if (current instanceof org.hibernate.exception.ConstraintViolationException hibernateEx) {
+                return hibernateEx.getConstraintName();
+            }
+            current = current.getCause();
+        }
+        return null;
+    }
+
+    private boolean matchesConstraint(String constraintName, String token) {
+        return constraintName != null && constraintName.toLowerCase(Locale.ROOT).contains(token);
     }
 }
