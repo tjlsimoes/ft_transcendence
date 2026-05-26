@@ -13,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -32,7 +31,7 @@ public class DuelSubmissionService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        Duel duel = duelRepository.findById(duelId)
+        Duel duel = duelRepository.findByIdForUpdate(duelId)
                 .orElseThrow(() -> new IllegalArgumentException("Duel not found"));
 
         if (duel.getStatus() != Duel.DuelStatus.IN_PROGRESS) {
@@ -60,15 +59,16 @@ public class DuelSubmissionService {
         submissionRepository.save(submission);
         log.info("User {} submitted code for Duel {}", username, duelId);
 
-        // Check if both players have submitted
-        List<Submission> submissions = submissionRepository.findByDuelId(duelId);
-        if (submissions.size() == 1) {
+        long submissionCount = submissionRepository.countByDuelId(duelId);
+
+        // First submission notifies the opponent and shortens the timer.
+        if (submissionCount == 1) {
             log.info("First player submitted for Duel {}. Notifying opponent and reducing time if needed.", duelId);
             lifecycleService.reduceTimeLimitTo(duelId, 60);
             lifecycleService.broadcastEvent(duelId, "DUEL_OPPONENT_FINISHED", Map.of(
                 "username", username
             ));
-        } else if (submissions.size() >= 2) {
+        } else if (submissionCount >= 2) {
             log.info("Both players submitted for Duel {}. Triggering evaluation.", duelId);
             evaluationService.evaluateDuel(duelId);
         }

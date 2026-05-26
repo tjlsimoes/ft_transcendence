@@ -10,5 +10,6 @@ import java.util.Optional;
 @Repository
 public interface SubmissionRepository extends JpaRepository<Submission, Long> {
     List<Submission> findByDuelId(Long duelId);
+    long countByDuelId(Long duelId);
     Optional<Submission> findByDuelIdAndUserId(Long duelId, Long userId);
 }
