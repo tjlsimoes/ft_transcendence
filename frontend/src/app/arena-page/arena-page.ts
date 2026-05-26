@@ -226,7 +226,8 @@ int main() {
         });
         
         // Auto-redirect to lobby after 10 seconds
-        setTimeout(() => this.router.navigate(['/lobby']), 10000);
+          if (this.redirectTimeoutId !== null) clearTimeout(this.redirectTimeoutId);
+          this.redirectTimeoutId = setTimeout(() => this.router.navigate(['/lobby']), 10000);
         break;
       case 'DUEL_OPPONENT_FINISHED':
         if (event.username !== this.userService.username()) {
@@ -307,6 +308,7 @@ int main() {
     this.stopResize();
     this.stopFooterResize();
     if (this.notifTimeoutId !== null) clearTimeout(this.notifTimeoutId);
+    if (this.redirectTimeoutId !== null) clearTimeout(this.redirectTimeoutId);
     this.subs.unsubscribe();
     this.wsService.disconnect();
   }
@@ -405,6 +407,7 @@ int main() {
   showOpponentNotif = signal(false);
 
   private notifTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private redirectTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
   /**
    * Call this when the backend signals the opponent submitted a correct solution.
