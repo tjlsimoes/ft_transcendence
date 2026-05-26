@@ -2,6 +2,7 @@ package com.codearena.code_arena_backend.user.service;
 
 import com.codearena.code_arena_backend.friendship.entity.Friendship;
 import com.codearena.code_arena_backend.friendship.repository.FriendshipRepository;
+import com.codearena.code_arena_backend.ranking.service.RankingService;
 import com.codearena.code_arena_backend.user.dto.FriendSummaryResponse;
 import com.codearena.code_arena_backend.user.dto.UpdateUserProfileRequest;
 import com.codearena.code_arena_backend.user.dto.UserAvatarResource;
@@ -51,6 +52,7 @@ public class UserProfileService {
 
     private final UserRepository userRepository;
     private final FriendshipRepository friendshipRepository;
+    private final RankingService rankingService;
 
     @Value("${user.avatar.storage-dir:/app/uploads/avatars}")
     private String avatarStorageDir;
@@ -73,7 +75,8 @@ public class UserProfileService {
     }
 
     public UserProfileResponse getProfileById(Long id) {
-        return UserProfileResponse.from(requireUserById(id));
+        User user = requireUserById(id);
+        return UserProfileResponse.from(user, rankingService.getLeagueFromElo(user.getElo()));
     }
 
     @Transactional
@@ -97,7 +100,7 @@ public class UserProfileService {
             user.setBio(bio.isEmpty() ? null : bio);
         }
 
-        return UserProfileResponse.from(userRepository.save(user));
+        return UserProfileResponse.from(userRepository.save(user), rankingService.getLeagueFromElo(user.getElo()));
     }
 
     @Transactional
@@ -122,7 +125,7 @@ public class UserProfileService {
 
         User user = requireUserByUsername(username);
         user.setAvatar(buildAvatarUrl(filename));
-        return UserProfileResponse.from(userRepository.save(user));
+        return UserProfileResponse.from(userRepository.save(user), rankingService.getLeagueFromElo(user.getElo()));
     }
 
     public List<FriendSummaryResponse> listMyFriends(String username) {
