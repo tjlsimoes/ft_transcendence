@@ -22,6 +22,10 @@ export class Navbar {
   // Delegado ao serviço compartilhado para evitar duplicação de lógica de rota.
   isLobby = this.routeState.isLobby;
 
+  get isLoggedIn(): boolean {
+    return this.authService.isLoggedIn();
+  }
+
   dropdownOpen = signal(false);
 
   toggleDropdown(): void {

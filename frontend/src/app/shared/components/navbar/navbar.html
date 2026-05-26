@@ -54,8 +54,12 @@
       </div>
 
       <div class="navbar-actions">
-        <a class="btn-login" routerLink="/login">Log in</a>
-        <a class="btn-join" routerLink="/register">Register</a>
+        @if (isLoggedIn) {
+          <a class="btn-join" routerLink="/lobby">Lobby</a>
+        } @else {
+          <a class="btn-login" routerLink="/login">Log in</a>
+          <a class="btn-join" routerLink="/register">Register</a>
+        }
       </div>
     </div>
   </nav>
