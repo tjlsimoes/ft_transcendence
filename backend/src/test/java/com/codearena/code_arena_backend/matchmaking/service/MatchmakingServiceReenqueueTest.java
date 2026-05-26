@@ -5,6 +5,7 @@ import com.codearena.code_arena_backend.challenge.entity.ChallengeDifficulty;
 import com.codearena.code_arena_backend.challenge.repository.ChallengeRepository;
 import com.codearena.code_arena_backend.duel.entity.Duel;
 import com.codearena.code_arena_backend.duel.repository.DuelRepository;
+import com.codearena.code_arena_backend.duel.service.DuelLifecycleService;
 import com.codearena.code_arena_backend.matchmaking.dto.MatchmakingEvent;
 import com.codearena.code_arena_backend.user.entity.User;
 import com.codearena.code_arena_backend.user.repository.UserRepository;
@@ -17,6 +18,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.Optional;
 
@@ -48,6 +51,9 @@ class MatchmakingServiceReenqueueTest {
 
     @Mock
     private SimpMessagingTemplate messagingTemplate;
+
+    @Mock
+    private DuelLifecycleService duelLifecycleService;
 
     @InjectMocks
     private MatchmakingService matchmakingService;
@@ -89,9 +95,9 @@ class MatchmakingServiceReenqueueTest {
         verify(queueService).enqueue(1L, 1200);
         verify(queueService).enqueue(2L, 1250);
 
-        // Verify players' statuses were restored to ONLINE
-        assertThat(player1.getStatus()).isEqualTo(User.UserStatus.ONLINE);
-        assertThat(player2.getStatus()).isEqualTo(User.UserStatus.ONLINE);
+        // Verify players' statuses were restored to IN_QUEUE
+        assertThat(player1.getStatus()).isEqualTo(User.UserStatus.IN_QUEUE);
+        assertThat(player2.getStatus()).isEqualTo(User.UserStatus.IN_QUEUE);
 
         // Verify notification was sent
         ArgumentCaptor<MatchmakingEvent> eventCaptor = ArgumentCaptor.forClass(MatchmakingEvent.class);
@@ -143,11 +149,22 @@ class MatchmakingServiceReenqueueTest {
         when(challengeRepository.findRandomByDifficulty("MEDIUM")).thenReturn(Optional.of(challenge));
         when(duelRepository.save(any())).thenReturn(duel);
 
-        matchmakingService.createMatch(1L, 2L);
+        TransactionSynchronizationManager.initSynchronization();
+        try {
+            matchmakingService.createMatch(1L, 2L);
+
+            // Simulate commit so the registered afterCommit callback runs in this unit test.
+            TransactionSynchronizationManager.getSynchronizations()
+                    .forEach(TransactionSynchronization::afterCommit);
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
 
         // Verify dequeue but NO re-enqueue
         verify(queueService, times(2)).dequeue(anyLong());
         verify(queueService, never()).enqueue(anyLong(), anyInt());
+
+        verify(duelLifecycleService).startDuel(1L);
 
         // Verify MATCHED event was sent
         ArgumentCaptor<MatchmakingEvent> eventCaptor = ArgumentCaptor.forClass(MatchmakingEvent.class);
