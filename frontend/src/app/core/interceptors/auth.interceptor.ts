@@ -12,7 +12,12 @@ import { AuthService } from '../services/auth.service';
 // Guards against firing multiple parallel refresh requests when several
 // requests get a 401 simultaneously (e.g. after token expiry).
 let isRefreshing = false;
-const refreshTokenSubject = new BehaviorSubject<string | null>(null);
+type RefreshTokenState =
+  | { status: 'idle' }
+  | { status: 'success'; accessToken: string }
+  | { status: 'failed' };
+
+const refreshTokenSubject = new BehaviorSubject<RefreshTokenState>({ status: 'idle' });
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const auth = inject(AuthService);
@@ -60,16 +65,17 @@ function handle401(
 
   if (!isRefreshing) {
     isRefreshing = true;
-    refreshTokenSubject.next(null); // signal "refresh in progress" to queued requests
+    refreshTokenSubject.next({ status: 'idle' }); // signal "refresh in progress" to queued requests
 
     return auth.refreshTokens().pipe(
       switchMap((response) => {
         isRefreshing = false;
-        refreshTokenSubject.next(response.accessToken); // unblock queued requests
+        refreshTokenSubject.next({ status: 'success', accessToken: response.accessToken });
         return next(attachToken(req, response.accessToken));
       }),
       catchError((err) => {
         isRefreshing = false;
+        refreshTokenSubject.next({ status: 'failed' }); // unblock queued requests with terminal state
         auth.logout(); // refresh also failed → force logout
         return throwError(() => err);
       }),
@@ -78,8 +84,13 @@ function handle401(
 
   // Another request is already refreshing — queue until the new token arrives.
   return refreshTokenSubject.pipe(
-    filter((token): token is string => token !== null),
+    filter((state) => state.status !== 'idle'),
     take(1),
-    switchMap((token) => next(attachToken(req, token))),
+    switchMap((state) => {
+      if (state.status === 'success') {
+        return next(attachToken(req, state.accessToken));
+      }
+      return throwError(() => new Error('Session expired'));
+    }),
   );
 }
