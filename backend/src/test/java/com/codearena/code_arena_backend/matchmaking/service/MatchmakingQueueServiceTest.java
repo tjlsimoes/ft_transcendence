@@ -28,6 +28,6 @@ class MatchmakingQueueServiceTest {
     @Test
     @DisplayName("extractUserId parses negative userId")
     void extractUserId_negative() {
-        assertThat(MatchmakingQueueService.extractUserId("999:9999999999")).isEqualTo(999L);
+        assertThat(MatchmakingQueueService.extractUserId("-999:9999999999")).isEqualTo(-999L);
     }
 }
