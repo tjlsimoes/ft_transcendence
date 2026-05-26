@@ -191,6 +191,9 @@ int main() {
         break;
       case 'DUEL_STARTED':
         this.isDuelActive.set(true);
+        if (event.timeLimitSecs !== undefined) {
+          this.arenaTimer?.sync(event.timeLimitSecs);
+        }
         break;
       case 'DUEL_TIMEOUT':
         this.isDuelActive.set(false);
