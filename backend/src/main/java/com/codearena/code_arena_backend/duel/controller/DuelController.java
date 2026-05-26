@@ -58,7 +58,7 @@ public class DuelController {
 
         return duelRepository.findActiveByUserId(
                         user.getId(),
-                        List.of(Duel.DuelStatus.MATCHED, Duel.DuelStatus.IN_PROGRESS))
+                        List.of(Duel.DuelStatus.MATCHED, Duel.DuelStatus.IN_PROGRESS, Duel.DuelStatus.EVALUATING))
                 .map(duel -> {
                     // Determine the opponent from the caller's perspective
                     Long opponentId = duel.getChallengerId().equals(user.getId())
