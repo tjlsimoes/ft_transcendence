@@ -70,14 +70,14 @@ export class AuthService {
    * Returns true when the session is considered active.
    *
    * Session validity is determined by the REFRESH token, not the access token.
-   * The access token may be expired — the interceptor will transparently renew
-   * it on the next HTTP request. Only when the refresh token itself is absent or
-   * expired is the user truly logged out.
+    * The access token may be expired — the interceptor will transparently renew
+    * it on the next HTTP request. We intentionally keep an expired access token
+    * in storage so logout flows that require Authorization can still reach backend
+    * cleanup/blacklist endpoints. Only when the refresh token itself is absent or
+    * expired is the user truly logged out.
    *
    * Side effects:
    *  - Clears both tokens when the refresh token is expired (full cleanup).
-   *  - Removes only the access token when it is expired but refresh is still
-   *    valid, so the interceptor is not sent a stale Bearer header.
    */
   isLoggedIn(): boolean {
     const refreshToken = this.getRefreshToken();
@@ -92,14 +92,6 @@ export class AuthService {
       localStorage.removeItem(this.tokenKey);
       localStorage.removeItem(this.refreshTokenKey);
       return false;
-    }
-
-    // Refresh token is valid → session is active.
-    // Remove the expired access token so it is not sent in the Authorization header
-    // (the interceptor will obtain a fresh one on the first 401).
-    const accessToken = this.getToken();
-    if (accessToken && this.isTokenExpired(accessToken)) {
-      localStorage.removeItem(this.tokenKey);
     }
 
     return true;
