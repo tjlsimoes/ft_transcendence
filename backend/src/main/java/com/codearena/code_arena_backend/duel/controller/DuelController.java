@@ -34,7 +34,6 @@ import java.util.Map;
 public class DuelController {
 
     private final DuelSubmissionService submissionService;
-    private final DuelLifecycleService lifecycleService;
     private final DuelRepository duelRepository;
     private final ChallengeRepository challengeRepository;
     private final UserRepository userRepository;
