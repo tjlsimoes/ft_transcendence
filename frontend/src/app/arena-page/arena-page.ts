@@ -132,13 +132,13 @@ int main() {
         // Sync initial state on load/refresh
         this.duelService.getDuelStatus(activeDuel.duelId).subscribe({
           next: (status) => {
-            console.log('Initial duel status sync:', status);
-            if (this.arenaTimer && status.timeLeftSecs !== undefined) {
-               this.arenaTimer.sync(status.timeLeftSecs);
-            }
-            if (status.opponentHasSubmitted) {
-               this.opponentFinished();
-            }
+             console.log('Initial duel status sync:', status);
+             if (status.timeLeftSecs !== undefined) {
+               setTimeout(() => this.arenaTimer?.sync(status.timeLeftSecs), 0);
+             }
+             if (status.opponentHasSubmitted) {
+               setTimeout(() => this.opponentFinished(), 0);
+             }
             // Mark duel as active if IN_PROGRESS
             if (status.status === 'IN_PROGRESS') {
               this.isDuelActive.set(true);
