@@ -17,10 +17,14 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collections;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+
+import com.codearena.code_arena_backend.duel.repository.DuelRepository;
+import com.codearena.code_arena_backend.user.repository.UserRepository;
 
 /**
  * Tests for WebSocketAuthInterceptor security controls.
@@ -35,6 +39,12 @@ class WebSocketAuthInterceptorTest {
 
     @Mock
     private UserService userService;
+
+    @Mock
+    private UserRepository userRepository;
+
+    @Mock
+    private DuelRepository duelRepository;
 
     @InjectMocks
     private WebSocketAuthInterceptor interceptor;
@@ -127,6 +137,11 @@ class WebSocketAuthInterceptorTest {
         StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
         accessor.setDestination("/user/queue/matchmaking");
         accessor.setUser(new UsernamePasswordAuthenticationToken("player1", null));
+
+        com.codearena.code_arena_backend.user.entity.User user = new com.codearena.code_arena_backend.user.entity.User();
+        user.setId(1L);
+        user.setUsername("player1");
+        when(userRepository.findByUsername("player1")).thenReturn(Optional.of(user));
 
         Message<?> message = MessageBuilder.createMessage(new byte[0], accessor.getMessageHeaders());
         Message<?> result = interceptor.preSend(message, null);

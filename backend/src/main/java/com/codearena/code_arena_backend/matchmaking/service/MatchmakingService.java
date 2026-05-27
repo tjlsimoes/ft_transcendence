@@ -6,6 +6,8 @@ import com.codearena.code_arena_backend.challenge.repository.ChallengeRepository
 import com.codearena.code_arena_backend.duel.entity.Duel;
 import com.codearena.code_arena_backend.duel.repository.DuelRepository;
 import com.codearena.code_arena_backend.matchmaking.dto.MatchmakingEvent;
+import com.codearena.code_arena_backend.notification.NotificationService;
+import com.codearena.code_arena_backend.notification.entity.NotificationType;
 import com.codearena.code_arena_backend.user.entity.User;
 import com.codearena.code_arena_backend.user.repository.UserRepository;
 import com.codearena.code_arena_backend.duel.service.DuelLifecycleService;
@@ -41,6 +43,7 @@ public class MatchmakingService {
     private final UserRepository userRepository;
     private final SimpMessagingTemplate messagingTemplate;
     private final DuelLifecycleService duelLifecycleService;
+    private final NotificationService notificationService;
 
     /**
      * Creates a match between two players.
@@ -123,6 +126,8 @@ public class MatchmakingService {
             messagingTemplate.convertAndSendToUser(p2Username, "/queue/matchmaking", event2);
             duelLifecycleService.startDuel(duelId);
         }
+        notificationService.send(player1Id, NotificationType.MATCH_FOUND, event1);
+        notificationService.send(player2Id, NotificationType.MATCH_FOUND, event2);
         } catch (Exception e) {
             // Attempt to put players back into the queue and restore their status.
             try {

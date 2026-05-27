@@ -9,6 +9,8 @@ import com.codearena.code_arena_backend.duel.service.DuelLifecycleService;
 import com.codearena.code_arena_backend.matchmaking.dto.MatchmakingEvent;
 import com.codearena.code_arena_backend.user.entity.User;
 import com.codearena.code_arena_backend.user.repository.UserRepository;
+import com.codearena.code_arena_backend.notification.NotificationService;
+import com.codearena.code_arena_backend.notification.entity.NotificationType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -54,6 +56,9 @@ class MatchmakingServiceReenqueueTest {
 
     @Mock
     private DuelLifecycleService duelLifecycleService;
+
+    @Mock
+    private NotificationService notificationService;
 
     @InjectMocks
     private MatchmakingService matchmakingService;
@@ -166,9 +171,10 @@ class MatchmakingServiceReenqueueTest {
 
         verify(duelLifecycleService).startDuel(1L);
 
-        // Verify MATCHED event was sent
+        // Verify MATCHED event was sent via notificationService
         ArgumentCaptor<MatchmakingEvent> eventCaptor = ArgumentCaptor.forClass(MatchmakingEvent.class);
-        verify(messagingTemplate, times(2)).convertAndSendToUser(anyString(), eq("/queue/matchmaking"), eventCaptor.capture());
+        verify(notificationService).send(eq(1L), eq(NotificationType.MATCH_FOUND), eventCaptor.capture());
+        verify(notificationService).send(eq(2L), eq(NotificationType.MATCH_FOUND), any(MatchmakingEvent.class));
 
         MatchmakingEvent event = eventCaptor.getValue();
         assertThat(event.type()).isEqualTo("MATCHED");
