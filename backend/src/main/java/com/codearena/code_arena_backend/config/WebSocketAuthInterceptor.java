@@ -5,8 +5,6 @@ import com.codearena.code_arena_backend.duel.entity.Duel;
 import com.codearena.code_arena_backend.duel.repository.DuelRepository;
 import com.codearena.code_arena_backend.user.entity.User;
 import com.codearena.code_arena_backend.user.repository.UserRepository;
-import com.codearena.code_arena_backend.duel.repository.DuelRepository;
-import com.codearena.code_arena_backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,9 +39,6 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
-    private final DuelRepository duelRepository;
-    private final UserRepository userRepository;
-    private final UserService userService;
     private final DuelRepository duelRepository;
     private final UserRepository userRepository;
 

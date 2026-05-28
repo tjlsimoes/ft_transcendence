@@ -12,7 +12,6 @@ import com.codearena.code_arena_backend.notification.entity.Notification;
 import com.codearena.code_arena_backend.notification.entity.NotificationType;
 import com.codearena.code_arena_backend.notification.repository.NotificationRepository;
 import com.codearena.code_arena_backend.user.repository.UserRepository;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.transaction.Transactional;
@@ -31,35 +30,29 @@ public class NotificationService {
 
     @Transactional
     public void send(Long userId, NotificationType type, Object payload) {
-        try {
-            String payloadJson = objectMapper.writeValueAsString(payload);
+        Notification notification = new Notification();
+        notification.setUserId(userId);
+        notification.setType(type.name());
+        notification.setPayload(objectMapper.valueToTree(payload));
+        notification.setRead(false);
+        notificationRepository.save(notification);
 
-            Notification notification = new Notification();
-            notification.setUserId(userId);
-            notification.setType(type.name());
-            notification.setPayload(payloadJson);
-            notification.setRead(false);
-            notificationRepository.save(notification);
+        userRepository.findById(userId).ifPresent(user -> {
+                NotificationResponse response = NotificationResponse.builder()
+                .id(notification.getId())
+                .userId(userId)
+                .type(notification.getType())
+                .payload(payload)
+                .read(false)
+                .createdAt(notification.getCreatedAt())
+                .build();
 
-            userRepository.findById(userId).ifPresent(user -> {
-                    NotificationResponse response = NotificationResponse.builder()
-                    .id(notification.getId())
-                    .userId(userId)
-                    .type(notification.getType())
-                    .payload(payload)
-                    .read(false)
-                    .createdAt(notification.getCreatedAt())
-                    .build();
-
-                messagingTemplate.convertAndSendToUser(
-                    user.getUsername(),
-                    "/queue/notifications",
-                    response
-                );
-            });
-        } catch (JsonProcessingException e) {
-            log.error("Failed to serialize notification payload");
-        }
+            messagingTemplate.convertAndSendToUser(
+                user.getUsername(),
+                "/queue/notifications",
+                response
+            );
+        });
     }
 
     @Transactional
@@ -89,7 +82,7 @@ public class NotificationService {
         Object payload = null;
 
         try {
-            payload = objectMapper.readValue(notification.getPayload(), Object.class);
+            payload = objectMapper.convertValue(notification.getPayload(), Object.class);
         } catch (Exception e) {
             log.error("Failed to parse notification payload");
         }
