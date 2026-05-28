@@ -181,6 +181,42 @@ class MatchmakingServiceReenqueueTest {
     }
 
     @Test
+    @DisplayName("createMatch still starts duel when websocket notification fails after commit")
+    void createMatch_notificationFailureStillStartsDuel() {
+        Challenge challenge = new Challenge();
+        challenge.setId(1L);
+        challenge.setDifficulty(ChallengeDifficulty.MEDIUM);
+
+        Duel duel = new Duel();
+        duel.setId(1L);
+        duel.setChallengerId(1L);
+        duel.setOpponentId(2L);
+        duel.setChallengeId(1L);
+        duel.setStatus(Duel.DuelStatus.MATCHED);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(player1));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(player2));
+        when(challengeRepository.findRandomByDifficulty("MEDIUM")).thenReturn(Optional.of(challenge));
+        when(duelRepository.save(any())).thenReturn(duel);
+
+        doThrow(new RuntimeException("ws down"))
+                .when(messagingTemplate)
+                .convertAndSendToUser(eq("player1"), eq("/queue/matchmaking"), any(MatchmakingEvent.class));
+
+        TransactionSynchronizationManager.initSynchronization();
+        try {
+            matchmakingService.createMatch(1L, 2L);
+
+            TransactionSynchronizationManager.getSynchronizations()
+                    .forEach(TransactionSynchronization::afterCommit);
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
+
+        verify(duelLifecycleService).startDuel(1L);
+    }
+
+    @Test
     @DisplayName("createMatch handles re-enqueue failure gracefully")
     void createMatch_reEnqueueFailure_logsWarning() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(player1));

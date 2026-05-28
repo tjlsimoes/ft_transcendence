@@ -38,6 +38,7 @@ public class DuelController {
     private final ChallengeRepository challengeRepository;
     private final UserRepository userRepository;
     private final SubmissionRepository submissionRepository;
+    private final DuelLifecycleService duelLifecycleService;
 
     /**
      * GET /api/duels/active
@@ -59,21 +60,27 @@ public class DuelController {
                         user.getId(),
                         List.of(Duel.DuelStatus.MATCHED, Duel.DuelStatus.IN_PROGRESS, Duel.DuelStatus.EVALUATING))
                 .map(duel -> {
+                    Duel resolvedDuel = duel;
+                    if (resolvedDuel.getStatus() == Duel.DuelStatus.MATCHED) {
+                        duelLifecycleService.startDuel(resolvedDuel.getId());
+                        resolvedDuel = duelRepository.findById(resolvedDuel.getId()).orElse(resolvedDuel);
+                    }
+
                     // Determine the opponent from the caller's perspective
-                    Long opponentId = duel.getChallengerId().equals(user.getId())
-                            ? duel.getOpponentId()
-                            : duel.getChallengerId();
+                    Long opponentId = resolvedDuel.getChallengerId().equals(user.getId())
+                            ? resolvedDuel.getOpponentId()
+                            : resolvedDuel.getChallengerId();
 
                     String opponentName = userRepository.findById(opponentId)
                             .map(u -> u.getDisplayName() != null ? u.getDisplayName() : u.getUsername())
                             .orElse("Unknown");
 
                     Map<String, Object> body = Map.of(
-                            "duelId",       duel.getId(),
-                            "challengeId",  duel.getChallengeId(),
+                            "duelId",       resolvedDuel.getId(),
+                            "challengeId",  resolvedDuel.getChallengeId(),
                             "opponentId",   opponentId,
                             "opponentName", opponentName,
-                            "status",       duel.getStatus()
+                            "status",       resolvedDuel.getStatus()
                     );
                     return ResponseEntity.ok(body);
                 })
@@ -97,29 +104,37 @@ public class DuelController {
                     .body(Map.of("error", "You are not a participant of this duel"));
         }
 
-        Challenge challenge = challengeRepository.findById(duel.getChallengeId())
+        Duel resolvedDuel = duel;
+        if (resolvedDuel.getStatus() == Duel.DuelStatus.MATCHED) {
+            duelLifecycleService.startDuel(duelId);
+            resolvedDuel = duelRepository.findById(duelId).orElse(resolvedDuel);
+        }
+
+        Challenge challenge = challengeRepository.findById(resolvedDuel.getChallengeId())
                 .orElseThrow(() -> new IllegalArgumentException("Challenge not found"));
 
-        boolean hasSubmitted = submissionRepository.findByDuelIdAndUserId(duel.getId(), user.getId()).isPresent();
+        boolean hasSubmitted = submissionRepository.findByDuelIdAndUserId(resolvedDuel.getId(), user.getId()).isPresent();
 
         Map<String, Object> response = new java.util.HashMap<>(Map.of(
-                "id", duel.getId(),
-                "status", duel.getStatus(),
-                "challengeId", duel.getChallengeId(),
-                "challengerId", duel.getChallengerId(),
-                "opponentId", duel.getOpponentId(),
+                "id", resolvedDuel.getId(),
+                "status", resolvedDuel.getStatus(),
+                "challengeId", resolvedDuel.getChallengeId(),
+                "challengerId", resolvedDuel.getChallengerId(),
+                "opponentId", resolvedDuel.getOpponentId(),
                 "hasSubmitted", hasSubmitted,
-                "winnerId", duel.getWinnerId() != null ? duel.getWinnerId()
-                        : (duel.getStatus() == Duel.DuelStatus.DRAW ? "DRAW" : "NONE")
+                "winnerId", resolvedDuel.getWinnerId() != null ? resolvedDuel.getWinnerId()
+                        : (resolvedDuel.getStatus() == Duel.DuelStatus.DRAW ? "DRAW" : "NONE")
         ));
 
         long timeLeftSecs = 0;
-        List<Submission> submissions = submissionRepository.findByDuelId(duel.getId());
+        List<Submission> submissions = submissionRepository.findByDuelId(resolvedDuel.getId());
         boolean opponentHasSubmitted = submissions.stream().anyMatch(s -> !s.getUserId().equals(user.getId()));
         response.put("opponentHasSubmitted", opponentHasSubmitted);
+        final Long resolvedChallengerId = resolvedDuel.getChallengerId();
+        final Long resolvedOpponentId = resolvedDuel.getOpponentId();
 
-        if (duel.getStatus() == Duel.DuelStatus.IN_PROGRESS && duel.getStartedAt() != null) {
-            long elapsedSinceStart = Duration.between(duel.getStartedAt(), LocalDateTime.now()).getSeconds();
+        if (resolvedDuel.getStatus() == Duel.DuelStatus.IN_PROGRESS && resolvedDuel.getStartedAt() != null) {
+            long elapsedSinceStart = Duration.between(resolvedDuel.getStartedAt(), LocalDateTime.now()).getSeconds();
             long standardTimeLeft = Math.max(0, challenge.getTimeLimitSecs() - elapsedSinceStart);
 
             if (submissions.size() == 1) {
@@ -129,19 +144,19 @@ public class DuelController {
             } else {
                 timeLeftSecs = standardTimeLeft;
             }
-        } else if (duel.getStatus() == Duel.DuelStatus.MATCHED || duel.getStatus() == Duel.DuelStatus.WAITING) {
+        } else if (resolvedDuel.getStatus() == Duel.DuelStatus.MATCHED || resolvedDuel.getStatus() == Duel.DuelStatus.WAITING) {
             timeLeftSecs = challenge.getTimeLimitSecs();
         }
         response.put("timeLeftSecs", timeLeftSecs);
 
-        if (duel.getStatus() == Duel.DuelStatus.COMPLETED || duel.getStatus() == Duel.DuelStatus.DRAW) {
-            Submission s1 = submissions.stream().filter(s -> s.getUserId().equals(duel.getChallengerId())).findFirst().orElse(null);
-            Submission s2 = submissions.stream().filter(s -> s.getUserId().equals(duel.getOpponentId())).findFirst().orElse(null);
+        if (resolvedDuel.getStatus() == Duel.DuelStatus.COMPLETED || resolvedDuel.getStatus() == Duel.DuelStatus.DRAW) {
+            Submission s1 = submissions.stream().filter(s -> s.getUserId().equals(resolvedChallengerId)).findFirst().orElse(null);
+            Submission s2 = submissions.stream().filter(s -> s.getUserId().equals(resolvedOpponentId)).findFirst().orElse(null);
 
             response.put("challengerScore", s1 != null ? s1.getScore() : 0);
             response.put("opponentScore", s2 != null ? s2.getScore() : 0);
-            response.put("challengerEloDelta", duel.getChallengerEloChange());
-            response.put("opponentEloDelta", duel.getOpponentEloChange());
+            response.put("challengerEloDelta", resolvedDuel.getChallengerEloChange());
+            response.put("opponentEloDelta", resolvedDuel.getOpponentEloChange());
         }
 
         return ResponseEntity.ok(response);

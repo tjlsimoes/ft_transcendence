@@ -7,6 +7,7 @@ import com.codearena.code_arena_backend.duel.repository.DuelRepository;
 import com.codearena.code_arena_backend.submission.entity.Submission;
 import com.codearena.code_arena_backend.submission.repository.SubmissionRepository;
 import com.codearena.code_arena_backend.duel.service.DuelSubmissionService;
+import com.codearena.code_arena_backend.duel.service.DuelLifecycleService;
 import com.codearena.code_arena_backend.user.entity.User;
 import com.codearena.code_arena_backend.user.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -46,6 +47,9 @@ class DuelControllerTest {
 
     @Mock
     private SubmissionRepository submissionRepository;
+
+    @Mock
+    private DuelLifecycleService duelLifecycleService;
 
     @InjectMocks
     private DuelController controller;
@@ -152,5 +156,30 @@ class DuelControllerTest {
         assertThat(body.get("timeLeftSecs")).isEqualTo(0L);
         assertThat(body.get("hasSubmitted")).isEqualTo(true);
         assertThat(body.get("opponentHasSubmitted")).isEqualTo(true);
+    }
+
+    @Test
+    @DisplayName("GET /api/duels/{id} auto-starts duel when status is MATCHED")
+    void getDuelStatus_autoStartsMatchedDuel() {
+        Duel matched = duel(42L, 1L, 2L, 7L, Duel.DuelStatus.MATCHED);
+        Duel inProgress = duel(42L, 1L, 2L, 7L, Duel.DuelStatus.IN_PROGRESS);
+        Challenge challenge = challenge(7L, 600);
+        User me = user(1L, "player1", null);
+        UserDetails userDetails = org.mockito.Mockito.mock(UserDetails.class);
+
+        when(duelRepository.findById(42L)).thenReturn(Optional.of(matched)).thenReturn(Optional.of(inProgress));
+        when(userRepository.findByUsername("player1")).thenReturn(Optional.of(me));
+        when(userDetails.getUsername()).thenReturn("player1");
+        when(challengeRepository.findById(7L)).thenReturn(Optional.of(challenge));
+        when(submissionRepository.findByDuelIdAndUserId(42L, 1L)).thenReturn(Optional.empty());
+        when(submissionRepository.findByDuelId(42L)).thenReturn(List.of());
+
+        ResponseEntity<?> response = controller.getDuelStatus(42L, userDetails);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).isInstanceOf(Map.class);
+        Map<?, ?> body = (Map<?, ?>) response.getBody();
+        assertThat(body.get("status")).isEqualTo(Duel.DuelStatus.IN_PROGRESS);
+        verify(duelLifecycleService).startDuel(42L);
     }
 }

@@ -112,18 +112,39 @@ public class MatchmakingService {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
-                    // Send WS notifications — DB row is now committed and visible
-                    messagingTemplate.convertAndSendToUser(p1Username, "/queue/matchmaking", event1);
-                    messagingTemplate.convertAndSendToUser(p2Username, "/queue/matchmaking", event2);
+                    // Start lifecycle even if notifications fail, otherwise duels can remain MATCHED.
+                    try {
+                        messagingTemplate.convertAndSendToUser(p1Username, "/queue/matchmaking", event1);
+                    } catch (Exception e) {
+                        log.warn("Failed to send MATCHED event to {} for duel {}", p1Username, duelId, e);
+                    }
 
-                    // Start the duel lifecycle (timer, DUEL_STARTED broadcast)
-                    duelLifecycleService.startDuel(duelId);
+                    try {
+                        messagingTemplate.convertAndSendToUser(p2Username, "/queue/matchmaking", event2);
+                    } catch (Exception e) {
+                        log.warn("Failed to send MATCHED event to {} for duel {}", p2Username, duelId, e);
+                    }
+
+                    try {
+                        // Start the duel lifecycle (timer, DUEL_STARTED broadcast)
+                        duelLifecycleService.startDuel(duelId);
+                    } catch (Exception e) {
+                        log.error("Failed to start duel lifecycle for duel {} after commit", duelId, e);
+                    }
                 }
             });
         } else {
             // Fallback for non-transactional execution (e.g., plain unit tests)
-            messagingTemplate.convertAndSendToUser(p1Username, "/queue/matchmaking", event1);
-            messagingTemplate.convertAndSendToUser(p2Username, "/queue/matchmaking", event2);
+            try {
+                messagingTemplate.convertAndSendToUser(p1Username, "/queue/matchmaking", event1);
+            } catch (Exception e) {
+                log.warn("Failed to send MATCHED event to {} for duel {}", p1Username, duelId, e);
+            }
+            try {
+                messagingTemplate.convertAndSendToUser(p2Username, "/queue/matchmaking", event2);
+            } catch (Exception e) {
+                log.warn("Failed to send MATCHED event to {} for duel {}", p2Username, duelId, e);
+            }
             duelLifecycleService.startDuel(duelId);
         }
         notificationService.send(player1Id, NotificationType.MATCH_FOUND, event1);
