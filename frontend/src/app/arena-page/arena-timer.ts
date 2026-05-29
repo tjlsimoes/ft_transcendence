@@ -1,15 +1,5 @@
 import { Component, OnInit, OnDestroy, output, signal, computed } from '@angular/core';
 
-// ── Mock ──────────────────────────────────────────────────────────────────────
-/**
- * Simulates fetching the total match duration from the backend.
- * Replace with a real HTTP call when the backend is ready.
- */
-export function mockGetMatchDurationSeconds(): number {
-  return 5 * 60; // 5 minutes
-}
-// ─────────────────────────────────────────────────────────────────────────────
-
 @Component({
   selector: 'app-arena-timer',
   standalone: true,
@@ -20,10 +10,8 @@ export class ArenaTimer implements OnInit, OnDestroy {
   /** Emitted when the countdown reaches zero. Parent should auto-submit. */
   readonly timeUp = output<void>();
 
-  private totalSeconds = mockGetMatchDurationSeconds();
-
-  /** Remaining seconds — driven by the frontend interval. */
-  readonly remaining = signal<number>(this.totalSeconds);
+  /** Remaining seconds — driven by the backend state. */
+  readonly remaining = signal<number | null>(null);
 
   /**
    * True when the opponent finished and we forced the clock to 1 minute.
@@ -33,7 +21,7 @@ export class ArenaTimer implements OnInit, OnDestroy {
 
   /** MM:SS string derived from `remaining`. */
   readonly display = computed<string>(() => {
-    const s = this.remaining();
+    const s = this.remaining() ?? 0;
     const mm = Math.floor(s / 60).toString().padStart(2, '0');
     const ss = (s % 60).toString().padStart(2, '0');
     return `${mm}:${ss}`;
@@ -42,16 +30,7 @@ export class ArenaTimer implements OnInit, OnDestroy {
   private intervalId: ReturnType<typeof setInterval> | null = null;
 
   ngOnInit(): void {
-    this.intervalId = setInterval(() => {
-      const next = this.remaining() - 1;
-      if (next <= 0) {
-        this.remaining.set(0);
-        this.stop();
-        this.timeUp.emit();
-      } else {
-        this.remaining.set(next);
-      }
-    }, 1000);
+    this.start();
   }
 
   /**
@@ -59,10 +38,8 @@ export class ArenaTimer implements OnInit, OnDestroy {
    * If the time is vastly different (e.g., more than 2 seconds out of sync), update it.
    */
   sync(seconds: number): void {
-    const diff = Math.abs(this.remaining() - seconds);
-    if (diff > 2) {
-      this.remaining.set(seconds);
-    }
+    this.remaining.set(Math.max(0, seconds));
+    this.start();
   }
 
   /**
@@ -74,10 +51,32 @@ export class ArenaTimer implements OnInit, OnDestroy {
    *   to the end; no need to modify it), but still marks as urgent.
    */
   opponentFinished(): void {
-    if (this.remaining() > 60) {
+    if ((this.remaining() ?? 0) > 60) {
       this.remaining.set(60);
     }
     this.isUrgent.set(true);
+  }
+
+  private start(): void {
+    if (this.intervalId !== null) {
+      return;
+    }
+
+    this.intervalId = setInterval(() => {
+      const current = this.remaining();
+      if (current === null) {
+        return;
+      }
+
+      const next = current - 1;
+      if (next <= 0) {
+        this.remaining.set(0);
+        this.stop();
+        this.timeUp.emit();
+      } else {
+        this.remaining.set(next);
+      }
+    }, 1000);
   }
 
   private stop(): void {

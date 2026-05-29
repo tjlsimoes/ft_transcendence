@@ -23,8 +23,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -126,26 +124,19 @@ public class DuelController {
                         : (resolvedDuel.getStatus() == Duel.DuelStatus.DRAW ? "DRAW" : "NONE")
         ));
 
-        long timeLeftSecs = 0;
         List<Submission> submissions = submissionRepository.findByDuelId(resolvedDuel.getId());
         boolean opponentHasSubmitted = submissions.stream().anyMatch(s -> !s.getUserId().equals(user.getId()));
         response.put("opponentHasSubmitted", opponentHasSubmitted);
         final Long resolvedChallengerId = resolvedDuel.getChallengerId();
         final Long resolvedOpponentId = resolvedDuel.getOpponentId();
 
-        if (resolvedDuel.getStatus() == Duel.DuelStatus.IN_PROGRESS && resolvedDuel.getStartedAt() != null) {
-            long elapsedSinceStart = Duration.between(resolvedDuel.getStartedAt(), LocalDateTime.now()).getSeconds();
-            long standardTimeLeft = Math.max(0, challenge.getTimeLimitSecs() - elapsedSinceStart);
-
-            if (submissions.size() == 1) {
-                long elapsedSinceSub = Duration.between(submissions.get(0).getSubmittedAt(), LocalDateTime.now()).getSeconds();
-                long reducedTimeLeft = Math.max(0, 60 - elapsedSinceSub);
-                timeLeftSecs = Math.min(standardTimeLeft, reducedTimeLeft);
-            } else {
-                timeLeftSecs = standardTimeLeft;
-            }
+        long timeLeftSecs;
+        if (resolvedDuel.getStatus() == Duel.DuelStatus.IN_PROGRESS) {
+            timeLeftSecs = duelLifecycleService.getRemainingTime(resolvedDuel.getId());
         } else if (resolvedDuel.getStatus() == Duel.DuelStatus.MATCHED || resolvedDuel.getStatus() == Duel.DuelStatus.WAITING) {
             timeLeftSecs = challenge.getTimeLimitSecs();
+        } else {
+            timeLeftSecs = 0L;
         }
         response.put("timeLeftSecs", timeLeftSecs);
 

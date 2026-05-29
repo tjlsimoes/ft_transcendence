@@ -191,7 +191,9 @@ int main() {
         break;
       case 'DUEL_STARTED':
         this.isDuelActive.set(true);
-        if (event.timeLimitSecs !== undefined) {
+        if (event.timeLeftSecs !== undefined) {
+          this.arenaTimer?.sync(event.timeLeftSecs);
+        } else if (event.timeLimitSecs !== undefined) {
           this.arenaTimer?.sync(event.timeLimitSecs);
         }
         break;
@@ -224,7 +226,7 @@ int main() {
            summary: `Score: ${event.challengerScore} vs ${event.opponentScore}. Elo: ${event.challengerEloDelta > 0 ? '+' : ''}${event.challengerEloDelta}`,
            testCases: []
         });
-        
+
         // Auto-redirect to lobby after 10 seconds
           if (this.redirectTimeoutId !== null) clearTimeout(this.redirectTimeoutId);
           this.redirectTimeoutId = setTimeout(() => this.router.navigate(['/lobby']), 10000);
