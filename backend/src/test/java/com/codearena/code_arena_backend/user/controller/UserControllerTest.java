@@ -1,10 +1,9 @@
 package com.codearena.code_arena_backend.user.controller;
 
-import com.codearena.code_arena_backend.duel.entity.Duel;
-import com.codearena.code_arena_backend.duel.entity.Duel.DuelStatus;
 import com.codearena.code_arena_backend.duel.dto.MatchHistoryResponse;
 import com.codearena.code_arena_backend.duel.repository.DuelRepository;
 import com.codearena.code_arena_backend.friendship.repository.FriendshipRepository;
+import com.codearena.code_arena_backend.ranking.service.RankingService;
 import com.codearena.code_arena_backend.user.dto.FriendSummaryResponse;
 import com.codearena.code_arena_backend.user.dto.UpdateUserProfileRequest;
 import com.codearena.code_arena_backend.user.dto.UserAvatarResource;
@@ -49,6 +48,9 @@ class UserControllerTest {
 
     @Mock
     private FriendshipRepository friendshipRepository;
+
+    @Mock
+    private RankingService rankingService;
 
     @InjectMocks
     private UserController userController;
@@ -191,18 +193,15 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("getMyMatches – challenger deleted: current user identified as opponent, lpChange from opponentEloChange")
+    @DisplayName("getMyMatches – challenger deleted: opponent shows Unknown")
     void getMyMatches_challengerDeleted_currentUserIsOpponent() {
-        Long currentUserId = 10L;
-        User currentUser = entityFor(currentUserId, "beta");
+        User currentUser = entityFor(10L, "beta");
         UserDetails principal = userDetailsFor("beta");
-
-        // Challenger was deleted → challengerId is null; current user is the opponent
-        Duel duel = new Duel(1L, null, currentUserId, 5L, null,
-                DuelStatus.COMPLETED, null, null, null, 15);
+        MatchHistoryResponse expected = MatchHistoryResponse.builder()
+                .id(1L).result("PENDING").opponent("Unknown").status("COMPLETED").lpChange(15).build();
 
         when(userService.findByUsername("beta")).thenReturn(Optional.of(currentUser));
-        when(duelRepository.findByUserId(currentUserId)).thenReturn(List.of(duel));
+        when(rankingService.getUserMatchHistory(currentUser)).thenReturn(List.of(expected));
 
         ResponseEntity<List<MatchHistoryResponse>> response = userController.getMyMatches(principal);
 
@@ -210,22 +209,18 @@ class UserControllerTest {
         MatchHistoryResponse match = response.getBody().getFirst();
         assertThat(match.getOpponent()).isEqualTo("Unknown");
         assertThat(match.getLpChange()).isEqualTo(15);
-        assertThat(match.getResult()).isEqualTo("PENDING");
     }
 
     @Test
-    @DisplayName("getMyMatches – opponent deleted: current user identified as challenger, lpChange from challengerEloChange")
+    @DisplayName("getMyMatches – opponent deleted: shows Unknown and VICTORY")
     void getMyMatches_opponentDeleted_currentUserIsChallenger() {
-        Long currentUserId = 10L;
-        User currentUser = entityFor(currentUserId, "alpha");
+        User currentUser = entityFor(10L, "alpha");
         UserDetails principal = userDetailsFor("alpha");
-
-        // Opponent was deleted → opponentId is null; current user is the challenger and winner
-        Duel duel = new Duel(2L, currentUserId, null, 5L, currentUserId,
-                DuelStatus.COMPLETED, null, null, -10, null);
+        MatchHistoryResponse expected = MatchHistoryResponse.builder()
+                .id(2L).result("VICTORY").opponent("Unknown").status("COMPLETED").lpChange(-10).build();
 
         when(userService.findByUsername("alpha")).thenReturn(Optional.of(currentUser));
-        when(duelRepository.findByUserId(currentUserId)).thenReturn(List.of(duel));
+        when(rankingService.getUserMatchHistory(currentUser)).thenReturn(List.of(expected));
 
         ResponseEntity<List<MatchHistoryResponse>> response = userController.getMyMatches(principal);
 
@@ -237,20 +232,15 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("getMyMatches – both participants present: resolves opponent username")
+    @DisplayName("getMyMatches – both present: resolves opponent username")
     void getMyMatches_bothPresent_resolvesOpponentName() {
-        Long currentUserId = 10L;
-        Long opponentId = 20L;
-        User currentUser = entityFor(currentUserId, "alpha");
-        User opponent = entityFor(opponentId, "beta");
+        User currentUser = entityFor(10L, "alpha");
         UserDetails principal = userDetailsFor("alpha");
-
-        Duel duel = new Duel(3L, currentUserId, opponentId, 5L, null,
-                DuelStatus.DRAW, null, null, 5, null);
+        MatchHistoryResponse expected = MatchHistoryResponse.builder()
+                .id(3L).result("DRAW").opponent("beta").status("DRAW").lpChange(5).build();
 
         when(userService.findByUsername("alpha")).thenReturn(Optional.of(currentUser));
-        when(duelRepository.findByUserId(currentUserId)).thenReturn(List.of(duel));
-        when(userService.findById(opponentId)).thenReturn(Optional.of(opponent));
+        when(rankingService.getUserMatchHistory(currentUser)).thenReturn(List.of(expected));
 
         ResponseEntity<List<MatchHistoryResponse>> response = userController.getMyMatches(principal);
 

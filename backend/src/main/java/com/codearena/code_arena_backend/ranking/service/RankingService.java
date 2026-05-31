@@ -1,6 +1,8 @@
 package com.codearena.code_arena_backend.ranking.service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -80,14 +82,21 @@ public class RankingService {
     }
 
     public List<MatchHistoryResponse> getUserMatchHistory(User user) {
-        List<MatchHistoryResponse> history = duelRepository.findByUserId(user.getId())
-                .stream()
+        List<com.codearena.code_arena_backend.duel.entity.Duel> duels = duelRepository.findByUserId(user.getId());
+
+        List<Long> opponentIds = duels.stream()
+                .map(d -> user.getId().equals(d.getChallengerId()) ? d.getOpponentId() : d.getChallengerId())
+                .filter(id -> id != null)
+                .distinct()
+                .toList();
+        Map<Long, String> usernameById = userRepository.findAllById(opponentIds).stream()
+                .collect(Collectors.toMap(User::getId, User::getUsername));
+
+        List<MatchHistoryResponse> history = duels.stream()
                 .map(duel -> {
-                    boolean isChallenger = duel.getChallengerId().equals(user.getId());
+                    boolean isChallenger = user.getId().equals(duel.getChallengerId());
                     Long opponentId = isChallenger ? duel.getOpponentId() : duel.getChallengerId();
-                    String opponentName = userRepository.findById(opponentId)
-                            .map(User::getUsername)
-                            .orElse("Unknown");
+                    String opponentName = opponentId == null ? "Unknown" : usernameById.getOrDefault(opponentId, "Unknown");
 
                     // Determine result from winnerId (set by the judge/duel service).
                     String result;
