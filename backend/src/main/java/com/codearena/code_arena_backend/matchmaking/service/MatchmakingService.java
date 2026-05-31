@@ -6,13 +6,18 @@ import com.codearena.code_arena_backend.challenge.repository.ChallengeRepository
 import com.codearena.code_arena_backend.duel.entity.Duel;
 import com.codearena.code_arena_backend.duel.repository.DuelRepository;
 import com.codearena.code_arena_backend.matchmaking.dto.MatchmakingEvent;
+import com.codearena.code_arena_backend.notification.NotificationService;
+import com.codearena.code_arena_backend.notification.entity.NotificationType;
 import com.codearena.code_arena_backend.user.entity.User;
 import com.codearena.code_arena_backend.user.repository.UserRepository;
+import com.codearena.code_arena_backend.duel.service.DuelLifecycleService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
@@ -37,6 +42,8 @@ public class MatchmakingService {
     private final ChallengeRepository challengeRepository;
     private final UserRepository userRepository;
     private final SimpMessagingTemplate messagingTemplate;
+    private final DuelLifecycleService duelLifecycleService;
+    private final NotificationService notificationService;
 
     /**
      * Creates a match between two players.
@@ -84,15 +91,64 @@ public class MatchmakingService {
             duel.getId(), player1.getUsername(), player2.getUsername(),
             challenge.getId(), difficulty);
 
-        // 5. Notify both players via user-scoped WebSocket destinations to avoid
-        // unauthorized subscription guessing (use /user/queue/matchmaking)
-        MatchmakingEvent event1 = MatchmakingEvent.matched(
-            duel.getId(), player2Id, player2.getDisplayName(), challenge.getId());
-        MatchmakingEvent event2 = MatchmakingEvent.matched(
-            duel.getId(), player1Id, player1.getDisplayName(), challenge.getId());
+        // 5+6. Notify both players AND start the duel timer AFTER the transaction
+        //       commits. This ensures the Duel row is visible in the DB before
+        //       the client receives the MATCHED event and navigates to /arena.
+        //       Without this, the arena guard's getActiveDuel() call would see
+        //       no duel yet (race condition).
+        String player1DisplayName = player1.getDisplayName() != null ? player1.getDisplayName() : player1.getUsername();
+        String player2DisplayName = player2.getDisplayName() != null ? player2.getDisplayName() : player2.getUsername();
 
-        messagingTemplate.convertAndSendToUser(player1.getUsername(), "/queue/matchmaking", event1);
-        messagingTemplate.convertAndSendToUser(player2.getUsername(), "/queue/matchmaking", event2);
+        final MatchmakingEvent event1 = MatchmakingEvent.matched(
+            duel.getId(), player2Id, player2DisplayName, challenge.getId());
+        final MatchmakingEvent event2 = MatchmakingEvent.matched(
+            duel.getId(), player1Id, player1DisplayName, challenge.getId());
+
+        final String p1Username = player1.getUsername();
+        final String p2Username = player2.getUsername();
+        final Long duelId = duel.getId();
+
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    // Start lifecycle even if notifications fail, otherwise duels can remain MATCHED.
+                    try {
+                        messagingTemplate.convertAndSendToUser(p1Username, "/queue/matchmaking", event1);
+                    } catch (Exception e) {
+                        log.warn("Failed to send MATCHED event to {} for duel {}", p1Username, duelId, e);
+                    }
+
+                    try {
+                        messagingTemplate.convertAndSendToUser(p2Username, "/queue/matchmaking", event2);
+                    } catch (Exception e) {
+                        log.warn("Failed to send MATCHED event to {} for duel {}", p2Username, duelId, e);
+                    }
+
+                    try {
+                        // Start the duel lifecycle (timer, DUEL_STARTED broadcast)
+                        duelLifecycleService.startDuel(duelId);
+                    } catch (Exception e) {
+                        log.error("Failed to start duel lifecycle for duel {} after commit", duelId, e);
+                    }
+                }
+            });
+        } else {
+            // Fallback for non-transactional execution (e.g., plain unit tests)
+            try {
+                messagingTemplate.convertAndSendToUser(p1Username, "/queue/matchmaking", event1);
+            } catch (Exception e) {
+                log.warn("Failed to send MATCHED event to {} for duel {}", p1Username, duelId, e);
+            }
+            try {
+                messagingTemplate.convertAndSendToUser(p2Username, "/queue/matchmaking", event2);
+            } catch (Exception e) {
+                log.warn("Failed to send MATCHED event to {} for duel {}", p2Username, duelId, e);
+            }
+            duelLifecycleService.startDuel(duelId);
+        }
+        notificationService.send(player1Id, NotificationType.MATCH_FOUND, event1);
+        notificationService.send(player2Id, NotificationType.MATCH_FOUND, event2);
         } catch (Exception e) {
             // Attempt to put players back into the queue and restore their status.
             try {

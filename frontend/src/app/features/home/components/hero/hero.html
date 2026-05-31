@@ -14,7 +14,7 @@
     </p>
 
     <div class="hero-actions">
-      <a class="btn-cta" routerLink="/register">Enter the Arena</a>
+      <a class="btn-cta" [routerLink]="isLoggedIn ? '/lobby' : '/register'">Enter the Arena</a>
     </div>
 
     <div class="hero-stats">

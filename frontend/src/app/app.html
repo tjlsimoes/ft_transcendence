@@ -1,8 +1,27 @@
-﻿<app-floating-symbols />
-@if (!routeState.isArena()) {
-  <app-navbar />
+﻿@if (isNavigating()) {
+  <section class="app-loading-screen" aria-live="polite" aria-busy="true">
+    <div class="app-loading-backdrop" aria-hidden="true"></div>
+
+    <div class="app-loading-card">
+      <p class="app-loading-kicker">Initializing arena session</p>
+      <h1 class="app-loading-brand">
+        <span class="app-loading-brand-mark">&lt;</span>
+        CodeArena
+        <span class="app-loading-brand-mark">/&gt;</span>
+      </h1>
+
+      <div class="app-loading-progress" role="progressbar" aria-label="Loading application"></div>
+
+      <p class="app-loading-text">Syncing duel state with server...</p>
+    </div>
+  </section>
+} @else {
+  <app-floating-symbols />
+  @if (!routeState.isArena()) {
+    <app-navbar />
+  }
+  <app-sidebar />
+  <main>
+    <router-outlet />
+  </main>
 }
-<app-sidebar />
-<main>
-  <router-outlet />
-</main>

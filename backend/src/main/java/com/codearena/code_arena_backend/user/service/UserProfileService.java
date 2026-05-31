@@ -2,6 +2,7 @@ package com.codearena.code_arena_backend.user.service;
 
 import com.codearena.code_arena_backend.friendship.entity.Friendship;
 import com.codearena.code_arena_backend.friendship.repository.FriendshipRepository;
+import com.codearena.code_arena_backend.ranking.service.RankingService;
 import com.codearena.code_arena_backend.user.dto.FriendSummaryResponse;
 import com.codearena.code_arena_backend.user.dto.UpdatePasswordRequest;
 import com.codearena.code_arena_backend.user.dto.UpdateUserProfileRequest;
@@ -9,7 +10,6 @@ import com.codearena.code_arena_backend.user.dto.UserAvatarResource;
 import com.codearena.code_arena_backend.user.dto.UserProfileResponse;
 import com.codearena.code_arena_backend.user.entity.User;
 import com.codearena.code_arena_backend.user.repository.UserRepository;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -24,12 +24,10 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.nio.file.StandardOpenOption;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -54,6 +52,7 @@ public class UserProfileService {
     private final UserRepository userRepository;
     private final FriendshipRepository friendshipRepository;
     private final PasswordEncoder passwordEncoder;
+    private final RankingService rankingService;
 
     @Value("${user.avatar.storage-dir:/app/uploads/avatars}")
     private String avatarStorageDir;
@@ -61,18 +60,9 @@ public class UserProfileService {
     @Value("${user.avatar.base-url:/api/users/avatars}")
     private String avatarBaseUrl;
 
-    @PostConstruct
-    void initAvatarStorage() {
-        try {
-            Path storagePath = avatarStoragePath();
-            Files.createDirectories(storagePath);
-        } catch (IOException ex) {
-            throw new IllegalStateException("Failed to initialize avatar storage", ex);
-        }
-    }
-
     public UserProfileResponse getProfileById(Long id) {
-        return UserProfileResponse.from(requireUserById(id));
+        User user = requireUserById(id);
+        return UserProfileResponse.from(user, rankingService.getLeagueFromElo(user.getElo()));
     }
 
     @Transactional
@@ -107,7 +97,7 @@ public class UserProfileService {
             user.setEmail(email);
         }
 
-        return UserProfileResponse.from(userRepository.save(user));
+        return UserProfileResponse.from(userRepository.save(user), rankingService.getLeagueFromElo(user.getElo()));
     }
 
 
@@ -148,6 +138,7 @@ public class UserProfileService {
         }
 
         try (InputStream inputStream = file.getInputStream()) {
+            Files.createDirectories(storagePath);
             Files.copy(inputStream, targetPath, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException ex) {
             throw new IllegalStateException("Failed to store avatar", ex);
@@ -155,7 +146,7 @@ public class UserProfileService {
 
         User user = requireUserByUsername(username);
         user.setAvatar(buildAvatarUrl(filename));
-        return UserProfileResponse.from(userRepository.save(user));
+        return UserProfileResponse.from(userRepository.save(user), rankingService.getLeagueFromElo(user.getElo()));
     }
 
     public List<FriendSummaryResponse> listMyFriends(String username) {

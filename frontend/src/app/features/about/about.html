@@ -12,7 +12,7 @@
       </p>
 
       <div class="hero-actions">
-        <a class="primary-action" routerLink="/register">Enter the Arena</a>
+        <a class="primary-action" [routerLink]="isLoggedIn ? '/lobby' : '/register'">Enter the Arena</a>
         <a class="secondary-action" routerLink="/">See the Home Page</a>
       </div>
     </div>
@@ -105,7 +105,7 @@
     </p>
 
     <div class="closing-actions">
-      <a class="primary-action" routerLink="/register">Create an account</a>
+      <a class="primary-action" [routerLink]="isLoggedIn ? '/lobby' : '/register'">Create an account</a>
       <a class="secondary-action" routerLink="/">Return home</a>
     </div>
   </section>

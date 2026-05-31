@@ -19,7 +19,7 @@
 					[isOnline]="player().isOnline" />
 
 				<!-- Matchmaking Queue -->
-				<app-queue-panel />
+				<app-queue-panel (matchFound)="onMatchFound($event)" />
 
 				<!-- Player Statistics -->
 				<app-player-stats [summaryStats]="summaryStats()" [recordStats]="recordStats()" />

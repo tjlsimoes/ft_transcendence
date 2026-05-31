@@ -3,6 +3,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { UserService } from './user.service';
+import { WebSocketService } from './websocket.service';
 
 export interface AuthResponse {
   accessToken: string;
@@ -27,6 +28,7 @@ export class AuthService {
   private http = inject(HttpClient);
   private router = inject(Router);
   private userService = inject(UserService);
+  private wsService = inject(WebSocketService);
   private baseUrl = `${environment.apiUrl}/auth`;
 
   private tokenKey = 'auth_token';
@@ -59,13 +61,18 @@ export class AuthService {
     }
     localStorage.removeItem(this.tokenKey);
     this.userService.clear();
+    this.wsService.disconnect();
     this.router.navigate(['/login']);
   }
 
   extractApiError(err: HttpErrorResponse): string {
+    if (err.status === 429) return 'Too many login attempts. Please wait a moment before trying again.';
+    if (err.status === 401) return 'Invalid username or password.';
+    if (err.status === 403) return 'Access denied. You do not have permission.';
+    if (err.status >= 500) return 'Internal server error. The service might be temporarily down or restarting.';
     if (err.error?.error) return err.error.error;
     if (err.error?.message) return err.error.message;
-    if (err.status === 0) return 'Unable to reach the server. Check your connection.';
-    return 'An unexpected error occurred. Please try again.';
+    if (err.status === 0) return 'Unable to reach the server. Please check your internet connection or try again later.';
+    return `An unexpected error occurred (Status: ${err.status} ${err.statusText || ''}). Please try again.`;
   }
 }

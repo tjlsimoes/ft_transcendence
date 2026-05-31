@@ -1,0 +1,1 @@
+ALTER TABLE submissions ADD COLUMN timed_out BOOLEAN DEFAULT FALSE;
