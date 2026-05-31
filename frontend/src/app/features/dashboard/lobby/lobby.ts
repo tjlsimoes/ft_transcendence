@@ -56,7 +56,7 @@ export class Lobby implements OnInit, OnDestroy {
     this.userService.loadMe().subscribe({
       next: (user) => this.applyUserData(user),
       error: () => {
-        this.authService.logout();
+        // backend not available — keep the lobby visible with default data
       },
     });
 
