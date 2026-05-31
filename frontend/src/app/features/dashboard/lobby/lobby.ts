@@ -38,15 +38,10 @@ export class Lobby implements OnInit {
   ngOnInit(): void {
     this.titleService.setTitle('Lobby — Code Arena');
 
-    if (!this.authService.isLoggedIn()) {
-      this.router.navigate(['/login']);
-      return;
-    }
-
     this.userService.loadMe().subscribe({
       next: (user) => this.applyUserData(user),
       error: () => {
-        this.authService.logout();
+        // backend not available — keep the lobby visible with default data
       },
     });
 

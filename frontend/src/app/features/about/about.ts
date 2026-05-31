@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-about',
@@ -8,6 +9,11 @@ import { RouterLink } from '@angular/router';
   styleUrl: './about.css',
 })
 export class About {
+  private authService = inject(AuthService);
+
+  get isLoggedIn(): boolean {
+    return this.authService.isLoggedIn();
+  }
   protected readonly highlights = [
     { value: '1v1', label: 'live matches' },
     { value: 'LP', label: 'ranked climb' },
