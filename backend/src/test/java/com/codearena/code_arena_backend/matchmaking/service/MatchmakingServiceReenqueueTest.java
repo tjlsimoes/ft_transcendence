@@ -5,6 +5,7 @@ import com.codearena.code_arena_backend.challenge.entity.ChallengeDifficulty;
 import com.codearena.code_arena_backend.challenge.repository.ChallengeRepository;
 import com.codearena.code_arena_backend.duel.entity.Duel;
 import com.codearena.code_arena_backend.duel.repository.DuelRepository;
+import com.codearena.code_arena_backend.duel.service.DuelLifecycleService;
 import com.codearena.code_arena_backend.matchmaking.dto.MatchmakingEvent;
 import com.codearena.code_arena_backend.user.entity.User;
 import com.codearena.code_arena_backend.user.repository.UserRepository;
@@ -19,6 +20,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.Optional;
 
@@ -50,6 +53,9 @@ class MatchmakingServiceReenqueueTest {
 
     @Mock
     private SimpMessagingTemplate messagingTemplate;
+
+    @Mock
+    private DuelLifecycleService duelLifecycleService;
 
     @Mock
     private NotificationService notificationService;
@@ -148,11 +154,22 @@ class MatchmakingServiceReenqueueTest {
         when(challengeRepository.findRandomByDifficulty("MEDIUM")).thenReturn(Optional.of(challenge));
         when(duelRepository.save(any())).thenReturn(duel);
 
-        matchmakingService.createMatch(1L, 2L);
+        TransactionSynchronizationManager.initSynchronization();
+        try {
+            matchmakingService.createMatch(1L, 2L);
+
+            // Simulate commit so the registered afterCommit callback runs in this unit test.
+            TransactionSynchronizationManager.getSynchronizations()
+                    .forEach(TransactionSynchronization::afterCommit);
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
 
         // Verify dequeue but NO re-enqueue
         verify(queueService, times(2)).dequeue(anyLong());
         verify(queueService, never()).enqueue(anyLong(), anyInt());
+
+        verify(duelLifecycleService).startDuel(1L);
 
         // Verify MATCHED event was sent via notificationService
         ArgumentCaptor<MatchmakingEvent> eventCaptor = ArgumentCaptor.forClass(MatchmakingEvent.class);
@@ -161,6 +178,42 @@ class MatchmakingServiceReenqueueTest {
 
         MatchmakingEvent event = eventCaptor.getValue();
         assertThat(event.type()).isEqualTo("MATCHED");
+    }
+
+    @Test
+    @DisplayName("createMatch still starts duel when websocket notification fails after commit")
+    void createMatch_notificationFailureStillStartsDuel() {
+        Challenge challenge = new Challenge();
+        challenge.setId(1L);
+        challenge.setDifficulty(ChallengeDifficulty.MEDIUM);
+
+        Duel duel = new Duel();
+        duel.setId(1L);
+        duel.setChallengerId(1L);
+        duel.setOpponentId(2L);
+        duel.setChallengeId(1L);
+        duel.setStatus(Duel.DuelStatus.MATCHED);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(player1));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(player2));
+        when(challengeRepository.findRandomByDifficulty("MEDIUM")).thenReturn(Optional.of(challenge));
+        when(duelRepository.save(any())).thenReturn(duel);
+
+        doThrow(new RuntimeException("ws down"))
+                .when(messagingTemplate)
+                .convertAndSendToUser(eq("player1"), eq("/queue/matchmaking"), any(MatchmakingEvent.class));
+
+        TransactionSynchronizationManager.initSynchronization();
+        try {
+            matchmakingService.createMatch(1L, 2L);
+
+            TransactionSynchronizationManager.getSynchronizations()
+                    .forEach(TransactionSynchronization::afterCommit);
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
+
+        verify(duelLifecycleService).startDuel(1L);
     }
 
     @Test

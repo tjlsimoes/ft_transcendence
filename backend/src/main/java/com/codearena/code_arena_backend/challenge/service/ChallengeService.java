@@ -33,6 +33,11 @@ public class ChallengeService {
         return challengeRepository.findByDifficulty(parsedDifficulty, pageable);
     }
 
+    public Challenge getChallenge(Long id) {
+        return challengeRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Challenge not found: " + id));
+    }
+
     public Challenge createChallenge(ChallengeUpsertRequest request) {
         Challenge challenge = new Challenge();
         applyUpsert(challenge, request);

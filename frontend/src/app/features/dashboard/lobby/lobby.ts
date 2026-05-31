@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { PlayerStats } from './components/player-stats/player-stats';
@@ -8,6 +8,8 @@ import { IdentityCard } from './components/identity-card/identity-card';
 import { QueuePanel } from './components/queue-panel/queue-panel';
 import { UserService } from '../../../core/services/user.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { WebSocketService } from '../../../core/services/websocket.service';
+import { MatchmakingEvent } from '../../../core/services/matchmaking.service';
 import { LOBBY_TABS } from '../../../shared/models/lobby.mock';
 import type { LobbyTab, PlayerIdentity, ProfileData as ProfileDataModel, SummaryStat, RecordStat } from '../../../shared/models/lobby.model';
 import type { UserProfile, MatchHistory } from '../../../shared/models/user-profile.model';
@@ -18,7 +20,7 @@ import type { UserProfile, MatchHistory } from '../../../shared/models/user-prof
   templateUrl: './lobby.html',
   styleUrl: './lobby.css',
 })
-export class Lobby implements OnInit {
+export class Lobby implements OnInit, OnDestroy {
   tabs: LobbyTab[] = LOBBY_TABS;
   matchHistory = signal<MatchHistory[]>([]);
 
@@ -32,11 +34,24 @@ export class Lobby implements OnInit {
     private titleService: Title,
     private userService: UserService,
     private authService: AuthService,
+    private wsService: WebSocketService,
     private router: Router,
   ) {}
 
   ngOnInit(): void {
     this.titleService.setTitle('Lobby — Code Arena');
+
+    if (!this.authService.isLoggedIn()) {
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    // Conectar WebSocket antes de qualquer interação de matchmaking.
+    // O QueuePanel vai subscrever aos eventos depois de entrar na fila.
+    const token = this.authService.getToken();
+    if (token) {
+      this.wsService.connect(token);
+    }
 
     this.userService.loadMe().subscribe({
       next: (user) => this.applyUserData(user),
@@ -48,6 +63,19 @@ export class Lobby implements OnInit {
     this.userService.loadMatches().subscribe({
       next: (matches) => this.matchHistory.set(matches),
     });
+  }
+
+  ngOnDestroy(): void {
+    // Unsubscribe from local component observables if any, but do NOT disconnect the global WebSocket.
+  }
+
+  /**
+   * Chamado pelo QueuePanel quando o backend confirma um match.
+   * Navega para a arena — sem query params.
+   * A arena obtém todos os dados do duel via backend (getActiveDuel).
+   */
+  onMatchFound(_event: MatchmakingEvent): void {
+    this.router.navigate(['/arena']);
   }
 
   private applyUserData(user: UserProfile): void {
