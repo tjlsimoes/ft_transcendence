@@ -9,6 +9,7 @@ import com.codearena.code_arena_backend.message.dto.ChatMessageRequest;
 import com.codearena.code_arena_backend.message.dto.ChatMessageResponse;
 import com.codearena.code_arena_backend.message.entity.Message;
 import com.codearena.code_arena_backend.message.repository.MessageRepository;
+import com.codearena.code_arena_backend.user.entity.User;
 import com.codearena.code_arena_backend.user.repository.UserRepository;
 
 import jakarta.transaction.Transactional;
@@ -40,9 +41,10 @@ public class ChatService {
         return response;
     }
 
-    public Page<ChatMessageResponse> getConversation(Long user1Id, Long user2Id, Pageable pageable) {
-        userRepository.findById(user1Id).orElseThrow(() -> new RuntimeException("User (user1) not found"));
+    public Page<ChatMessageResponse> getConversation(String senderUsername, Long user2Id, Pageable pageable) {
+        User user1 = userRepository.findByUsername(senderUsername).orElseThrow(() -> new RuntimeException("User (user1) not found"));
         userRepository.findById(user2Id).orElseThrow(() -> new RuntimeException("User (user2) not found"));
+		Long user1Id = user1.getId();
         if (user1Id.equals(user2Id))
             throw new RuntimeException("User1 and user2 cannot be the same user");
         Page<Message> msgs = msgRepository.findBySenderAndRecipient(user1Id, user2Id, pageable);
