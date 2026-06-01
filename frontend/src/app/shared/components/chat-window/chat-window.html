@@ -1,0 +1,56 @@
+<div class="chat-window" [class.minimized]="win().minimized">
+
+  <div class="chat-header" (click)="toggleMinimize()">
+
+    <div class="chat-header-info">
+      <div class="chat-avatar">
+        <img [src]="win().friend.avatarUrl || ''"
+             [alt]="win().friend.username"
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" />
+        <span class="avatar-fallback" style="display:none">{{ getAvatarLetter(win().friend.username) }}</span>
+        <span class="status-dot" [class]="win().friend.status"></span>
+      </div>
+      <div class="chat-header-text">
+        <span class="chat-username">{{ win().friend.username }}</span>
+        <span class="chat-status">{{ win().friend.status }}</span>
+      </div>
+    </div>
+
+    <div class="chat-header-actions">
+      @if (win().unread > 0 && win().minimized) {
+        <span class="unread-badge">{{ win().unread }}</span>
+      }
+      <button class="chat-action-btn" (click)="toggleMinimize(); $event.stopPropagation()">−</button>
+      <button class="chat-action-btn" (click)="close(); $event.stopPropagation()">✕</button>
+    </div>
+
+  </div>
+
+  @if (!win().minimized) {
+  <div class="chat-messages" #messageList>
+
+      @if (win().messages.length === 0) {
+      <div class="chat-empty">No messages yet. Say hi!</div>
+      }
+
+      @for (msg of win().messages; track msg.id) {
+      <div class="chat-bubble-wrapper" [class.mine]="isMine(msg.senderId)">
+          <div class="chat-bubble" [class.mine]="isMine(msg.senderId)">{{ msg.content }}</div>
+          <span class="chat-time">{{ msg.createdAt | date:'HH:mm' }}</span>
+      </div>
+      }
+
+  </div>
+  <div class="chat-footer">
+    <textarea
+      class="chat-input"
+      [(ngModel)]="messageText"
+      (keydown)="onKeydown($event)"
+      placeholder="Write a message…"
+      rows="1"
+    ></textarea>
+    <button class="chat-send-btn" (click)="send()" [disabled]="!messageText.trim()">➤</button>
+  </div>
+  }
+
+</div>
