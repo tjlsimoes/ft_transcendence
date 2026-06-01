@@ -2,6 +2,7 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { RouteStateService } from '../../../core/services/route-state.service';
 import { UserService } from '../../../core/services/user.service';
 import type { FriendEntry } from '../../models/user-profile.model';
+import { ChatStateService } from '../../../core/services/chat-state.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -12,6 +13,7 @@ import type { FriendEntry } from '../../models/user-profile.model';
 export class Sidebar implements OnInit {
   private routeState = inject(RouteStateService);
   private userService = inject(UserService);
+  private chatStateService = inject(ChatStateService);
 
   username = this.userService.username;
   avatarLetter = this.userService.avatarLetter;
@@ -36,5 +38,13 @@ export class Sidebar implements OnInit {
 
   getAvatarLetter(username: string): string {
     return username ? username.charAt(0).toUpperCase() : '?';
+  }
+
+  openChat(friend: FriendEntry): void {
+    this.chatStateService.openConversation(friend);
+  }
+
+  getUnread(friendId: number): number {
+    return this.chatStateService.windows().find(w => w.friend.id === friendId)?.unread ?? 0;
   }
 }

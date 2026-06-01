@@ -1,0 +1,5 @@
+<div class="chat-windows-container">
+  @for (win of chatState.windows(); track win.friend.id) {
+    <app-chat-window [win]="win" />
+  }
+</div>
