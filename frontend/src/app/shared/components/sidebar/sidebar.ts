@@ -20,7 +20,7 @@ export class Sidebar implements OnInit {
 
   username = this.userService.username;
   avatarLetter = this.userService.avatarLetter;
-  friends = signal<FriendEntry[]>([]);
+  friends = this.userService.friends;
   totalUnread = computed(() =>
     this.chatStateService.windows().reduce((sum, w) => sum + w.unread, 0)
   );
@@ -31,9 +31,7 @@ export class Sidebar implements OnInit {
   isLobby = this.routeState.isLobby;
 
   private loadFriends(): void {
-    this.userService.loadFriends().subscribe({
-      next: (friends) => this.friends.set(friends),
-    });
+    this.userService.loadFriends().subscribe();
   }
 
   ngOnInit(): void {
