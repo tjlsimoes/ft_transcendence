@@ -1,4 +1,4 @@
-﻿@if (isNavigating()) {
+@if (isNavigating()) {
   <section class="app-loading-screen" aria-live="polite" aria-busy="true">
     <div class="app-loading-backdrop" aria-hidden="true"></div>
 
@@ -23,5 +23,8 @@
   <app-sidebar />
   <main>
     <router-outlet />
+    @if (!routeState.isArena()) {
+      <app-footer />
+    }
   </main>
 }
