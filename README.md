@@ -589,9 +589,9 @@ The database schema is managed through **15 Flyway migration files** located in 
 
 ## Individual Contributions
 
-### tjorge-l — Product Owner + Backend Engineer
+### tborges- — Product Owner + Backend Engineer
 
-<!-- TODO: tjorge-l — Fill in your individual contributions below -->
+<!-- TODO: tborges- — Fill in your individual contributions below -->
 
 **Features & Modules Implemented:**
 - *[Describe the specific features, modules, and components you implemented]*
@@ -604,9 +604,9 @@ The database schema is managed through **15 Flyway migration files** located in 
 
 ---
 
-### tborges- — Scrum Master / PM + Backend Engineer
+### strodrig — Scrum Master / PM + Frontend Engineer
 
-<!-- TODO: tborges- — Fill in your individual contributions below -->
+<!-- TODO: strodrig — Fill in your individual contributions below -->
 
 **Features & Modules Implemented:**
 - *[Describe the specific features, modules, and components you implemented]*
@@ -619,9 +619,9 @@ The database schema is managed through **15 Flyway migration files** located in 
 
 ---
 
-### strodrig — Tech Lead + Frontend Engineer
+### tjorge-l — Tech Lead + Backend Engineer
 
-<!-- TODO: strodrig — Fill in your individual contributions below -->
+<!-- TODO: tjorge-l — Fill in your individual contributions below -->
 
 **Features & Modules Implemented:**
 - *[Describe the specific features, modules, and components you implemented]*
