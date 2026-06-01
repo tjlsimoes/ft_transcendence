@@ -9,6 +9,8 @@ import com.codearena.code_arena_backend.message.dto.ChatMessageRequest;
 import com.codearena.code_arena_backend.message.dto.ChatMessageResponse;
 import com.codearena.code_arena_backend.message.entity.Message;
 import com.codearena.code_arena_backend.message.repository.MessageRepository;
+import com.codearena.code_arena_backend.notification.NotificationService;
+import com.codearena.code_arena_backend.notification.entity.NotificationType;
 import com.codearena.code_arena_backend.user.entity.User;
 import com.codearena.code_arena_backend.user.repository.UserRepository;
 
@@ -24,11 +26,12 @@ public class ChatService {
     private final UserRepository userRepository;
     private final MessageRepository msgRepository;
     private final SimpMessagingTemplate simpMessagingTemplate;
+	private final NotificationService notificationService;
 
     @Transactional
     public ChatMessageResponse send(Long senderId, ChatMessageRequest request) {
         userRepository.findById(senderId).orElseThrow(() -> new RuntimeException("User (sender) not found"));
-        userRepository.findById(request.getRecipientId()).orElseThrow(() -> new RuntimeException("User (recipient) not found"));
+        User recipient = userRepository.findById(request.getRecipientId()).orElseThrow(() -> new RuntimeException("User (recipient) not found"));
         if (senderId.equals(request.getRecipientId()))
             throw new RuntimeException("Sender and recipient cannot be the same user");
         Message msg = new Message(null, senderId, request.getRecipientId(), request.getContent(), null);
@@ -37,6 +40,7 @@ public class ChatService {
         ChatMessageResponse response = convertToResponse(msg);
 
         simpMessagingTemplate.convertAndSend(getTopicName(senderId, request.getRecipientId()), response);
+		notificationService.send(recipient.getId(), NotificationType.CHAT_MESSAGE, response);
 
         return response;
     }
