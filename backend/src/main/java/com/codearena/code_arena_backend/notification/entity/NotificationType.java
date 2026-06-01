@@ -17,5 +17,8 @@ public enum NotificationType {
     DUEL_RESULT,
 
     /** General system-wide announcement. */
-    SYSTEM_ANNOUNCEMENT
+    SYSTEM_ANNOUNCEMENT,
+
+	// A new chat message was received while recipient had no window open
+	CHAT_MESSAGE
 }
