@@ -16,6 +16,7 @@ export enum SocketState {
 export class WebSocketService implements OnDestroy {
   private client: Client | null = null;
   private state = new BehaviorSubject<SocketState>(SocketState.DISCONNECTED);
+  readonly state$ = this.state.asObservable();
 
   constructor() {}
 
