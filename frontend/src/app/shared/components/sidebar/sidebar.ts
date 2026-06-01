@@ -1,4 +1,6 @@
-import { Component, inject, signal, OnInit, computed } from '@angular/core';
+import { Component, inject, signal, OnInit, computed, DestroyRef } from '@angular/core';
+import { interval } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouteStateService } from '../../../core/services/route-state.service';
 import { UserService } from '../../../core/services/user.service';
 import type { FriendEntry } from '../../models/user-profile.model';
@@ -14,6 +16,7 @@ export class Sidebar implements OnInit {
   private routeState = inject(RouteStateService);
   private userService = inject(UserService);
   private chatStateService = inject(ChatStateService);
+  private destroyRef = inject(DestroyRef);
 
   username = this.userService.username;
   avatarLetter = this.userService.avatarLetter;
@@ -27,11 +30,20 @@ export class Sidebar implements OnInit {
   // Delegado ao serviço compartilhado para evitar duplicação de lógica de rota.
   isLobby = this.routeState.isLobby;
 
+  private loadFriends(): void {
+    this.userService.loadFriends().subscribe({
+      next: (friends) => this.friends.set(friends),
+    });
+  }
+
   ngOnInit(): void {
     if (this.isLobby()) {
-      this.userService.loadFriends().subscribe({
-        next: (friends) => this.friends.set(friends),
-      });
+      this.loadFriends();
+
+      // Refresh every 30s so online/offline status stays current
+      interval(30_000)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => this.loadFriends());
     }
   }
 
