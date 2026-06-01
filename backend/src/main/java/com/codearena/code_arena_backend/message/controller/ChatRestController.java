@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -24,10 +24,10 @@ public class ChatRestController {
 
     @GetMapping("/{recipientId}")
     public Page<ChatMessageResponse> getConversation(
-        @AuthenticationPrincipal User user,
+        Authentication authentication,
         @PathVariable Long recipientId,
         Pageable pageable) {
-        return chatService.getConversation(user.getId(), recipientId, pageable);
+        return chatService.getConversation(authentication.getName(), recipientId, pageable);
     }
 
 }
