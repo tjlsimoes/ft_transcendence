@@ -5,7 +5,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.codearena.code_arena_backend.message.dto.ChatMessageResponse;
 import com.codearena.code_arena_backend.message.service.ChatService;
-import com.codearena.code_arena_backend.user.entity.User;
 
 import lombok.RequiredArgsConstructor;
 
