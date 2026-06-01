@@ -65,6 +65,10 @@ export class ChatStateService {
         );
     }
 
+    clear(): void {
+        this._windows.set([]);
+    }
+
     // Called when real-time message arrives for a minimized window
     incrementUnread(friendId: number): void {
         this._windows.update(windows =>
