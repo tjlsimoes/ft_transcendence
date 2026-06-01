@@ -5,10 +5,12 @@ import { RouteStateService } from '../../../core/services/route-state.service';
 import { UserService } from '../../../core/services/user.service';
 import type { FriendEntry } from '../../models/user-profile.model';
 import { ChatStateService } from '../../../core/services/chat-state.service';
+import { NotificationService } from '../../../core/services/notification.service';
+import { DatePipe } from '@angular/common';
 
 @Component({
   selector: 'app-sidebar',
-  imports: [],
+  imports: [DatePipe],
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.css',
 })
@@ -16,13 +18,18 @@ export class Sidebar implements OnInit {
   private routeState = inject(RouteStateService);
   private userService = inject(UserService);
   private chatStateService = inject(ChatStateService);
+  notificationService = inject(NotificationService);
   private destroyRef = inject(DestroyRef);
 
   username = this.userService.username;
   avatarLetter = this.userService.avatarLetter;
   friends = this.userService.friends;
-  totalUnread = computed(() =>
-    this.chatStateService.windows().reduce((sum, w) => sum + w.unread, 0)
+  totalUnread = computed(() => {
+    const windowTotal = this.chatStateService.windows().reduce((sum, w) => sum + w.unread, 0);
+    const pendingTotal = Object.values(this.chatStateService.pendingUnread())
+                          .reduce((sum, n) => sum + n, 0);
+    return windowTotal + pendingTotal;
+  }
   );
 
   activeTab = signal<'friends' | 'notifications'>('friends');
@@ -36,6 +43,7 @@ export class Sidebar implements OnInit {
 
   ngOnInit(): void {
     if (this.isLobby()) {
+      this.notificationService.init();
       this.loadFriends();
 
       // Refresh every 30s so online/offline status stays current
@@ -58,6 +66,14 @@ export class Sidebar implements OnInit {
   }
 
   getUnread(friendId: number): number {
-    return this.chatStateService.windows().find(w => w.friend.id === friendId)?.unread ?? 0;
+    const windowUnread = this.chatStateService.windows()
+      .find(w => w.friend.id === friendId)?.unread ?? 0;
+    const pending = this.chatStateService.pendingUnread()[friendId] ?? 0;
+    return windowUnread + pending;
+  }
+
+  formatType(type: string): string {
+    return type.replace(/_/g, ' ').toLowerCase()
+      .replace(/\b\w/g, c => c.toUpperCase());
   }
 }
