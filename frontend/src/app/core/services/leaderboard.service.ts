@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { Page } from '../../shared/models/page.model';
 
 export interface LeaderboardEntry {
   rank: number;
@@ -16,14 +17,6 @@ export interface LeaderboardEntry {
   winStreak: number;
   totalDuels: number;
   winRate: string;
-}
-
-export interface Page<T> {
-  content: T[];
-  totalElements: number;
-  totalPages: number;
-  size: number;
-  number: number;
 }
 
 @Injectable({ providedIn: 'root' })
