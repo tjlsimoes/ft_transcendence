@@ -374,6 +374,37 @@
   gap: 8px;
 }
 
+.notification-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-accent);
+  border-left: 2px solid transparent;
+}
+
+.notification-item.unread {
+  color: var(--text);
+  border-left-color: var(--accent);
+}
+
+.notification-type {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.notification-time {
+  font-size: 0.7rem;
+  flex-shrink: 0;
+  margin-left: 8px;
+  opacity: 0.7;
+}
+
 .empty-state {
   display: flex;
   flex-direction: column;
