@@ -7,10 +7,13 @@ const MAX_WINDOWS = 3;
 @Injectable({ providedIn: 'root'})
 export class ChatStateService {
     private _windows = signal<ConversationWindow[]>([]);
+    private _pendingUnread = signal<Record<number, number>>({});
+    readonly pendingUnread = this._pendingUnread.asReadonly();
     readonly windows = this._windows.asReadonly();
 
     // Idempotent: clicking the same friend does nothing
     openConversation(friend: FriendEntry): void {
+        this.clearPending(friend.id);
         const existing = this._windows().find(w => w.friend.id === friend.id);
 
         if (existing) {
@@ -66,6 +69,7 @@ export class ChatStateService {
     }
 
     clear(): void {
+        this._pendingUnread.set({});
         this._windows.set([]);
     }
 
@@ -78,4 +82,17 @@ export class ChatStateService {
             )
         );
     }
+
+    incrementPending(friendId: number): void {
+        this._pendingUnread.update(map => ({
+            ...map,
+            [friendId]: (map[friendId] ?? 0) + 1
+        }));
+    }
+
+    clearPending(friendId: number): void {
+        const { [friendId]: _, ...rest } = this._pendingUnread();
+        this._pendingUnread.set(rest);
+    }
+
 }
