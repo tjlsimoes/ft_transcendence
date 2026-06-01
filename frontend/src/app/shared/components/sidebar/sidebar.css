@@ -311,6 +311,44 @@
   letter-spacing: 0.5px;
 }
 
+/* ===== Unread badge ===== */
+
+/* In collapsed view: sits on top-right corner of the avatar */
+.sidebar-collapsed .unread-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #000;
+  font-size: 0.6rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--bg);
+}
+
+/* In expanded view: pushed to the right edge of the friend row */
+.friend-item .unread-badge {
+  margin-left: auto;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: var(--accent);
+  color: #000;
+  font-size: 0.65rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /* ===== Notifications list ===== */
 .notifications-list {
   display: flex;

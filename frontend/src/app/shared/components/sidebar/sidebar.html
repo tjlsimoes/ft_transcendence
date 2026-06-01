@@ -14,11 +14,14 @@
 
     <div class="sidebar-avatar-wrapper" style="display: flex; flex-direction: column; gap: 16px; align-items: center;">
       @for (friend of friends(); track friend.id) {
-      <div class="friend-avatar" [title]="friend.username" style="cursor: pointer;">
+      <div class="friend-avatar" [title]="friend.username" style="cursor: pointer;" (click)="openChat(friend)">
         <img [src]="friend.avatarUrl || ''" [alt]="friend.username" class="avatar-img"
           onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" />
         <span class="avatar-fallback" style="display: none;">{{ getAvatarLetter(friend.username) }}</span>
         <span class="status-dot" [class]="friend.status"></span>
+        @if (getUnread(friend.id) > 0) {
+          <span class="unread-badge">{{ getUnread(friend.id) }}</span>
+        }
       </div>
       }
     </div>
@@ -39,7 +42,7 @@
       @if (activeTab() === 'friends') {
       <div class="friends-list">
         @for (friend of friends(); track friend.id) {
-        <div class="friend-item">
+        <div class="friend-item" (click)="openChat(friend)">
           <div class="friend-avatar">
             <img [src]="friend.avatarUrl || ''" [alt]="friend.username" class="avatar-img"
               onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" />
@@ -50,6 +53,9 @@
             <span class="friend-name">{{ friend.username }}</span>
             <span class="friend-rank">{{ friend.league }}</span>
           </div>
+          @if (getUnread(friend.id) > 0) {
+            <span class="unread-badge">{{ getUnread(friend.id) }}</span>
+          }
         </div>
         }
         @empty {
