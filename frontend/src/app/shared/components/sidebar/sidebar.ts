@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, computed } from '@angular/core';
 import { RouteStateService } from '../../../core/services/route-state.service';
 import { UserService } from '../../../core/services/user.service';
 import type { FriendEntry } from '../../models/user-profile.model';
@@ -18,6 +18,9 @@ export class Sidebar implements OnInit {
   username = this.userService.username;
   avatarLetter = this.userService.avatarLetter;
   friends = signal<FriendEntry[]>([]);
+  totalUnread = computed(() =>
+    this.chatStateService.windows().reduce((sum, w) => sum + w.unread, 0)
+  );
 
   activeTab = signal<'friends' | 'notifications'>('friends');
 
