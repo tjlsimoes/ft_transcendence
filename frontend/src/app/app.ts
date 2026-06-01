@@ -5,11 +5,12 @@ import { Navbar } from './shared/components/navbar/navbar';
 import { FloatingSymbols } from './shared/components/floating-symbols/floating-symbols';
 import { Sidebar } from './shared/components/sidebar/sidebar';
 import { RouteStateService } from './core/services/route-state.service';
+import { ChatWindowsContainer } from "./shared/components/chat-windows-container/chat-windows-container";
 
 // Componente raiz da aplicação: monta layout base (fundo, navbar e área de rotas).
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, Navbar, FloatingSymbols, Sidebar],
+  imports: [RouterOutlet, Navbar, FloatingSymbols, Sidebar, ChatWindowsContainer],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
