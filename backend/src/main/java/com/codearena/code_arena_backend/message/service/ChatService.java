@@ -9,6 +9,9 @@ import com.codearena.code_arena_backend.message.dto.ChatMessageRequest;
 import com.codearena.code_arena_backend.message.dto.ChatMessageResponse;
 import com.codearena.code_arena_backend.message.entity.Message;
 import com.codearena.code_arena_backend.message.repository.MessageRepository;
+import com.codearena.code_arena_backend.notification.NotificationService;
+import com.codearena.code_arena_backend.notification.entity.NotificationType;
+import com.codearena.code_arena_backend.user.entity.User;
 import com.codearena.code_arena_backend.user.repository.UserRepository;
 
 import jakarta.transaction.Transactional;
@@ -23,11 +26,12 @@ public class ChatService {
     private final UserRepository userRepository;
     private final MessageRepository msgRepository;
     private final SimpMessagingTemplate simpMessagingTemplate;
+	private final NotificationService notificationService;
 
     @Transactional
     public ChatMessageResponse send(Long senderId, ChatMessageRequest request) {
         userRepository.findById(senderId).orElseThrow(() -> new RuntimeException("User (sender) not found"));
-        userRepository.findById(request.getRecipientId()).orElseThrow(() -> new RuntimeException("User (recipient) not found"));
+        User recipient = userRepository.findById(request.getRecipientId()).orElseThrow(() -> new RuntimeException("User (recipient) not found"));
         if (senderId.equals(request.getRecipientId()))
             throw new RuntimeException("Sender and recipient cannot be the same user");
         Message msg = new Message(null, senderId, request.getRecipientId(), request.getContent(), null);
@@ -36,13 +40,15 @@ public class ChatService {
         ChatMessageResponse response = convertToResponse(msg);
 
         simpMessagingTemplate.convertAndSend(getTopicName(senderId, request.getRecipientId()), response);
+		notificationService.send(recipient.getId(), NotificationType.CHAT_MESSAGE, response);
 
         return response;
     }
 
-    public Page<ChatMessageResponse> getConversation(Long user1Id, Long user2Id, Pageable pageable) {
-        userRepository.findById(user1Id).orElseThrow(() -> new RuntimeException("User (user1) not found"));
+    public Page<ChatMessageResponse> getConversation(String senderUsername, Long user2Id, Pageable pageable) {
+        User user1 = userRepository.findByUsername(senderUsername).orElseThrow(() -> new RuntimeException("User (user1) not found"));
         userRepository.findById(user2Id).orElseThrow(() -> new RuntimeException("User (user2) not found"));
+		Long user1Id = user1.getId();
         if (user1Id.equals(user2Id))
             throw new RuntimeException("User1 and user2 cannot be the same user");
         Page<Message> msgs = msgRepository.findBySenderAndRecipient(user1Id, user2Id, pageable);

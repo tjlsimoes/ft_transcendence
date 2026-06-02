@@ -11,6 +11,7 @@ export class UserService {
 
   /** Estado partilhado do utilizador autenticado (null = ainda não carregado). */
   readonly currentUser = signal<UserProfile | null>(null);
+  readonly friends = signal<FriendEntry[]>([]);
 
   /** Atalhos derivados para uso direto em componentes. */
   readonly username = computed(() => this.currentUser()?.username ?? '...');
@@ -34,12 +35,15 @@ export class UserService {
 
   /** Carrega a lista de amigos do utilizador autenticado. */
   loadFriends(): Observable<FriendEntry[]> {
-    return this.http.get<FriendEntry[]>(`${this.baseUrl}/me/friends`);
+    return this.http.get<FriendEntry[]>(`${this.baseUrl}/me/friends`).pipe(
+      tap(friends => this.friends.set(friends))
+    );
   }
 
   /** Limpa o estado ao fazer logout. */
   clear(): void {
     this.currentUser.set(null);
+    this.friends.set([]);
   }
 
   updateProfile(payload: UpdateProfilePayload): Observable<UserProfile> {

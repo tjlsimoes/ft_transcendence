@@ -1,4 +1,5 @@
-import { LeaderboardEntry, Page } from '../../core/services/leaderboard.service';
+import { LeaderboardEntry } from '../../core/services/leaderboard.service';
+import { Page } from '../../shared/models/page.model';
 
 export const LEADERBOARD_PLAYERS_MOCK: LeaderboardEntry[] = [
   {
