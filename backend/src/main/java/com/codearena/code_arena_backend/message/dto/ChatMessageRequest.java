@@ -19,6 +19,6 @@ public class ChatMessageRequest {
     private Long recipientId;
 
     @NotBlank(message = "Content must not be blank")
-    @Size(max = 2000, message = "Content size must not exceed 2000 characters")
+    @Size(max = 500, message = "Content size must not exceed 500 characters")
     private String content;
 }

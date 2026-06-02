@@ -1,0 +1,10 @@
+.chat-windows-container {
+  position: fixed;
+  bottom: 0;
+  right: 70px;        /* sidebar is 70px wide when collapsed */
+  display: flex;
+  flex-direction: row-reverse;   /* newest window opens closest to the sidebar */
+  align-items: flex-end;
+  gap: 8px;
+  z-index: 200;
+}

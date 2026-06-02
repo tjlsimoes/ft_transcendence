@@ -707,3 +707,38 @@ AI tools were used in the following limited capacities during development:
 ## License
 
 This project was developed as part of the 42 school curriculum and is intended for educational purposes.
+The database schema is managed via **Flyway** migrations. Detailed operational procedures, including backup and restore logic, are documented in the [Database Operations Guide](documentation/database/operations.md).
+
+---
+
+## Bonus Modules
+
+### OAuth 2.0 Authentication (GitHub & 42 Intra)
+
+This platform supports OAuth 2.0 single-sign-on using **42 Intra** and **GitHub** as providers.
+
+#### Configuration Steps
+
+1. **42 Intra**:
+   - Register a new application at [42 API Applications](https://profile.intra.42.fr/oauth/applications).
+   - Set the Redirect URI to `https://localhost/api/auth/oauth2/callback/42`.
+2. **GitHub**:
+   - Register a new Developer OAuth App at [GitHub Developer Settings](https://github.com/settings/developers).
+   - Set the Authorization Callback URL to `https://localhost/api/auth/oauth2/callback/github`.
+
+3. Populate the credentials in your `.env` file:
+   ```env
+   # OAuth2 Configurations
+   GITHUB_CLIENT_ID=your_github_client_id
+   GITHUB_CLIENT_SECRET=your_github_client_secret
+   FORTY_TWO_CLIENT_ID=your_42_client_id
+   FORTY_TWO_CLIENT_SECRET=your_42_client_secret
+   OAUTH2_FRONTEND_CALLBACK_URL=https://localhost/oauth2/callback
+   ```
+
+#### Account Linking & Creation
+
+- **First-time OAuth Login**: A new local account is automatically created with the username and email fetched from the OAuth provider.
+- **Account Linking**: If an OAuth login matches the email address of an existing local account, the OAuth provider credentials are automatically linked to that existing account.
+- **Passwordless Accounts**: Accounts created solely via OAuth do not require a password. Local login is disabled for these accounts until a password is set in profile settings.
+

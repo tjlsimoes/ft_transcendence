@@ -27,6 +27,11 @@ export const routes: Routes = [
     path: 'register',
     loadComponent: () => import('./auth/register/register').then(m => m.RegisterComponent),
   },
+  // OAuth callback route — pública.
+  {
+    path: 'oauth2/callback',
+    loadComponent: () => import('./auth/oauth-callback/oauth-callback').then(m => m.OAuthCallbackComponent),
+  },
   // About — pública.
   {
     path: 'about',

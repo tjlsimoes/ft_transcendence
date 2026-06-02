@@ -10,7 +10,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   // and a stale token would cause unnecessary JWT validation.
   // Logout DOES need the token so the backend can identify the user.
   const isPublicAuthEndpoint =
-    req.url.includes('/api/auth/login') || req.url.includes('/api/auth/register');
+    req.url.includes('/api/auth/login') ||
+    req.url.includes('/api/auth/register') ||
+    req.url.includes('/api/auth/oauth2');
 
   if (token && !isPublicAuthEndpoint) {
     req = req.clone({
