@@ -63,7 +63,7 @@ export class WebSocketService implements OnDestroy {
       },
 
       onWebSocketError: (event: any) => {
-        console.error('WebSocket connection error:', event);
+        // Suppress redundant error logging to avoid spamming the console when the server is offline
       }
     });
 
@@ -92,12 +92,28 @@ export class WebSocketService implements OnDestroy {
       first(), // Take the first connected signal to initiate subscription
       switchMap(() => {
         return new Observable<T>(observer => {
-          const subscription = this.client?.subscribe(topic, (message: IMessage) => {
+          const activeClient = this.client;
+          const activeWebSocket = this.client?.webSocket;
+
+          const subscription = activeClient?.subscribe(topic, (message: IMessage) => {
             observer.next(JSON.parse(message.body) as T);
           });
 
           // Cleanup: unsubscribe from STOMP when the RxJS Observable is destroyed
-          return () => subscription?.unsubscribe();
+          return () => {
+            if (
+              activeClient &&
+              activeClient === this.client &&
+              activeClient.connected &&
+              activeWebSocket?.readyState === 1
+            ) {
+              try {
+                subscription?.unsubscribe();
+              } catch (err) {
+                // Ignore any transmission errors on closed/closing sockets
+              }
+            }
+          };
         });
       })
     );

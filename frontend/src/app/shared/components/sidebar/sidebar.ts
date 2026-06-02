@@ -41,7 +41,10 @@ export class Sidebar implements OnInit {
 
   private loadFriends(): void {
     this.userService.loadFriends().subscribe({
-      next: friends => this.chatStateService.syncFriendStatuses(friends)
+      next: friends => this.chatStateService.syncFriendStatuses(friends),
+      error: () => {
+        // Handle error gracefully to avoid logging a secondary uncaught exception stack trace when backend is offline
+      }
     });
   }
 
