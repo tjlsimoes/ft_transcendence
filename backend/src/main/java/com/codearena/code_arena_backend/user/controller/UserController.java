@@ -8,6 +8,7 @@ import com.codearena.code_arena_backend.friendship.dto.FriendResponse;
 import com.codearena.code_arena_backend.friendship.repository.FriendshipRepository;
 import com.codearena.code_arena_backend.ranking.service.RankingService;
 import com.codearena.code_arena_backend.user.dto.FriendSummaryResponse;
+import com.codearena.code_arena_backend.user.dto.UpdatePasswordRequest;
 import com.codearena.code_arena_backend.user.dto.UpdateUserProfileRequest;
 import com.codearena.code_arena_backend.user.dto.UserAvatarResource;
 import com.codearena.code_arena_backend.user.dto.UserProfileResponse;
@@ -80,6 +81,13 @@ public class UserController {
         return ResponseEntity.ok(userProfileService.getProfileById(id));
     }
 
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> deleteMyAccount(Authentication authentication) {
+        String username = authentication.getName();
+        userService.deleteAccount(username);
+        return ResponseEntity.noContent().build();
+    }
+
     @PutMapping("/me")
     public ResponseEntity<UserProfileResponse> updateMyProfile(
             Authentication authentication,
@@ -87,6 +95,16 @@ public class UserController {
     ) {
         String username = authentication.getName();
         return ResponseEntity.ok(userProfileService.updateMyProfile(username, request));
+    }
+
+    @PutMapping("/me/password")
+    public ResponseEntity<Void> updateMyPassword(
+            Authentication authentication,
+            @Valid @RequestBody UpdatePasswordRequest request
+    ) {
+        String username = authentication.getName();
+        userProfileService.updatePassword(username, request);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping(value = "/me/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -143,7 +161,6 @@ public class UserController {
         List<MatchHistoryResponse> history = rankingService.getUserMatchHistory(user);
         return ResponseEntity.ok(history);
     }
-
 
     /**
      * GET /api/users/{id}/matches

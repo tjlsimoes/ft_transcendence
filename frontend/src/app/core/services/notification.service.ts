@@ -47,6 +47,8 @@ export class NotificationService {
           [msg.senderId]: [...(map[msg.senderId] ?? []), n.id]
         }));
         this.chatState.incrementPending(msg.senderId);
+      } else {
+        this.markRead([n.id]);
       }
     } else {
       this._notifications.update(list => [n, ...list]);

@@ -4,6 +4,7 @@ import com.codearena.code_arena_backend.friendship.entity.Friendship;
 import com.codearena.code_arena_backend.friendship.repository.FriendshipRepository;
 import com.codearena.code_arena_backend.ranking.service.RankingService;
 import com.codearena.code_arena_backend.user.dto.FriendSummaryResponse;
+import com.codearena.code_arena_backend.user.dto.UpdatePasswordRequest;
 import com.codearena.code_arena_backend.user.dto.UpdateUserProfileRequest;
 import com.codearena.code_arena_backend.user.dto.UserProfileResponse;
 import com.codearena.code_arena_backend.user.entity.User;
@@ -17,6 +18,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.IOException;
@@ -39,6 +41,9 @@ class UserProfileServiceTest {
 
     @Mock
     private FriendshipRepository friendshipRepository;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @Mock
     private RankingService rankingService;
@@ -87,7 +92,7 @@ class UserProfileServiceTest {
 
         UserProfileResponse response = userProfileService.updateMyProfile(
                 "player1",
-                new UpdateUserProfileRequest("New Name", "Coder from 42")
+                new UpdateUserProfileRequest("New Name", null, "Coder from 42")
         );
 
         assertThat(user.getDisplayName()).isEqualTo("New Name");
@@ -166,6 +171,83 @@ class UserProfileServiceTest {
         assertThat(Files.exists(tempAvatarDir.resolve(filename))).isTrue();
     }
 
+    @Test
+    @DisplayName("updateMyProfile updates email when it is unique")
+    void updateMyProfile_updatesEmail_success() {
+        User user = user(1L, "player1", User.UserStatus.OFFLINE);
+        user.setEmail("old@email.com");
+
+        when(userRepository.findByUsername("player1")).thenReturn(Optional.of(user));
+        when(userRepository.existsByEmail("new@email.com")).thenReturn(false);
+        when(userRepository.save(user)).thenReturn(user);
+
+        UpdateUserProfileRequest request = new UpdateUserProfileRequest(null, "new@email.com", null);
+        UserProfileResponse response = userProfileService.updateMyProfile("player1", request);
+
+        assertThat(user.getEmail()).isEqualTo("new@email.com");
+        assertThat(response.email()).isEqualTo("new@email.com");
+    }
+
+    @Test
+    @DisplayName("updateMyProfile throws exception when new email already exists")
+    void updateMyProfile_updatesEmail_alreadyExists() {
+        User user = user(1L, "player1", User.UserStatus.OFFLINE);
+        user.setEmail("old@email.com");
+        when(userRepository.findByUsername("player1")).thenReturn(Optional.of(user));
+        when(userRepository.existsByEmail("new@email.com")).thenReturn(true);
+
+        UpdateUserProfileRequest request = new UpdateUserProfileRequest(null, "new@email.com", null);
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> userProfileService.updateMyProfile("player1", request))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Email already exists");
+    }
+
+
+    @Test
+    @DisplayName("updatePassword updates password when current is correct")
+    void updatesPassword_success() {
+        User user = user(1L, "player1", User.UserStatus.OFFLINE);
+        user.setPassword("old_hash");
+
+        when(userRepository.findByUsername("player1")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("currentPassword", "old_hash")).thenReturn(true);
+        when(passwordEncoder.encode("newPassword123")).thenReturn("new_hash");
+
+        UpdatePasswordRequest request = new UpdatePasswordRequest("currentPassword", "newPassword123");
+        userProfileService.updatePassword("player1", request);
+
+        assertThat(user.getPassword()).isEqualTo("new_hash");
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    @DisplayName("updatePassword throws exception when current password is incorrect")
+    void updatePassword_incorrectCurrentPassword() {
+        User user = user(1L, "player1", User.UserStatus.OFFLINE);
+        user.setPassword("old_hash");
+        when(userRepository.findByUsername("player1")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("wrongPassword", "old_hash")).thenReturn(false);
+
+        UpdatePasswordRequest request = new UpdatePasswordRequest("wrongPassword", "newPassword123");
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> userProfileService.updatePassword("player1", request))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Incorrect current password");
+    }
+
+    @Test
+    @DisplayName("updatePassword throws exception when new password is the same as current password")
+    void updatePassword_samePassword() {
+        User user = user(1L, "player1", User.UserStatus.OFFLINE);
+        user.setPassword("old_hash");
+        when(userRepository.findByUsername("player1")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("samePassword", "old_hash")).thenReturn(true);
+
+        UpdatePasswordRequest request = new UpdatePasswordRequest("samePassword", "samePassword");
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> userProfileService.updatePassword("player1", request))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("New password cannot be the same as current password");
+    }
+
     private User user(Long id, String username, User.UserStatus status) {
         User user = new User();
         user.setId(id);
@@ -173,7 +255,6 @@ class UserProfileServiceTest {
         user.setEmail(username + "@arena.com");
         user.setPassword("hash");
         user.setDisplayName(username);
-        user.setAvatar("/api/users/avatars/default-avatar.svg");
         user.setWins(0);
         user.setLosses(0);
         user.setElo(0);
