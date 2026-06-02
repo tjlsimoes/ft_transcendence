@@ -11,8 +11,7 @@ import { ChatWindowsContainer } from "./shared/components/chat-windows-container
 // Componente raiz da aplicação: monta layout base (fundo, navbar e área de rotas).
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, Navbar, FloatingSymbols, Sidebar, Footer],
-  imports: [RouterOutlet, Navbar, FloatingSymbols, Sidebar, ChatWindowsContainer],
+  imports: [RouterOutlet, Navbar, FloatingSymbols, Sidebar, Footer, ChatWindowsContainer],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
