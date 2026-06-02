@@ -276,26 +276,7 @@ public class OAuth2Service {
     }
 
     private String getRedirectUri(String provider) {
-        // Callback URLs configured in OAuth provider dashboard:
-        // https://localhost/api/auth/oauth2/callback/github
-        // https://localhost/api/auth/oauth2/callback/42
-        // Note: Spring security starter is not handling redirect, our controller is.
-        // The domain is dynamic (e.g. host where the user is browsing), but in development/production
-        // HTTPS is served on host, and Nginx forwards /api/auth/oauth2/callback/* to backend container.
-        // So the redirect URI must match what's registered with the provider.
-        // We will construct this redirect URI using the configured backend host, or just standard local callback path.
-        // Usually, OAuth providers require a fixed redirect URI. So we can make this redirect URI configurable via properties if needed,
-        // but default is pointing to /api/auth/oauth2/callback/{provider}.
-        // Let's assume standard localhost/api/auth/oauth2/callback/{provider} for local dev, or make it customizable.
-        // Let's make it customizable based on frontendCallbackUrl host, or simply /api/auth/oauth2/callback/{provider}.
-        // Wait, the redirect URI registered with the OAuth provider is the path they redirect back to.
-        // For CodeArena, Nginx reverse-proxies https://localhost:443 to the backend container.
-        // So they will redirect to: https://localhost/api/auth/oauth2/callback/{provider}
-        // Let's extract the origin of frontendCallbackUrl (e.g., https://localhost) and append "/api/auth/oauth2/callback/{provider}".
-        // This is extremely elegant and works out-of-the-box for any domain (dev or prod)!
         String frontendUrl = providerConfig.getFrontendCallbackUrl();
-        // frontendCallbackUrl is usually: https://localhost/oauth2/callback
-        // We want: https://localhost/api/auth/oauth2/callback/{provider}
         String origin = frontendUrl.replace("/oauth2/callback", "");
         return origin + "/api/auth/oauth2/callback/" + provider;
     }
