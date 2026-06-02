@@ -48,8 +48,14 @@
       (keydown)="onKeydown($event)"
       placeholder="Write a message…"
       rows="1"
+      maxlength="500"
     ></textarea>
-    <button class="chat-send-btn" (click)="send()" [disabled]="!messageText.trim()">➤</button>
+    <div class="chat-footer-actions">
+      <span class="char-counter" [class.limit]="messageText.length > 450">
+        {{ 500 - messageText.length }}
+      </span>
+      <button class="chat-send-btn" (click)="send()" [disabled]="!messageText.trim()">➤</button>
+    </div>
   </div>
   }
 
