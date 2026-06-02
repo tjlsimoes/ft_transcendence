@@ -2,8 +2,10 @@ package com.codearena.code_arena_backend.challenge.controller;
 
 import com.codearena.code_arena_backend.challenge.dto.ChallengeAdminResponse;
 import com.codearena.code_arena_backend.challenge.dto.ChallengeListItemResponse;
+import com.codearena.code_arena_backend.challenge.dto.ChallengeRunCodeRequest;
 import com.codearena.code_arena_backend.challenge.dto.ChallengeUpsertRequest;
 import com.codearena.code_arena_backend.challenge.service.ChallengeService;
+import com.codearena.code_arena_backend.judge.dto.JudgeResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -75,9 +77,23 @@ public class ChallengeController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/{id}/run-code")
+    public ResponseEntity<JudgeResponse> runCode(
+            @PathVariable Long id,
+            @Valid @RequestBody ChallengeRunCodeRequest request
+    ) {
+        JudgeResponse response = challengeService.runCode(id, request.code(), request.language());
+        return ResponseEntity.ok(response);
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, String>> handleBadRequest(IllegalArgumentException ex) {
         return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, String>> handleUnprocessable(IllegalStateException ex) {
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(Map.of("error", ex.getMessage()));
     }
 
     @ExceptionHandler(NoSuchElementException.class)

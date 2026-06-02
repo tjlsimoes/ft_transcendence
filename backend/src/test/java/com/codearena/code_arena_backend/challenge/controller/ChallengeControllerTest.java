@@ -2,10 +2,12 @@ package com.codearena.code_arena_backend.challenge.controller;
 
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.codearena.code_arena_backend.challenge.dto.ChallengeListItemResponse;
+import com.codearena.code_arena_backend.challenge.dto.ChallengeRunCodeRequest;
 import com.codearena.code_arena_backend.challenge.dto.ChallengeUpsertRequest;
 import com.codearena.code_arena_backend.challenge.entity.Challenge;
 import com.codearena.code_arena_backend.challenge.entity.ChallengeDifficulty;
 import com.codearena.code_arena_backend.challenge.service.ChallengeService;
+import com.codearena.code_arena_backend.judge.dto.JudgeResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,7 +48,8 @@ class ChallengeControllerTest {
             "desc",
             ChallengeDifficulty.MEDIUM,
             600,
-            JsonNodeFactory.instance.arrayNode()
+            JsonNodeFactory.instance.arrayNode(),
+            null
         );
         Page<Challenge> servicePage = new PageImpl<>(List.of(challenge), pageable, 1);
         when(challengeService.listChallenges("MEDIUM", pageable)).thenReturn(servicePage);
@@ -91,7 +94,8 @@ class ChallengeControllerTest {
             "desc",
             ChallengeDifficulty.HARD,
             1200,
-            JsonNodeFactory.instance.arrayNode()
+            JsonNodeFactory.instance.arrayNode(),
+            null
         );
         when(challengeService.createChallenge(request)).thenReturn(created);
 
@@ -119,7 +123,8 @@ class ChallengeControllerTest {
             "desc",
             ChallengeDifficulty.MEDIUM,
             600,
-            JsonNodeFactory.instance.arrayNode()
+            JsonNodeFactory.instance.arrayNode(),
+            null
         );
         when(challengeService.updateChallenge(9L, request)).thenReturn(updated);
 
@@ -150,5 +155,32 @@ class ChallengeControllerTest {
         assertThat(response.getStatusCode().value()).isEqualTo(404);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().get("error")).contains("13");
+    }
+
+    @Test
+    @DisplayName("runCode returns HTTP 200 with judge response")
+    void runCode_returns200() {
+        ChallengeRunCodeRequest request = new ChallengeRunCodeRequest("int main(){return 0;}", "C");
+        JudgeResponse expected = new JudgeResponse(true, 3, 3, 15, 1024, null, List.of());
+        when(challengeService.runCode(5L, request.code(), request.language())).thenReturn(expected);
+
+        ResponseEntity<JudgeResponse> response = challengeController.runCode(5L, request);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().passed()).isTrue();
+        assertThat(response.getBody().totalTests()).isEqualTo(3);
+        verify(challengeService).runCode(5L, request.code(), request.language());
+    }
+
+    @Test
+    @DisplayName("handleUnprocessable returns HTTP 422")
+    void handleUnprocessable_returns422() {
+        ResponseEntity<Map<String, String>> response =
+                challengeController.handleUnprocessable(new IllegalStateException("invalid test setup"));
+
+        assertThat(response.getStatusCode().value()).isEqualTo(422);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().get("error")).contains("invalid test setup");
     }
 }

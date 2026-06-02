@@ -48,4 +48,7 @@ public class Challenge {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "test_cases", nullable = false, columnDefinition = "jsonb")
     private JsonNode testCases;
+
+    @Column(name = "code_wrapper", columnDefinition = "TEXT")
+    private String codeWrapper;
 }

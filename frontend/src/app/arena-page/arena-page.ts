@@ -15,10 +15,6 @@ import {
   SubmissionResult,
   TestCaseResult,
   RunResult,
-  mockWrongAnswerResult,
-  mockCorrectAnswerResult,
-  mockRunSuccess,
-  mockRunCompileError,
 } from './submission-result.model';
 
 export type PanelTab = 'Problem' | 'Submissions';
@@ -309,14 +305,39 @@ int main() {
   }
 
   runCode(): void {
-    // TODO: replace with real backend call;
-    // map HTTP response to RunResult and call:
-    const result = mockRunSuccess(); // swap to mockRunCompileError() to test
-    this.runResult.set(result);
-    this.runPanelOpen.set(true);
-    // Close submit panel to avoid overlap
-    this.closeResultPanel();
-    console.log('Running code:', this.code());
+    const cid = this.challengeId();
+    if (!cid) {
+      return;
+    }
+
+    this.challengeService.runCode(cid, {
+      code: this.code(),
+      language: this.selectedLanguage(),
+    }).subscribe({
+      next: (judge) => {
+        this.runResult.set(null);
+        this.runPanelOpen.set(false);
+
+        this.submissionResult.set(this.mapRunResponseToSubmissionResult(judge));
+        this.resultPanelOpen.set(true);
+
+        const firstFailed = this.submissionResult()!.testCases.find(tc => tc.status === 'failed')
+          ?? this.submissionResult()!.testCases[0]
+          ?? null;
+        this.activeTestCase.set(firstFailed);
+      },
+      error: (err) => {
+        const message = err?.error?.error ?? 'Failed to run code. Please try again.';
+        this.submissionResult.set({
+          verdict: 'runtime_error',
+          headline: 'Run Failed',
+          summary: message,
+          testCases: []
+        });
+        this.resultPanelOpen.set(true);
+        this.activeTestCase.set(null);
+      }
+    });
   }
 
   // ── Run result panel ─────────────────────────────────────────────────
@@ -416,5 +437,55 @@ int main() {
 
   leaveArena(): void {
     this.router.navigate(['/lobby']);
+  }
+
+  private mapRunResponseToSubmissionResult(judge: {
+    passed: boolean;
+    totalTests: number;
+    passedTests: number;
+    compilationError: string | null;
+    results: Array<{
+      index: number;
+      passed: boolean;
+      actualOutput: string;
+      expectedOutput: string;
+      error: string | null;
+    }>;
+  }): SubmissionResult {
+    if (judge.compilationError) {
+      return {
+        verdict: 'runtime_error',
+        headline: 'Compilation Error',
+        summary: 'Code did not compile',
+        testCases: [
+          {
+            label: 'Compilation',
+            status: 'failed',
+            compilerMessage: judge.compilationError,
+          }
+        ]
+      };
+    }
+
+    const testCases: TestCaseResult[] = judge.results.map((result) => ({
+      label: `Sample Test case ${result.index + 1}`,
+      status: result.passed ? 'passed' : 'failed',
+      compilerMessage: result.error ?? undefined,
+      stdout: result.actualOutput,
+      expectedOutput: result.expectedOutput,
+    }));
+
+    const headline = judge.passed
+      ? 'Run Passed'
+      : 'Run Failed';
+
+    const summary = `${judge.passedTests}/${judge.totalTests} sample tests passed`;
+
+    return {
+      verdict: judge.passed ? 'correct' : 'wrong',
+      headline,
+      summary,
+      testCases,
+    };
   }
 }

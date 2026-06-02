@@ -16,6 +16,9 @@ import org.springframework.web.client.RestClient;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
@@ -50,6 +53,12 @@ class JudgeServiceTest {
 
         mockServer.expect(requestTo("http://judge0-server:2358/submissions?wait=true"))
                 .andExpect(method(HttpMethod.POST))
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(header("Accept", containsString(MediaType.APPLICATION_JSON_VALUE)))
+                .andExpect(content().string(containsString("\"source_code\":\"int main(){return 0;}\"")))
+                .andExpect(content().string(containsString("\"language_id\":50")))
+                .andExpect(content().string(containsString("\"enable_per_process_and_thread_time_limit\":true")))
+                .andExpect(content().string(containsString("\"enable_per_process_and_thread_memory_limit\":true")))
                 .andRespond(withSuccess(mapper.writeValueAsString(mockResponse), MediaType.APPLICATION_JSON));
 
         JudgeRequest request = new JudgeRequest(

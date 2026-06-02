@@ -5,16 +5,18 @@ import com.codearena.code_arena_backend.judge.dto.JudgeRequest;
 import com.codearena.code_arena_backend.judge.dto.JudgeRequest.TestCaseInput;
 import com.codearena.code_arena_backend.judge.dto.JudgeResponse;
 import com.codearena.code_arena_backend.judge.dto.JudgeResponse.TestCaseResult;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -29,6 +31,7 @@ import java.util.concurrent.TimeoutException;
 public class JudgeService {
 
     private static final Logger log = LoggerFactory.getLogger(JudgeService.class);
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private final RestClient restClient;
     private final JudgeProperties props;
@@ -111,19 +114,17 @@ public class JudgeService {
     }
 
     private Judge0Response submitToJudge0(String sourceCode, TestCaseInput testCase, int languageId) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("source_code", sourceCode);
-        body.put("language_id", languageId);
-
-        if (testCase.stdin() != null && !testCase.stdin().isEmpty()) {
-            body.put("stdin", testCase.stdin());
-        }
-        if (testCase.expectedOutput() != null && !testCase.expectedOutput().isEmpty()) {
-            body.put("expected_output", testCase.expectedOutput());
-        }
-
-        body.put("cpu_time_limit", props.cpuTimeLimit());
-        body.put("memory_limit", props.memoryLimit());
+        Judge0SubmissionRequest body = new Judge0SubmissionRequest(
+                sourceCode,
+                languageId,
+                testCase.stdin() == null ? "" : testCase.stdin(),
+                testCase.expectedOutput() == null ? "" : testCase.expectedOutput(),
+                props.cpuTimeLimit(),
+            props.memoryLimit(),
+            true,
+            true
+        );
+        String requestJson = toRequestJson(body);
 
         long timeoutMs = (long) (props.cpuTimeLimit() * 1000) + 1000; // small grace over CPU limit
 
@@ -132,7 +133,9 @@ public class JudgeService {
                 try {
                     return restClient.post()
                             .uri("/submissions?wait=true")
-                            .body(body)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .accept(MediaType.APPLICATION_JSON)
+                            .body(requestJson)
                             .retrieve()
                             .body(Judge0Response.class);
                 } catch (Exception ex) {
@@ -200,6 +203,14 @@ public class JudgeService {
         return output.stripTrailing();
     }
 
+    private String toRequestJson(Judge0SubmissionRequest request) {
+        try {
+            return OBJECT_MAPPER.writeValueAsString(request);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Failed to serialize Judge0 request", e);
+        }
+    }
+
     // DTO for parsing Judge0 JSON response
     record Judge0Response(
             String stdout,
@@ -215,4 +226,15 @@ public class JudgeService {
             int id,
             String description
     ) {}
+
+        record Judge0SubmissionRequest(
+            @JsonProperty("source_code") String sourceCode,
+            @JsonProperty("language_id") int languageId,
+            @JsonProperty("stdin") String stdin,
+            @JsonProperty("expected_output") String expectedOutput,
+            @JsonProperty("cpu_time_limit") float cpuTimeLimit,
+            @JsonProperty("memory_limit") int memoryLimit,
+            @JsonProperty("enable_per_process_and_thread_time_limit") boolean enablePerProcessAndThreadTimeLimit,
+            @JsonProperty("enable_per_process_and_thread_memory_limit") boolean enablePerProcessAndThreadMemoryLimit
+        ) {}
 }

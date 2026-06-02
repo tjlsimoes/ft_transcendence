@@ -11,6 +11,30 @@ export interface ChallengeResponse {
   timeLimitSecs: number;
 }
 
+export interface JudgeCaseResultResponse {
+  index: number;
+  passed: boolean;
+  actualOutput: string;
+  expectedOutput: string;
+  error: string | null;
+  runtimeMs: number;
+}
+
+export interface JudgeResponse {
+  passed: boolean;
+  totalTests: number;
+  passedTests: number;
+  runtimeMs: number;
+  memoryKb: number;
+  compilationError: string | null;
+  results: JudgeCaseResultResponse[];
+}
+
+export interface ChallengeRunCodeRequest {
+  code: string;
+  language: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ChallengeService {
   private http = inject(HttpClient);
@@ -18,5 +42,9 @@ export class ChallengeService {
 
   getChallenge(id: number): Observable<ChallengeResponse> {
     return this.http.get<ChallengeResponse>(`${this.baseUrl}/${id}`);
+  }
+
+  runCode(challengeId: number, payload: ChallengeRunCodeRequest): Observable<JudgeResponse> {
+    return this.http.post<JudgeResponse>(`${this.baseUrl}/${challengeId}/run-code`, payload);
   }
 }
