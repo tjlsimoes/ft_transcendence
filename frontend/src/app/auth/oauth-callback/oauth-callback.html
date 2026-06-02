@@ -1,0 +1,34 @@
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="auth-header">
+      <a routerLink="/" class="auth-logo">
+        <span class="logo-bracket">&lt;</span>CodeArena<span class="logo-bracket">/&gt;</span>
+      </a>
+      <h1 class="auth-title">Authenticating</h1>
+      @if (isLoading()) {
+        <p class="auth-subtitle">Finalizing secure connection with provider...</p>
+      } @else {
+        <p class="auth-subtitle">Authentication failed</p>
+      }
+    </div>
+
+    <div class="callback-content">
+      @if (isLoading()) {
+        <div class="spinner-container">
+          <span class="spinner large-spinner"></span>
+        </div>
+      }
+
+      @if (errorMessage()) {
+        <div class="server-error callback-error">
+          {{ errorMessage() }}
+        </div>
+        <div class="action-container">
+          <a routerLink="/login" class="btn-submit btn-back">
+            Back to Login
+          </a>
+        </div>
+      }
+    </div>
+  </div>
+</div>
