@@ -1,7 +1,9 @@
 package com.codearena.code_arena_backend.user.controller;
 
+import com.codearena.code_arena_backend.duel.dto.MatchHistoryResponse;
 import com.codearena.code_arena_backend.duel.repository.DuelRepository;
 import com.codearena.code_arena_backend.friendship.repository.FriendshipRepository;
+import com.codearena.code_arena_backend.ranking.service.RankingService;
 import com.codearena.code_arena_backend.user.dto.FriendSummaryResponse;
 import com.codearena.code_arena_backend.user.dto.UpdateUserProfileRequest;
 import com.codearena.code_arena_backend.user.dto.UserAvatarResource;
@@ -19,11 +21,13 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
@@ -44,6 +48,9 @@ class UserControllerTest {
 
     @Mock
     private FriendshipRepository friendshipRepository;
+
+    @Mock
+    private RankingService rankingService;
 
     @InjectMocks
     private UserController userController;
@@ -82,7 +89,7 @@ class UserControllerTest {
     @DisplayName("updateMyProfile uses authenticated username")
     void updateMyProfile_usesAuthenticationName() {
         TestingAuthenticationToken auth = new TestingAuthenticationToken("player1", null);
-        UpdateUserProfileRequest request = new UpdateUserProfileRequest("New Name", "new bio");
+        UpdateUserProfileRequest request = new UpdateUserProfileRequest("New Name", "email@email.com", "new bio");
         UserProfileResponse profile = testProfile(
                 1L, "player1", "New Name", "new bio",
                 "/api/users/avatars/default-avatar.svg",
@@ -151,5 +158,95 @@ class UserControllerTest {
         assertThat(response.getStatusCode().value()).isEqualTo(404);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().get("error")).contains("9");
+    }
+
+    // ------------------------------------------------------------------ //
+    //  deleteMyAccount                                                     //
+    // ------------------------------------------------------------------ //
+
+    @Test
+    @DisplayName("deleteMyAccount – returns HTTP 204 and delegates to userService")
+    void deleteMyAccount_returns204AndDelegates() {
+        TestingAuthenticationToken auth = new TestingAuthenticationToken("player1", null);
+
+        ResponseEntity<Void> response = userController.deleteMyAccount(auth);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(204);
+        verify(userService).deleteAccount("player1");
+    }
+
+    // ------------------------------------------------------------------ //
+    //  getMyMatches – null-safety after opponent/challenger deletion       //
+    // ------------------------------------------------------------------ //
+
+    private UserDetails userDetailsFor(String username) {
+        return org.springframework.security.core.userdetails.User.builder()
+                .username(username).password("pw").roles("USER").build();
+    }
+
+    private User entityFor(Long id, String username) {
+        User u = new User();
+        u.setId(id);
+        u.setUsername(username);
+        u.setRole(User.Role.USER);
+        return u;
+    }
+
+    @Test
+    @DisplayName("getMyMatches – challenger deleted: opponent shows Unknown")
+    void getMyMatches_challengerDeleted_currentUserIsOpponent() {
+        User currentUser = entityFor(10L, "beta");
+        UserDetails principal = userDetailsFor("beta");
+        MatchHistoryResponse expected = MatchHistoryResponse.builder()
+                .id(1L).result("PENDING").opponent("Unknown").status("COMPLETED").lpChange(15).build();
+
+        when(userService.findByUsername("beta")).thenReturn(Optional.of(currentUser));
+        when(rankingService.getUserMatchHistory(currentUser)).thenReturn(List.of(expected));
+
+        ResponseEntity<List<MatchHistoryResponse>> response = userController.getMyMatches(principal);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        MatchHistoryResponse match = response.getBody().getFirst();
+        assertThat(match.getOpponent()).isEqualTo("Unknown");
+        assertThat(match.getLpChange()).isEqualTo(15);
+    }
+
+    @Test
+    @DisplayName("getMyMatches – opponent deleted: shows Unknown and VICTORY")
+    void getMyMatches_opponentDeleted_currentUserIsChallenger() {
+        User currentUser = entityFor(10L, "alpha");
+        UserDetails principal = userDetailsFor("alpha");
+        MatchHistoryResponse expected = MatchHistoryResponse.builder()
+                .id(2L).result("VICTORY").opponent("Unknown").status("COMPLETED").lpChange(-10).build();
+
+        when(userService.findByUsername("alpha")).thenReturn(Optional.of(currentUser));
+        when(rankingService.getUserMatchHistory(currentUser)).thenReturn(List.of(expected));
+
+        ResponseEntity<List<MatchHistoryResponse>> response = userController.getMyMatches(principal);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        MatchHistoryResponse match = response.getBody().getFirst();
+        assertThat(match.getOpponent()).isEqualTo("Unknown");
+        assertThat(match.getResult()).isEqualTo("VICTORY");
+        assertThat(match.getLpChange()).isEqualTo(-10);
+    }
+
+    @Test
+    @DisplayName("getMyMatches – both present: resolves opponent username")
+    void getMyMatches_bothPresent_resolvesOpponentName() {
+        User currentUser = entityFor(10L, "alpha");
+        UserDetails principal = userDetailsFor("alpha");
+        MatchHistoryResponse expected = MatchHistoryResponse.builder()
+                .id(3L).result("DRAW").opponent("beta").status("DRAW").lpChange(5).build();
+
+        when(userService.findByUsername("alpha")).thenReturn(Optional.of(currentUser));
+        when(rankingService.getUserMatchHistory(currentUser)).thenReturn(List.of(expected));
+
+        ResponseEntity<List<MatchHistoryResponse>> response = userController.getMyMatches(principal);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        MatchHistoryResponse match = response.getBody().getFirst();
+        assertThat(match.getOpponent()).isEqualTo("beta");
+        assertThat(match.getResult()).isEqualTo("DRAW");
     }
 }

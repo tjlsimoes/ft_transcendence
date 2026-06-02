@@ -100,7 +100,7 @@ class MatchmakingServiceReenqueueTest {
         verify(queueService).enqueue(1L, 1200);
         verify(queueService).enqueue(2L, 1250);
 
-        // Verify players' statuses were restored to IN_QUEUE
+        // Verify players' statuses are set to IN_QUEUE
         assertThat(player1.getStatus()).isEqualTo(User.UserStatus.IN_QUEUE);
         assertThat(player2.getStatus()).isEqualTo(User.UserStatus.IN_QUEUE);
 
