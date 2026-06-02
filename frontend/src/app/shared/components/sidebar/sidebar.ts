@@ -55,6 +55,9 @@ export class Sidebar implements OnInit {
 
   setActiveTab(tab: 'friends' | 'notifications'): void {
     this.activeTab.set(tab);
+    if (tab === 'notifications') {
+      this.notificationService.markTabRead();
+    }
   }
 
   getAvatarLetter(username: string): string {
@@ -63,6 +66,7 @@ export class Sidebar implements OnInit {
 
   openChat(friend: FriendEntry): void {
     this.chatStateService.openConversation(friend);
+    this.notificationService.markChatRead(friend.id);
   }
 
   getUnread(friendId: number): number {

@@ -17,6 +17,7 @@ export class NotificationService {
 
   private _notifications = signal<NotificationPayload[]>([]);
   readonly notifications = this._notifications.asReadonly();
+  private _chatNotifIds = signal<Record<number, number[]>>({});
 
   private initialized = false;
 
@@ -40,6 +41,10 @@ export class NotificationService {
       const msg = n.payload as { senderId: number };
       const alreadyOpen = this.chatState.windows().some(w => w.friend.id === msg.senderId);
       if (!alreadyOpen)
+        this._chatNotifIds.update(map => ({
+          ...map,
+          [msg.senderId]: [...(map[msg.senderId] ?? []), n.id]
+        }));
         this.chatState.incrementPending(msg.senderId);
     } else {
       this._notifications.update(list => [n, ...list]);
@@ -49,5 +54,22 @@ export class NotificationService {
   private loadUnread(): void {
     this.http.get<NotificationPayload[]>(`${this.baseUrl}/unread`)
       .subscribe(notifications => notifications.forEach(n => this.handle(n)));
+  }
+
+  markChatRead(senderId: number): void {
+    const ids = this._chatNotifIds()[senderId] ?? [];
+    this.markRead(ids);
+    this._chatNotifIds.update(({ [senderId]: _, ...rest}) =>  rest);
+  }
+
+  markTabRead():void {
+    const ids = this._notifications().map( n => n.id);
+    this.markRead(ids);
+  }
+
+  private markRead(ids: number[]): void {
+    ids.forEach(id =>
+      this.http.patch(`${this.baseUrl}/${id}/read`, {}).subscribe()
+    );
   }
 }
