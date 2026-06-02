@@ -5,6 +5,7 @@ import { environment } from '../../../environments/environment';
 import { UserService } from './user.service';
 import { WebSocketService } from './websocket.service';
 import { ChatStateService } from './chat-state.service';
+import { NotificationService } from './notification.service';
 
 export interface AuthResponse {
   accessToken: string;
@@ -31,6 +32,7 @@ export class AuthService {
   private userService = inject(UserService);
   private wsService = inject(WebSocketService);
   private chatState = inject(ChatStateService);
+  private notificationService = inject(NotificationService);
   private baseUrl = `${environment.apiUrl}/auth`;
 
   private tokenKey = 'auth_token';
@@ -64,6 +66,7 @@ export class AuthService {
     localStorage.removeItem(this.tokenKey);
     this.userService.clear();
     this.chatState.clear();
+    this.notificationService.reset();
     this.wsService.disconnect();
     this.router.navigate(['/login']);
   }

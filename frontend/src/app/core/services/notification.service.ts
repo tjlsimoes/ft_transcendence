@@ -2,7 +2,7 @@ import { DestroyRef, inject, Injectable, signal } from "@angular/core";
 import { SocketState, WebSocketService } from "./websocket.service";
 import { ChatStateService } from "./chat-state.service";
 import { NotificationPayload } from "../../shared/models/notification.model";
-import { filter, switchMap } from "rxjs";
+import { filter, Subscription, switchMap } from "rxjs";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { HttpClient } from "@angular/common/http";
 import { environment } from "../../../environments/environment";
@@ -19,13 +19,14 @@ export class NotificationService {
   readonly notifications = this._notifications.asReadonly();
   private _chatNotifIds = signal<Record<number, number[]>>({});
 
+  private subscription?: Subscription;
   private initialized = false;
 
   init(): void {
     if (this.initialized) return ;
     this.initialized = true;
     this.loadUnread();  // Populate from DB on login
-    this.wsService.state$
+    this.subscription = this.wsService.state$
       .pipe(
         filter(s => s === SocketState.CONNECTED),
         switchMap(() =>
@@ -72,5 +73,13 @@ export class NotificationService {
     ids.forEach(id =>
       this.http.patch(`${this.baseUrl}/${id}/read`, {}).subscribe()
     );
+  }
+
+  reset(): void {
+    this.initialized = false;
+    this.subscription?.unsubscribe();
+    this.subscription = undefined;
+    this._notifications.set([]);
+    this._chatNotifIds.set({});
   }
 }
