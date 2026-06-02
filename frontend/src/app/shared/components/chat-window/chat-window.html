@@ -8,11 +8,11 @@
              [alt]="win().friend.username"
              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" />
         <span class="avatar-fallback" style="display:none">{{ getAvatarLetter(win().friend.username) }}</span>
-        <span class="status-dot" [class]="win().friend.status"></span>
+        <span class="status-dot" [class]="statusClass(win().friend.status)"></span>
       </div>
       <div class="chat-header-text">
         <span class="chat-username">{{ win().friend.username }}</span>
-        <span class="chat-status">{{ win().friend.status }}</span>
+        <span class="chat-status">{{ statusClass(win().friend.status) }}</span>
       </div>
     </div>
 
