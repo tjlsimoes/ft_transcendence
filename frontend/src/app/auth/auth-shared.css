@@ -256,3 +256,80 @@
     padding: 32px 20px;
   }
 }
+
+/* OAuth Divider */
+.oauth-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 16px 0;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-family: var(--font-mono);
+  font-weight: 575;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.oauth-divider::before,
+.oauth-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--border);
+}
+
+.oauth-divider::before {
+  margin-right: 12px;
+}
+
+.oauth-divider::after {
+  margin-left: 12px;
+}
+
+/* OAuth Buttons container */
+.oauth-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* OAuth Buttons base style */
+.btn-oauth {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-oauth:hover {
+  background: color-mix(in srgb, var(--border) 20%, var(--bg));
+  border-color: var(--text-muted);
+  transform: translateY(-1px);
+}
+
+.btn-oauth-42:hover {
+  border-color: #00babc;
+  box-shadow: 0 0 10px rgba(0, 186, 188, 0.15);
+}
+
+.btn-oauth-github:hover {
+  border-color: #f0f6fc;
+  box-shadow: 0 0 10px rgba(240, 246, 252, 0.1);
+}
+
+.oauth-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  flex-shrink: 0;
+}

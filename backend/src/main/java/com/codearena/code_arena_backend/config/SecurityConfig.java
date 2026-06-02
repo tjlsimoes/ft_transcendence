@@ -65,7 +65,7 @@ public class SecurityConfig {
             // Route authorisation rules.
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints — only specific auth routes, health and WS are public.
-                .requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/refresh", "/api/health", "/ws/**").permitAll()
+                .requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/refresh", "/api/auth/oauth2/**", "/api/health", "/ws/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/leaderboard").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/users/avatars/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/challenges", "/api/challenges/**").permitAll()
