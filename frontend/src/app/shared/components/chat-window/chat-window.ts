@@ -6,6 +6,7 @@ import { UserService } from "../../../core/services/user.service";
 import { Subscription } from "rxjs";
 import { DatePipe } from "@angular/common";
 import { FormsModule } from "@angular/forms";
+import { statusClass } from "../../utils/status.utils";
 
 @Component({
   selector: 'app-chat-window',
@@ -22,6 +23,7 @@ export class ChatWindow implements OnInit, OnDestroy {
   private subscription?: Subscription;
   @ViewChild('messageList') private messageList!: ElementRef<HTMLDivElement>
 
+  readonly statusClass = statusClass;
   messageText = '';
 
   constructor() {

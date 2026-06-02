@@ -95,4 +95,13 @@ export class ChatStateService {
         this._pendingUnread.set(rest);
     }
 
+    syncFriendStatuses(friends: FriendEntry[]): void {
+        this._windows.update(windows =>
+            windows.map(w => {
+                const updated = friends.find(f => f.id === w.friend.id);
+                return updated ? {...w, friend: updated} : w;
+            })
+        )
+    }
+
 }

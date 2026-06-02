@@ -7,6 +7,7 @@ import type { FriendEntry } from '../../models/user-profile.model';
 import { ChatStateService } from '../../../core/services/chat-state.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { DatePipe } from '@angular/common';
+import { statusClass } from '../../utils/status.utils';
 
 @Component({
   selector: 'app-sidebar',
@@ -21,6 +22,7 @@ export class Sidebar implements OnInit {
   notificationService = inject(NotificationService);
   private destroyRef = inject(DestroyRef);
 
+  readonly statusClass = statusClass;
   username = this.userService.username;
   avatarLetter = this.userService.avatarLetter;
   friends = this.userService.friends;
@@ -38,7 +40,9 @@ export class Sidebar implements OnInit {
   isLobby = this.routeState.isLobby;
 
   private loadFriends(): void {
-    this.userService.loadFriends().subscribe();
+    this.userService.loadFriends().subscribe({
+      next: friends => this.chatStateService.syncFriendStatuses(friends)
+    });
   }
 
   ngOnInit(): void {

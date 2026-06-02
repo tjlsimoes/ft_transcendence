@@ -21,7 +21,7 @@
         <img [src]="friend.avatarUrl || ''" [alt]="friend.username" class="avatar-img"
           onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" />
         <span class="avatar-fallback" style="display: none;">{{ getAvatarLetter(friend.username) }}</span>
-        <span class="status-dot" [class]="friend.status"></span>
+        <span class="status-dot" [class]="statusClass(friend.status)"></span>
         @if (getUnread(friend.id) > 0) {
           <span class="unread-badge">{{ getUnread(friend.id) }}</span>
         }
@@ -50,7 +50,7 @@
             <img [src]="friend.avatarUrl || ''" [alt]="friend.username" class="avatar-img"
               onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" />
             <span class="avatar-fallback" style="display: none;">{{ getAvatarLetter(friend.username) }}</span>
-            <span class="status-dot" [class]="friend.status"></span>
+            <span class="status-dot" [class]="statusClass(friend.status)"></span>
           </div>
           <div class="friend-info">
             <span class="friend-name">{{ friend.username }}</span>
