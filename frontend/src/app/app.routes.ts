@@ -63,6 +63,16 @@ export const routes: Routes = [
     canActivate: [lobbyGuard],
     loadComponent: () => import('./features/ranking/ranking').then(m => m.Ranking),
   },
+  // Privacy Policy — pública.
+  {
+    path: 'privacy-policy',
+    loadComponent: () => import('./features/legal/privacy-policy/privacy-policy').then(m => m.PrivacyPolicy),
+  },
+  // Terms of Service — pública.
+  {
+    path: 'terms-of-service',
+    loadComponent: () => import('./features/legal/terms-of-service/terms-of-service').then(m => m.TermsOfService),
+  },
   // Fallback.
   { path: '**', redirectTo: '' },
 ];

@@ -4,13 +4,14 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Navbar } from './shared/components/navbar/navbar';
 import { FloatingSymbols } from './shared/components/floating-symbols/floating-symbols';
 import { Sidebar } from './shared/components/sidebar/sidebar';
+import { Footer } from './shared/components/footer/footer';
 import { RouteStateService } from './core/services/route-state.service';
 import { ChatWindowsContainer } from "./shared/components/chat-windows-container/chat-windows-container";
 
 // Componente raiz da aplicação: monta layout base (fundo, navbar e área de rotas).
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, Navbar, FloatingSymbols, Sidebar, ChatWindowsContainer],
+  imports: [RouterOutlet, Navbar, FloatingSymbols, Sidebar, Footer, ChatWindowsContainer],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })

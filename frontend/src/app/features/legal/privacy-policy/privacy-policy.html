@@ -1,0 +1,219 @@
+<main class="legal-page">
+
+  <!-- Header -->
+  <header class="legal-header">
+    <h1>Privacy Policy</h1>
+    <p class="legal-meta">Last Updated — {{ lastUpdated }}</p>
+  </header>
+
+  <!-- 1. Introduction -->
+  <section class="legal-section">
+    <h2>1. Introduction</h2>
+    <p>
+      Code Arena ("<strong>the Platform</strong>") is a competitive programming web application
+      developed as part of the 42 school curriculum. We are committed to protecting your privacy
+      and handling your data transparently. This Privacy Policy explains what data we collect,
+      how we use it, and your rights regarding your personal information.
+    </p>
+    <p>
+      By creating an account and using the Platform, you acknowledge that you have read and
+      understood this policy.
+    </p>
+  </section>
+
+  <!-- 2. Data Controller -->
+  <section class="legal-section">
+    <h2>2. Data Controller</h2>
+    <p>
+      The Platform is maintained by the <strong>Code Arena development team</strong>
+      (<code>tjorge-l</code>, <code>tborges-</code>, <code>strodrig</code>,
+      <code>hepereir</code>) as part of the <strong>ft_transcendence</strong> project
+      at 42 school.
+    </p>
+    <p>
+      For any questions or concerns regarding this policy or your data, please contact us
+      through the 42 school internal network.
+    </p>
+  </section>
+
+  <!-- 3. Data We Collect -->
+  <section class="legal-section">
+    <h2>3. Data We Collect</h2>
+    <p>
+      We collect only the data necessary to operate the Platform and provide you with a
+      competitive programming experience. Below is a detailed breakdown of the categories
+      of data we collect.
+    </p>
+
+    <h3>3.1 Account Data</h3>
+    <p>Collected at registration to create and secure your account:</p>
+    <ul>
+      <li>Login / username</li>
+      <li>Email address</li>
+      <li>Hashed password (encrypted with <code>BCrypt</code> — never stored in plain text)</li>
+    </ul>
+
+    <h3>3.2 Profile Data</h3>
+    <p>Optional information you may provide to personalize your profile:</p>
+    <ul>
+      <li>Avatar image (optional upload)</li>
+      <li>Biography text (optional)</li>
+    </ul>
+
+    <h3>3.3 Game Data</h3>
+    <p>Generated through your participation in duels and competitive activities:</p>
+    <ul>
+      <li>Duel history and match records</li>
+      <li>Code submissions made during duels</li>
+      <li>Scores and match results</li>
+      <li>Elo rating and ranking position</li>
+      <li>Win/loss statistics</li>
+      <li>League rank</li>
+    </ul>
+
+    <h3>3.4 Social Data</h3>
+    <p>Generated through your use of social features on the Platform:</p>
+    <ul>
+      <li>Friend lists and friend request status</li>
+      <li>Chat messages exchanged between users</li>
+    </ul>
+
+    <h3>3.5 Technical Data</h3>
+    <p>Minimal technical data required for Platform operation:</p>
+    <ul>
+      <li>Session tokens (<code>JWT</code>) for authentication</li>
+      <li>WebSocket connection metadata for real-time features</li>
+    </ul>
+    <p>
+      <strong>We do NOT collect</strong> IP addresses, browser fingerprints, or any
+      analytics/tracking data. The Platform contains no third-party tracking scripts,
+      pixels, or telemetry.
+    </p>
+  </section>
+
+  <!-- 4. How We Use Your Data -->
+  <section class="legal-section">
+    <h2>4. How We Use Your Data</h2>
+    <p>Your data is used exclusively for the following purposes:</p>
+    <ul>
+      <li>To provide and maintain your account on the Platform</li>
+      <li>To facilitate matchmaking, duels, and competitive ranking</li>
+      <li>To display your profile, statistics, and leaderboard position to other users</li>
+      <li>To enable social features including friends, chat, and notifications</li>
+      <li>To execute submitted code in a sandboxed environment (<code>Judge0</code>) for duel evaluation</li>
+    </ul>
+    <p>
+      We do not use your data for profiling, automated decision-making, or any purpose
+      beyond the core functionality of the Platform.
+    </p>
+  </section>
+
+  <!-- 5. Code Execution & Security -->
+  <section class="legal-section">
+    <h2>5. Code Execution &amp; Security</h2>
+    <p>
+      Code you submit during duels is executed in a fully <strong>isolated sandbox
+      environment</strong> with strict resource limits to ensure safety and fairness:
+    </p>
+    <ul>
+      <li><strong>10 seconds</strong> maximum CPU execution time</li>
+      <li><strong>128 MB</strong> maximum memory allocation</li>
+      <li><strong>No network access</strong> — sandboxed code cannot make external requests</li>
+      <li><strong>Read-only filesystem</strong> — no persistent writes outside the sandbox</li>
+    </ul>
+    <p>
+      Submitted code is stored in the database as part of your match history for review
+      and record-keeping purposes. It is <strong>not shared with third parties</strong>
+      and is not used for any purpose beyond duel evaluation and match history display.
+    </p>
+  </section>
+
+  <!-- 6. Data Storage & Security -->
+  <section class="legal-section">
+    <h2>6. Data Storage &amp; Security</h2>
+    <p>
+      We take the security of your data seriously and implement the following measures:
+    </p>
+    <ul>
+      <li>Data is stored in a <strong>PostgreSQL</strong> database running in isolated Docker containers</li>
+      <li>Passwords are hashed using <code>BCrypt</code> and are never stored in plain text</li>
+      <li>All communication is encrypted using <strong>HTTPS</strong> with TLS encryption</li>
+      <li><code>JWT</code> tokens are used for authentication with configurable expiration periods</li>
+      <li><strong>Redis</strong> is used for session management and matchmaking queue data</li>
+    </ul>
+  </section>
+
+  <!-- 7. Data Sharing -->
+  <section class="legal-section">
+    <h2>7. Data Sharing</h2>
+    <p>
+      We <strong>do not sell, trade, or share</strong> your personal data with any third parties.
+    </p>
+    <p>
+      The Platform is entirely self-hosted and does not integrate with external analytics,
+      advertising, or tracking services. Your data remains within our infrastructure at all times.
+    </p>
+  </section>
+
+  <!-- 8. Data Retention -->
+  <section class="legal-section">
+    <h2>8. Data Retention</h2>
+    <p>
+      Your data is retained for as long as your account remains active on the Platform.
+    </p>
+    <p>
+      As this is an <strong>educational project</strong> developed as part of the 42 school
+      curriculum, all data may be permanently deleted when the project evaluation period
+      concludes. Users will be notified in advance if a data deletion event is scheduled.
+    </p>
+  </section>
+
+  <!-- 9. Your Rights -->
+  <section class="legal-section">
+    <h2>9. Your Rights</h2>
+    <p>You have the following rights regarding your personal data:</p>
+    <ul>
+      <li><strong>Right of Access</strong> — Request to view the personal data we hold about you</li>
+      <li><strong>Right of Rectification</strong> — Request correction of any inaccurate or incomplete data</li>
+      <li><strong>Right of Erasure</strong> — Request deletion of your account and all associated data</li>
+      <li><strong>Right of Portability</strong> — Export your match history and profile data</li>
+    </ul>
+    <p>
+      To exercise any of these rights, please contact any member of the development team
+      through the 42 school internal network.
+    </p>
+  </section>
+
+  <!-- 10. Cookies -->
+  <section class="legal-section">
+    <h2>10. Cookies</h2>
+    <p>
+      The Platform <strong>does not use cookies</strong> for tracking or analytics purposes.
+    </p>
+    <p>
+      <code>JWT</code> tokens are stored in browser local storage solely for authentication
+      purposes. No third-party cookies or tracking mechanisms are employed.
+    </p>
+  </section>
+
+  <!-- 11. Changes to This Policy -->
+  <section class="legal-section">
+    <h2>11. Changes to This Policy</h2>
+    <p>
+      We may update this Privacy Policy as the project evolves and new features are introduced.
+      Any changes will be reflected in the "<strong>Last Updated</strong>" date displayed at the
+      top of this page.
+    </p>
+    <p>
+      We encourage you to review this policy periodically to stay informed about how we
+      protect your data.
+    </p>
+  </section>
+
+  <!-- Footer -->
+  <footer class="legal-footer">
+    <p>Code Arena — Privacy Policy</p>
+    <a routerLink="/">← Back to Home</a>
+  </footer>
+
+</main>
