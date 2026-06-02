@@ -40,12 +40,13 @@ export class NotificationService {
     if (n.type === 'CHAT_MESSAGE') {
       const msg = n.payload as { senderId: number };
       const alreadyOpen = this.chatState.windows().some(w => w.friend.id === msg.senderId);
-      if (!alreadyOpen)
+      if (!alreadyOpen) {
         this._chatNotifIds.update(map => ({
           ...map,
           [msg.senderId]: [...(map[msg.senderId] ?? []), n.id]
         }));
         this.chatState.incrementPending(msg.senderId);
+      }
     } else {
       this._notifications.update(list => [n, ...list]);
     }
