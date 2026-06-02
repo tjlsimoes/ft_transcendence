@@ -4,12 +4,16 @@ import { ChatStateService } from "./chat-state.service";
 import { NotificationPayload } from "../../shared/models/notification.model";
 import { filter, switchMap } from "rxjs";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { HttpClient } from "@angular/common/http";
+import { environment } from "../../../environments/environment";
 
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
   private wsService = inject(WebSocketService);
   private chatState = inject(ChatStateService);
   private destroyRef = inject(DestroyRef);
+  private http = inject(HttpClient);
+  private baseUrl = `${environment.apiUrl}/notifications`
 
   private _notifications = signal<NotificationPayload[]>([]);
   readonly notifications = this._notifications.asReadonly();
@@ -19,6 +23,7 @@ export class NotificationService {
   init(): void {
     if (this.initialized) return ;
     this.initialized = true;
+    this.loadUnread();  // Populate from DB on login
     this.wsService.state$
       .pipe(
         filter(s => s === SocketState.CONNECTED),
@@ -39,5 +44,10 @@ export class NotificationService {
     } else {
       this._notifications.update(list => [n, ...list]);
     }
+  }
+
+  private loadUnread(): void {
+    this.http.get<NotificationPayload[]>(`${this.baseUrl}/unread`)
+      .subscribe(notifications => notifications.forEach(n => this.handle(n)));
   }
 }

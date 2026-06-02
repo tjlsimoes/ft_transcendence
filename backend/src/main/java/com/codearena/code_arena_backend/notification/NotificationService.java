@@ -11,6 +11,7 @@ import com.codearena.code_arena_backend.notification.dto.NotificationResponse;
 import com.codearena.code_arena_backend.notification.entity.Notification;
 import com.codearena.code_arena_backend.notification.entity.NotificationType;
 import com.codearena.code_arena_backend.notification.repository.NotificationRepository;
+import com.codearena.code_arena_backend.user.entity.User;
 import com.codearena.code_arena_backend.user.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -67,12 +68,14 @@ public class NotificationService {
         });
     }
 
-    public Page<NotificationResponse> getNotifications(Long userId, Pageable pageable) {
-        return notificationRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable).map(this::convertToResponse);
+    public Page<NotificationResponse> getNotifications(String username, Pageable pageable) {
+		User user = userRepository.findByUsername(username).orElseThrow();
+        return notificationRepository.findByUserIdOrderByCreatedAtDesc(user.getId(), pageable).map(this::convertToResponse);
     }
 
-    public List<NotificationResponse> getUnreadNotifications(Long userId) {
-        return notificationRepository.findByUserIdAndReadFalseOrderByCreatedAtDesc(userId)
+    public List<NotificationResponse> getUnreadNotifications(String username) {
+		User user = userRepository.findByUsername(username).orElseThrow();
+        return notificationRepository.findByUserIdAndReadFalseOrderByCreatedAtDesc(user.getId())
                 .stream()
                 .map(this::convertToResponse)
                 .toList();
