@@ -51,6 +51,7 @@ export class App {
       next: (res: any) => {
         if (res && res.status === 'UP') {
           this.isBackendReady.set(true);
+          this.router.initialNavigation();
         } else {
           setTimeout(() => this.checkBackendHealth(), 2000);
         }

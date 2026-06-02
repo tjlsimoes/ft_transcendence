@@ -26,8 +26,10 @@
         <label for="username" class="form-label">UserName</label>
         <input
           id="username"
+          name="username"
           type="text"
           formControlName="username"
+          autocomplete="username"
           placeholder="Your callsign"
           class="form-input"
           [class.input-error]="hasError('username')"
@@ -42,8 +44,10 @@
         <label for="email" class="form-label">Email</label>
         <input
           id="email"
+          name="email"
           type="email"
           formControlName="email"
+          autocomplete="email"
           placeholder="you@email.com"
           class="form-input"
           [class.input-error]="hasError('email')"
@@ -59,8 +63,10 @@
         <div class="input-wrapper">
           <input
             id="password"
+            name="password"
             [type]="showPassword() ? 'text' : 'password'"
             formControlName="password"
+            autocomplete="new-password"
             placeholder="••••••••"
             class="form-input"
             [class.input-error]="hasError('password')"
@@ -89,8 +95,10 @@
         <div class="input-wrapper">
           <input
             id="confirmPassword"
+            name="confirmPassword"
             [type]="showConfirmPassword() ? 'text' : 'password'"
             formControlName="confirmPassword"
+            autocomplete="new-password"
             placeholder="••••••••"
             class="form-input"
             [class.input-error]="hasError('confirmPassword') || hasPasswordMismatch()"
@@ -118,9 +126,9 @@
 
       <!-- Aceitar Termos -->
       <div class="form-group">
-        <label class="checkbox-label">
-          <input type="checkbox" formControlName="acceptTerms" class="checkbox-input" />
-          <span>I accept the <a href="/terms" target="_blank" class="link-accent">terms of service</a></span>
+        <label class="checkbox-label" for="acceptTerms">
+          <input type="checkbox" id="acceptTerms" name="acceptTerms" formControlName="acceptTerms" class="checkbox-input" />
+          <span>I accept the <a routerLink="/terms-of-service" target="_blank" class="link-accent">terms of service</a></span>
         </label>
         @if (hasError('acceptTerms')) {
           <span class="error-msg">{{ getErrorMessage('acceptTerms') }}</span>

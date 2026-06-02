@@ -93,6 +93,11 @@ export class ArenaPage implements OnInit, OnDestroy {
     // tornando impossível manipular o URL para ver outro challenge.
     this.duelService.getActiveDuel().subscribe({
       next: (activeDuel) => {
+        if (!activeDuel) {
+          console.warn('No active duel found in arena page → redirecting to lobby');
+          this.router.navigate(['/lobby']);
+          return;
+        }
         this.duelId.set(activeDuel.duelId);
         this.challengeId.set(activeDuel.challengeId);
         this.opponentName.set(activeDuel.opponentName);
@@ -184,7 +189,12 @@ int main() {
   }
 
   private handleDuelEvent(event: any): void {
-    console.log('Duel WS Event:', event);
+    if (event.type === 'DUEL_TIMEOUT' && !this.isDuelActive()) {
+      return;
+    }
+    if (event.type !== 'DUEL_TICK') {
+      console.log('Duel WS Event:', event);
+    }
     switch (event.type) {
       case 'DUEL_TICK':
         if (this.arenaTimer) {
@@ -387,7 +397,7 @@ int main() {
 
   submitCode(): void {
     const did = this.duelId();
-    if (!did || this.submissionResult()?.verdict === 'submitted' || this.submissionResult()?.verdict === 'evaluating') return;
+    if (!did || !this.isDuelActive() || this.submissionResult()?.verdict === 'submitted' || this.submissionResult()?.verdict === 'evaluating') return;
 
     this.duelService.submitCode(did, { code: this.code(), language: this.selectedLanguage() }).subscribe({
       next: (res) => {
@@ -409,7 +419,8 @@ int main() {
 
   /** Called by the timer when it reaches zero — auto-submits the code. */
   onTimeUp(): void {
-    this.submitCode();
+    // The server automatically evaluates the duel when time is up.
+    // Trying to submit code now would result in a 409 Conflict error, so we do nothing.
   }
 
   /** Whether the opponent-finished notification banner is visible. */

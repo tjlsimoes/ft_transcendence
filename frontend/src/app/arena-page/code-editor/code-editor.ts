@@ -97,6 +97,13 @@ export class CodeEditorComponent implements OnInit, OnChanges, OnDestroy {
         this.pendingValue = null;
       }
 
+      // Add id/name attributes to the internal textarea to satisfy accessibility/autofill checks
+      const textarea = this.containerRef.nativeElement.querySelector('textarea');
+      if (textarea) {
+        textarea.setAttribute('id', 'monaco-textarea-' + Math.random().toString(36).substring(2, 11));
+        textarea.setAttribute('name', 'monaco-textarea');
+      }
+
       // Forward content changes for future use
       editor.onDidChangeModelContent(() => {
         this.valueChange.emit(editor.getValue());

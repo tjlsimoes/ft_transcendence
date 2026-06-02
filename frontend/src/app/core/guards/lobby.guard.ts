@@ -28,9 +28,13 @@ export const lobbyGuard: CanActivateFn = (_route, _state) => {
   // 2. Verificar se existe um duel ativo.
   return duelService.getActiveDuel().pipe(
     map((activeDuel) => {
-      // Há um duel ativo → redirecionar para a arena
-      console.warn('[LobbyGuard] User has active duel', activeDuel.duelId, '→ redirect to arena');
-      return router.createUrlTree(['/arena']);
+      if (activeDuel) {
+        // Há um duel ativo → redirecionar para a arena
+        console.warn('[LobbyGuard] User has active duel', activeDuel.duelId, '→ redirect to arena');
+        return router.createUrlTree(['/arena']);
+      }
+      // Nenhum duel ativo → permitir
+      return true;
     }),
     catchError((err) => {
       if (err.status === 404) {

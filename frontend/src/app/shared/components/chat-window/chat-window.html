@@ -43,6 +43,8 @@
   </div>
   <div class="chat-footer">
     <textarea
+      id="chat-input-{{ win().friend.id }}"
+      name="chat-input-{{ win().friend.id }}"
       class="chat-input"
       [(ngModel)]="messageText"
       (keydown)="onKeydown($event)"
