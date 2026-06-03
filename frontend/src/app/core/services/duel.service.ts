@@ -29,8 +29,8 @@ export class DuelService {
     return this.http.get<any>(`${this.baseUrl}/${duelId}`);
   }
 
-  /** Retorna o duel ativo (MATCHED ou IN_PROGRESS) do user autenticado, ou 404 se não houver. */
-  getActiveDuel(): Observable<ActiveDuel> {
-    return this.http.get<ActiveDuel>(`${this.baseUrl}/active`);
+  /** Retorna o duel ativo (MATCHED ou IN_PROGRESS) do user autenticado, ou null se não houver. */
+  getActiveDuel(): Observable<ActiveDuel | null> {
+    return this.http.get<ActiveDuel | null>(`${this.baseUrl}/active`);
   }
 }

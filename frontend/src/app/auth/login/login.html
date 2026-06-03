@@ -21,8 +21,10 @@
         <label for="username" class="form-label">Username</label>
         <input
           id="username"
+          name="username"
           type="text"
           formControlName="username"
+          autocomplete="username"
           placeholder="Your callsign"
           class="form-input"
           [class.input-error]="hasError('username')"
@@ -38,8 +40,10 @@
         <div class="input-wrapper">
           <input
             id="password"
+            name="password"
             [type]="showPassword() ? 'text' : 'password'"
             formControlName="password"
+            autocomplete="current-password"
             placeholder="••••••••"
             class="form-input"
             [class.input-error]="hasError('password')"
@@ -64,8 +68,8 @@
 
       <!-- Lembrar-me -->
       <div class="form-row">
-        <label class="checkbox-label">
-          <input type="checkbox" formControlName="rememberMe" class="checkbox-input" />
+        <label class="checkbox-label" for="rememberMe">
+          <input type="checkbox" id="rememberMe" name="rememberMe" formControlName="rememberMe" class="checkbox-input" />
           <span>Remember me</span>
         </label>
         <a routerLink="/forgot-password" class="link-subtle">Forgot password?</a>

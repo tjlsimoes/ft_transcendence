@@ -23,6 +23,9 @@ http {
         ssl_certificate /etc/nginx/ssl/localhost.crt;
         ssl_certificate_key /etc/nginx/ssl/localhost.key;
 
+        # Content Security Policy (allows unsafe-eval for Monaco Editor and unsafe-inline for Angular)
+        add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; worker-src 'self' blob:; child-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://avatars.githubusercontent.com https://*.githubusercontent.com https://cdn.intra.42.fr https://*.42.fr; connect-src 'self' ws: wss:; frame-src 'self';";
+
         # WebSocket support (Matchmaking, PvP, Chat)
         location /ws {
             proxy_pass http://backend:${BACKEND_PORT};
@@ -35,6 +38,16 @@ http {
             proxy_set_header X-Forwarded-Proto $scheme;
         }
 
+        # Backend health check (prevent 502 Bad Gateway in browser console during boot)
+        location = /api/health {
+            proxy_pass http://backend:${BACKEND_PORT}/api/health;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            error_page 502 503 504 =200 @backend_down;
+        }
+
         # Backend API
         location /api {
             proxy_pass http://backend:${BACKEND_PORT};
@@ -44,6 +57,12 @@ http {
             proxy_set_header X-Forwarded-Proto $scheme;
         }
 
+        # Named location to return JSON when backend is down
+        location @backend_down {
+            default_type application/json;
+            return 200 '{"status":"DOWN","message":"Backend is starting up"}';
+        }
+
         # Frontend (All other traffic)
         location / {
             proxy_pass http://frontend:${FRONTEND_PORT};
@@ -51,6 +70,15 @@ http {
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-Forwarded-Proto $scheme;
+
+            # Catch 502/503/504 from the frontend container
+            error_page 502 503 504 /loading.html;
+        }
+
+        # Static loading page for proxy fallback
+        location = /loading.html {
+            root /usr/share/nginx/html;
+            internal;
         }
     }
 }

@@ -82,7 +82,7 @@ public class DuelController {
                     );
                     return ResponseEntity.ok(body);
                 })
-                .orElse(ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.noContent().build());
     }
 
     @GetMapping("/{duelId}")

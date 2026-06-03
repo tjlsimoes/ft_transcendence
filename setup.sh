@@ -108,7 +108,51 @@ fi
 
 docker compose up -d --build
 
-echo "-------------------------------------------------------"
-echo "🎉 Setup complete! Reach the platform at:"
-echo "🔗 https://localhost"
-echo "-------------------------------------------------------"
+# 6. Service Readiness Verification
+HTTPS_PORT=$(grep "^HOST_TO_PROXY_HTTPS_PORT=" "$ENV_FILE" | cut -d'=' -f2-)
+HTTPS_PORT=${HTTPS_PORT:-443}
+HEALTH_URL="https://localhost:$HTTPS_PORT/api/health"
+
+echo "⏳ Waiting for Code Arena services to initialize..."
+echo "This might take a moment as database migrations and backend startup are completed."
+
+MAX_ATTEMPTS=60
+ATTEMPT=1
+READY=0
+
+while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
+    # Try using curl on host if available, ignoring SSL warnings (-k)
+    # Check if response body contains "status":"UP"
+    if command -v curl &> /dev/null; then
+        if curl -k -s --max-time 3 "$HEALTH_URL" | grep -q '"status":"UP"'; then
+            READY=1
+            break
+        fi
+    else
+        # Fallback to docker compose exec checking backend port directly via wget
+        BACKEND_PORT=$(grep "^BACKEND_PORT=" "$ENV_FILE" | cut -d'=' -f2-)
+        BACKEND_PORT=${BACKEND_PORT:-8080}
+        if docker compose exec -T backend wget -q -O - http://127.0.0.1:$BACKEND_PORT/api/health | grep -q '"status":"UP"'; then
+            READY=1
+            break
+        fi
+    fi
+    echo -n "•"
+    sleep 2
+    ATTEMPT=$((ATTEMPT + 1))
+done
+
+echo ""
+
+if [ $READY -eq 1 ]; then
+    echo "-------------------------------------------------------"
+    echo "🎉 Setup complete! Reach the platform at:"
+    echo "🔗 https://localhost"
+    echo "-------------------------------------------------------"
+else
+    echo "-------------------------------------------------------"
+    echo "⚠️ Setup script completed, but containers are still starting."
+    echo "🔗 Reach the platform at: https://localhost"
+    echo "💡 Monitor initialization progress with: docker compose ps"
+    echo "-------------------------------------------------------"
+fi

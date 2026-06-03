@@ -1,5 +1,6 @@
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { NavigationCancel, NavigationEnd, NavigationError, NavigationSkipped, NavigationStart, Router, RouterOutlet } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Navbar } from './shared/components/navbar/navbar';
 import { FloatingSymbols } from './shared/components/floating-symbols/floating-symbols';
@@ -18,11 +19,15 @@ import { ChatWindowsContainer } from "./shared/components/chat-windows-container
 export class App {
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
+  private http = inject(HttpClient);
 
   routeState = inject(RouteStateService);
   readonly isNavigating = signal(true);
+  readonly isBackendReady = signal(false);
 
   constructor() {
+    this.checkBackendHealth();
+
     this.router.events
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((event) => {
@@ -39,5 +44,21 @@ export class App {
           this.isNavigating.set(false);
         }
       });
+  }
+
+  private checkBackendHealth() {
+    this.http.get('/api/health').subscribe({
+      next: (res: any) => {
+        if (res && res.status === 'UP') {
+          this.isBackendReady.set(true);
+          this.router.initialNavigation();
+        } else {
+          setTimeout(() => this.checkBackendHealth(), 2000);
+        }
+      },
+      error: () => {
+        setTimeout(() => this.checkBackendHealth(), 2000);
+      }
+    });
   }
 }
