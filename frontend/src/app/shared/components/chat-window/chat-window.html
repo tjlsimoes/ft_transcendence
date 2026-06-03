@@ -20,7 +20,9 @@
       @if (win().unread > 0 && win().minimized) {
         <span class="unread-badge">{{ win().unread }}</span>
       }
-      <button class="chat-action-btn" (click)="toggleMinimize(); $event.stopPropagation()">−</button>
+      <button class="chat-action-btn" (click)="toggleMinimize(); $event.stopPropagation()">
+        {{ win().minimized ? '^' : '⌄' }}
+      </button>
       <button class="chat-action-btn" (click)="close(); $event.stopPropagation()">✕</button>
     </div>
 
