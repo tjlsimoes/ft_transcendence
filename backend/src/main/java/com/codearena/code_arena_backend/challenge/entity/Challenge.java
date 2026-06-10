@@ -48,4 +48,10 @@ public class Challenge {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "test_cases", nullable = false, columnDefinition = "jsonb")
     private JsonNode testCases;
+
+    @Column(name = "solution_template", columnDefinition = "TEXT")
+    private String solutionTemplate;
+
+    @Column(name = "test_harness", columnDefinition = "TEXT")
+    private String testHarness;
 }

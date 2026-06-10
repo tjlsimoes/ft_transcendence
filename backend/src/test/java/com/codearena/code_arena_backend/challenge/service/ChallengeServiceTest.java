@@ -74,7 +74,9 @@ class ChallengeServiceTest {
             "Desc",
             ChallengeDifficulty.MEDIUM,
             600,
-            JsonNodeFactory.instance.arrayNode()
+            JsonNodeFactory.instance.arrayNode(),
+            null,
+            null
         );
         Page<Challenge> expectedPage = new PageImpl<>(List.of(challenge), pageable, 1);
 
@@ -147,7 +149,9 @@ class ChallengeServiceTest {
             "old",
             ChallengeDifficulty.EASY,
             300,
-            JsonNodeFactory.instance.arrayNode()
+            JsonNodeFactory.instance.arrayNode(),
+            null,
+            null
         );
         var expectedTestCases = JsonNodeFactory.instance.arrayNode().addObject().put("input", "x");
         ChallengeUpsertRequest request = new ChallengeUpsertRequest(

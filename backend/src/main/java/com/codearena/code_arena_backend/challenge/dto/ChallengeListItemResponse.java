@@ -8,7 +8,8 @@ public record ChallengeListItemResponse(
         String title,
         String description,
         ChallengeDifficulty difficulty,
-        Integer timeLimitSecs
+        Integer timeLimitSecs,
+        String solutionTemplate
 ) {
     public static ChallengeListItemResponse from(Challenge challenge) {
         return new ChallengeListItemResponse(
@@ -16,7 +17,8 @@ public record ChallengeListItemResponse(
                 challenge.getTitle(),
                 challenge.getDescription(),
                 challenge.getDifficulty(),
-                challenge.getTimeLimitSecs()
+                challenge.getTimeLimitSecs(),
+                challenge.getSolutionTemplate()
         );
     }
 }

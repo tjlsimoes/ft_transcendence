@@ -46,7 +46,9 @@ class ChallengeControllerTest {
             "desc",
             ChallengeDifficulty.MEDIUM,
             600,
-            JsonNodeFactory.instance.arrayNode()
+            JsonNodeFactory.instance.arrayNode(),
+            null,
+            null
         );
         Page<Challenge> servicePage = new PageImpl<>(List.of(challenge), pageable, 1);
         when(challengeService.listChallenges("MEDIUM", pageable)).thenReturn(servicePage);
@@ -91,7 +93,9 @@ class ChallengeControllerTest {
             "desc",
             ChallengeDifficulty.HARD,
             1200,
-            JsonNodeFactory.instance.arrayNode()
+            JsonNodeFactory.instance.arrayNode(),
+            null,
+            null
         );
         when(challengeService.createChallenge(request)).thenReturn(created);
 
@@ -119,7 +123,9 @@ class ChallengeControllerTest {
             "desc",
             ChallengeDifficulty.MEDIUM,
             600,
-            JsonNodeFactory.instance.arrayNode()
+            JsonNodeFactory.instance.arrayNode(),
+            null,
+            null
         );
         when(challengeService.updateChallenge(9L, request)).thenReturn(updated);
 
