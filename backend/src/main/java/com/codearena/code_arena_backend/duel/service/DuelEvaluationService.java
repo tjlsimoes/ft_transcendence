@@ -83,8 +83,8 @@ public class DuelEvaluationService {
             Submission sub2 = getOrCreateDummySubmission(duelId, duel.getOpponentId(), challenge.getTimeLimitSecs());
 
             // Judge both sequentially
-            JudgeResponse resp1 = judgeSubmission(sub1, testCases);
-            JudgeResponse resp2 = judgeSubmission(sub2, testCases);
+            JudgeResponse resp1 = judgeSubmission(sub1, testCases, challenge);
+            JudgeResponse resp2 = judgeSubmission(sub2, testCases, challenge);
 
             // Calculate scores
             calculateScores(sub1, resp1, challenge.getTimeLimitSecs());
@@ -140,12 +140,20 @@ public class DuelEvaluationService {
                 });
     }
 
-    private JudgeResponse judgeSubmission(Submission sub, List<JudgeRequest.TestCaseInput> testCases) {
+    private JudgeResponse judgeSubmission(Submission sub, List<JudgeRequest.TestCaseInput> testCases, Challenge challenge) {
         if (sub.getCode() == null || sub.getCode().isBlank()) {
             return new JudgeResponse(false, testCases.size(), 0, 0, 0, "No code submitted", new ArrayList<>());
         }
+
+        // When the challenge has a test_harness, the user writes only a function
+        // (no int main).  Concatenate user code + harness into a single compilable
+        // source before sending to Judge0.
+        String sourceCode = sub.getCode();
+        if (challenge.getTestHarness() != null && !challenge.getTestHarness().isBlank()) {
+            sourceCode = sub.getCode() + "\n" + challenge.getTestHarness();
+        }
         
-        JudgeRequest req = new JudgeRequest(sub.getCode(), sub.getLanguage(), testCases);
+        JudgeRequest req = new JudgeRequest(sourceCode, sub.getLanguage(), testCases);
         return judgeService.judge(req);
     }
 

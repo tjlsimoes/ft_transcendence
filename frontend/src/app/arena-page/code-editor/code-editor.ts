@@ -56,6 +56,12 @@ export class CodeEditorComponent implements OnInit, OnChanges, OnDestroy {
   private editor: Monaco.editor.IStandaloneCodeEditor | null = null;
   private monaco: typeof Monaco | null = null;
 
+  /**
+   * Buffers a value change that arrived (via @Input) before the Monaco editor
+   * was fully initialised.  Applied as soon as `loader.init()` resolves.
+   */
+  private pendingValue: string | null = null;
+
   ngOnInit(): void {
     loader.config({ paths: { vs: 'assets/monaco/vs' } });
 
@@ -85,6 +91,12 @@ export class CodeEditorComponent implements OnInit, OnChanges, OnDestroy {
       });
       this.editor = editor;
 
+      // Apply any value that arrived via @Input before Monaco was ready.
+      if (this.pendingValue !== null) {
+        editor.setValue(this.pendingValue);
+        this.pendingValue = null;
+      }
+
       // Forward content changes for future use
       editor.onDidChangeModelContent(() => {
         this.valueChange.emit(editor.getValue());
@@ -93,14 +105,21 @@ export class CodeEditorComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (!this.editor || !this.monaco) return;
-
+    // Handle value changes even when Monaco isn't ready yet — buffer for later.
     if (changes['value'] && !changes['value'].firstChange) {
-      const current = this.editor.getValue();
-      if (current !== this.value) {
-        this.editor.setValue(this.value);
+      if (!this.editor) {
+        // Monaco not ready yet — buffer the value for later.
+        this.pendingValue = this.value;
+      } else {
+        const current = this.editor.getValue();
+        if (current !== this.value) {
+          this.editor.setValue(this.value);
+        }
       }
     }
+
+    // Language and theme changes require the editor to be ready.
+    if (!this.editor || !this.monaco) return;
 
     if (changes['language'] && !changes['language'].firstChange) {
       const model = this.editor.getModel();

@@ -9,6 +9,7 @@ export interface ChallengeResponse {
   description: string;
   difficulty: string;
   timeLimitSecs: number;
+  solutionTemplate: string | null;
 }
 
 @Injectable({ providedIn: 'root' })

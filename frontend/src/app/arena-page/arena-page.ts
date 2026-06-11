@@ -72,17 +72,8 @@ export class ArenaPage implements OnInit, OnDestroy {
   readonly themes: EditorTheme[] = ['Dark', 'Light'];
   selectedTheme = signal<EditorTheme>('Dark');
 
-  code = signal(
-`#include <stdio.h>
-#include <string.h>
-#include <math.h>
-#include <stdlib.h>
-
-int main() {
-
-    /* Enter your code here. Read input from STDIN. Print output to STDOUT */
-    return 0;
-}`);
+  /** Editor code – starts empty; populated from solutionTemplate once the challenge loads. */
+  code = signal('');
 
   testInput = signal('');
   showTestInput = signal(false);
@@ -114,6 +105,22 @@ int main() {
           next: (challenge) => {
             this.challengeTitle.set(challenge.title);
             this.challengeDescription.set(challenge.description);
+
+            // Populate editor with the challenge's solution template (function stub).
+            // Falls back to a generic C boilerplate if the challenge has no template.
+            if (challenge.solutionTemplate) {
+              this.code.set(challenge.solutionTemplate);
+            } else {
+              this.code.set(
+`#include <stdio.h>
+#include <stdlib.h>
+
+int main() {
+
+    /* Enter your code here. Read input from STDIN. Print output to STDOUT */
+    return 0;
+}`);
+            }
           },
           error: (err) => {
             console.error('Failed to load challenge details:', err);
