@@ -14,10 +14,6 @@ import {
   SubmissionResult,
   TestCaseResult,
   RunResult,
-  mockWrongAnswerResult,
-  mockCorrectAnswerResult,
-  mockRunSuccess,
-  mockRunCompileError,
 } from './submission-result.model';
 
 export type PanelTab = 'Problem' | 'Submissions';
@@ -340,15 +336,36 @@ int main() {
     this.showTestInput.set(!this.showTestInput());
   }
 
+  /** Whether a run request is currently in-flight. */
+  runLoading = signal(false);
+
   runCode(): void {
-    // TODO: replace with real backend call;
-    // map HTTP response to RunResult and call:
-    const result = mockRunSuccess(); // swap to mockRunCompileError() to test
-    this.runResult.set(result);
-    this.runPanelOpen.set(true);
-    // Close submit panel to avoid overlap
-    this.closeResultPanel();
-    console.log('Running code:', this.code());
+    const did = this.duelId();
+    if (!did || !this.isDuelActive() || this.runLoading()) return;
+
+    this.runLoading.set(true);
+    this.duelService.runCode(did, {
+      code: this.code(),
+      language: this.selectedLanguage(),
+      stdin: this.testInput() || undefined,
+    }).subscribe({
+      next: (result) => {
+        this.runResult.set(result);
+        this.runPanelOpen.set(true);
+        this.closeResultPanel();
+        this.runLoading.set(false);
+      },
+      error: (err) => {
+        console.error('Run code failed:', err);
+        this.runResult.set({
+          status: 'runtime_error',
+          headline: 'Request Failed',
+          stderr: err?.error?.error || 'Network error or server unavailable',
+        });
+        this.runPanelOpen.set(true);
+        this.runLoading.set(false);
+      }
+    });
   }
 
   // ── Run result panel ─────────────────────────────────────────────────

@@ -2,14 +2,18 @@ package com.codearena.code_arena_backend.duel.controller;
 
 import com.codearena.code_arena_backend.challenge.entity.Challenge;
 import com.codearena.code_arena_backend.challenge.repository.ChallengeRepository;
+import com.codearena.code_arena_backend.duel.dto.RunCodeRequest;
+import com.codearena.code_arena_backend.duel.dto.RunCodeResponse;
 import com.codearena.code_arena_backend.duel.entity.Duel;
 import com.codearena.code_arena_backend.duel.repository.DuelRepository;
+import com.codearena.code_arena_backend.duel.service.DuelRunService;
 import com.codearena.code_arena_backend.duel.service.DuelSubmissionService;
 import com.codearena.code_arena_backend.duel.service.DuelLifecycleService;
 import com.codearena.code_arena_backend.submission.entity.Submission;
 import com.codearena.code_arena_backend.submission.repository.SubmissionRepository;
 import com.codearena.code_arena_backend.user.entity.User;
 import com.codearena.code_arena_backend.user.repository.UserRepository;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +36,7 @@ import java.util.Map;
 public class DuelController {
 
     private final DuelSubmissionService submissionService;
+    private final DuelRunService duelRunService;
     private final DuelRepository duelRepository;
     private final ChallengeRepository challengeRepository;
     private final UserRepository userRepository;
@@ -150,6 +155,34 @@ public class DuelController {
             response.put("opponentEloDelta", resolvedDuel.getOpponentEloChange());
         }
 
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{duelId}/run")
+    public ResponseEntity<?> runCode(
+            @PathVariable Long duelId,
+            @Valid @RequestBody RunCodeRequest request,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        User user = userRepository.findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        Duel duel = duelRepository.findById(duelId)
+                .orElseThrow(() -> new IllegalArgumentException("Duel not found"));
+
+        // Security: only participants can run code
+        if (!duel.getChallengerId().equals(user.getId()) && !duel.getOpponentId().equals(user.getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "You are not a participant of this duel"));
+        }
+
+        // State validation: only allow run during IN_PROGRESS
+        if (duel.getStatus() != Duel.DuelStatus.IN_PROGRESS) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Map.of("error", "Run is only allowed while the duel is IN_PROGRESS"));
+        }
+
+        RunCodeResponse response = duelRunService.runCode(duel, request);
         return ResponseEntity.ok(response);
     }
 
