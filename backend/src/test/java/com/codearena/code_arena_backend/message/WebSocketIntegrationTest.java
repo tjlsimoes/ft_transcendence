@@ -27,11 +27,15 @@ import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
 import com.codearena.code_arena_backend.auth.service.JwtService;
+import com.codearena.code_arena_backend.friendship.entity.Friendship;
+import com.codearena.code_arena_backend.friendship.repository.FriendshipRepository;
 import com.codearena.code_arena_backend.message.dto.ChatMessageRequest;
 import com.codearena.code_arena_backend.message.dto.ChatMessageResponse;
 import com.codearena.code_arena_backend.user.entity.User;
 import com.codearena.code_arena_backend.user.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.time.LocalDateTime;
 
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -48,6 +52,9 @@ public class WebSocketIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private FriendshipRepository friendshipRepository;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -100,6 +107,10 @@ public class WebSocketIntegrationTest {
             .authorities(Collections.emptyList())
             .build();
         userBToken = jwtService.generateToken(userDetailsB);
+
+        // Chat sending now requires an ACCEPTED friendship between sender and recipient.
+        friendshipRepository.save(new Friendship(userA.getId(), userB.getId(), "ACCEPTED", LocalDateTime.now()));
+        friendshipRepository.save(new Friendship(userB.getId(), userA.getId(), "ACCEPTED", LocalDateTime.now()));
     }
 
     private StompSession connect(String token) throws Exception {

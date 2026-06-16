@@ -17,6 +17,8 @@ public interface FriendshipRepository extends JpaRepository<Friendship, Friendsh
 
     boolean existsByUserIdAndFriendId(Long userId, Long friendId);
 
+    boolean existsByUserIdAndFriendIdAndStatus(Long userId, Long friendId, String status);
+
     void deleteByUserIdAndFriendId(Long userId, Long friendId);
     @Query("SELECT f FROM Friendship f WHERE (f.userId = :userId OR f.friendId = :userId) AND f.status = 'ACCEPTED'")
     List<Friendship> findAcceptedByUserId(Long userId);

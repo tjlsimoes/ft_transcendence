@@ -225,6 +225,7 @@ public class UserProfileService {
 
         friendshipRepository.deleteByUserIdAndFriendId(user.getId(), friendId);
         friendshipRepository.deleteByUserIdAndFriendId(friendId, user.getId());
+        notificationService.markChatNotificationsRead(user.getId(), friendId);
     }
 
     public List<FriendSummaryResponse> listOnlineFriends(String username) {

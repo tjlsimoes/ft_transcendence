@@ -81,6 +81,11 @@ public class NotificationService {
                 .toList();
     }
 
+    @Transactional
+    public void markChatNotificationsRead(Long userId, Long senderId) {
+        notificationRepository.markChatNotificationsReadFromSender(userId, senderId);
+    }
+
     private NotificationResponse convertToResponse(Notification notification) {
         Object payload = null;
 

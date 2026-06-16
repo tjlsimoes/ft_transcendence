@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
+import com.codearena.code_arena_backend.friendship.repository.FriendshipRepository;
 import com.codearena.code_arena_backend.message.dto.ChatMessageRequest;
 import com.codearena.code_arena_backend.message.dto.ChatMessageResponse;
 import com.codearena.code_arena_backend.message.entity.Message;
@@ -27,6 +28,7 @@ public class ChatService {
     private final MessageRepository msgRepository;
     private final SimpMessagingTemplate simpMessagingTemplate;
 	private final NotificationService notificationService;
+	private final FriendshipRepository friendshipRepository;
 
     @Transactional
     public ChatMessageResponse send(Long senderId, ChatMessageRequest request) {
@@ -34,6 +36,8 @@ public class ChatService {
         User recipient = userRepository.findById(request.getRecipientId()).orElseThrow(() -> new RuntimeException("User (recipient) not found"));
         if (senderId.equals(request.getRecipientId()))
             throw new RuntimeException("Sender and recipient cannot be the same user");
+        if (!friendshipRepository.existsByUserIdAndFriendIdAndStatus(senderId, request.getRecipientId(), "ACCEPTED"))
+            throw new RuntimeException("You can only message your friends");
         Message msg = new Message(null, senderId, request.getRecipientId(), request.getContent(), null);
         msg = msgRepository.save(msg);
 

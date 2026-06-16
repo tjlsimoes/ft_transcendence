@@ -92,7 +92,10 @@ export class Sidebar implements OnInit {
 
   removeFriend(friendId: number, event: Event): void {
     event.stopPropagation();
-    this.userService.removeFriend(friendId).subscribe(() => this.loadFriends());
+    this.userService.removeFriend(friendId).subscribe(() => {
+      this.loadFriends();
+      this.chatStateService.closeConversation(friendId);
+    });
   }
 
   setActiveTab(tab: 'friends' | 'notifications'): void {
