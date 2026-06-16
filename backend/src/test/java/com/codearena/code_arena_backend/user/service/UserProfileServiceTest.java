@@ -1,7 +1,10 @@
 package com.codearena.code_arena_backend.user.service;
 
+import com.codearena.code_arena_backend.friendship.dto.FriendNotificationPayload;
 import com.codearena.code_arena_backend.friendship.entity.Friendship;
 import com.codearena.code_arena_backend.friendship.repository.FriendshipRepository;
+import com.codearena.code_arena_backend.notification.NotificationService;
+import com.codearena.code_arena_backend.notification.entity.NotificationType;
 import com.codearena.code_arena_backend.ranking.service.RankingService;
 import com.codearena.code_arena_backend.user.dto.FriendSummaryResponse;
 import com.codearena.code_arena_backend.user.dto.UpdatePasswordRequest;
@@ -26,9 +29,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -48,6 +56,9 @@ class UserProfileServiceTest {
 
     @Mock
     private RankingService rankingService;
+
+    @Mock
+    private NotificationService notificationService;
 
     @InjectMocks
     private UserProfileService userProfileService;
@@ -103,28 +114,154 @@ class UserProfileServiceTest {
     }
 
     @Test
-    @DisplayName("addFriend creates reciprocal friendships when missing")
-    void addFriend_createsBidirectionalRows() {
+    @DisplayName("sendFriendRequest saves a single PENDING row and notifies the target")
+    void sendFriendRequest_savesPendingRowAndNotifies() {
         User me = user(1L, "me", User.UserStatus.ONLINE);
-        User friend = user(2L, "friend", User.UserStatus.ONLINE);
+        User target = user(2L, "friend", User.UserStatus.ONLINE);
 
         when(userRepository.findByUsername("me")).thenReturn(Optional.of(me));
-        when(userRepository.findById(2L)).thenReturn(Optional.of(friend));
-        when(friendshipRepository.existsByUserIdAndFriendId(1L, 2L)).thenReturn(false);
-        when(friendshipRepository.existsByUserIdAndFriendId(2L, 1L)).thenReturn(false);
+        when(userRepository.findById(2L)).thenReturn(Optional.of(target));
+        when(friendshipRepository.findByUserIdAndFriendId(1L, 2L)).thenReturn(Optional.empty());
+        when(friendshipRepository.findByUserIdAndFriendId(2L, 1L)).thenReturn(Optional.empty());
 
-        userProfileService.addFriend("me", 2L);
+        userProfileService.sendFriendRequest("me", 2L);
+
+        ArgumentCaptor<Friendship> captor = ArgumentCaptor.forClass(Friendship.class);
+        verify(friendshipRepository, times(1)).save(captor.capture());
+        assertThat(captor.getValue().getUserId()).isEqualTo(1L);
+        assertThat(captor.getValue().getFriendId()).isEqualTo(2L);
+        assertThat(captor.getValue().getStatus()).isEqualTo("PENDING");
+
+        ArgumentCaptor<FriendNotificationPayload> payloadCaptor = ArgumentCaptor.forClass(FriendNotificationPayload.class);
+        verify(notificationService).send(eq(2L), eq(NotificationType.FRIEND_REQUEST), payloadCaptor.capture());
+        assertThat(payloadCaptor.getValue().getUserId()).isEqualTo(1L);
+        assertThat(payloadCaptor.getValue().getUsername()).isEqualTo("me");
+    }
+
+    @Test
+    @DisplayName("sendFriendRequest rejects requesting yourself")
+    void sendFriendRequest_throwsWhenTargetIsSelf() {
+        User me = user(1L, "me", User.UserStatus.ONLINE);
+        when(userRepository.findByUsername("me")).thenReturn(Optional.of(me));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(me));
+
+        assertThatThrownBy(() -> userProfileService.sendFriendRequest("me", 1L))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("You cannot add yourself as a friend");
+    }
+
+    @Test
+    @DisplayName("sendFriendRequest rejects a duplicate pending request")
+    void sendFriendRequest_throwsWhenAlreadyPending() {
+        User me = user(1L, "me", User.UserStatus.ONLINE);
+        User target = user(2L, "friend", User.UserStatus.ONLINE);
+        when(userRepository.findByUsername("me")).thenReturn(Optional.of(me));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(target));
+        when(friendshipRepository.findByUserIdAndFriendId(1L, 2L))
+                .thenReturn(Optional.of(new Friendship(1L, 2L, "PENDING", LocalDateTime.now())));
+
+        assertThatThrownBy(() -> userProfileService.sendFriendRequest("me", 2L))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Friend request already sent");
+    }
+
+    @Test
+    @DisplayName("sendFriendRequest rejects requesting an existing friend")
+    void sendFriendRequest_throwsWhenAlreadyFriends() {
+        User me = user(1L, "me", User.UserStatus.ONLINE);
+        User target = user(2L, "friend", User.UserStatus.ONLINE);
+        when(userRepository.findByUsername("me")).thenReturn(Optional.of(me));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(target));
+        when(friendshipRepository.findByUserIdAndFriendId(1L, 2L))
+                .thenReturn(Optional.of(new Friendship(1L, 2L, "ACCEPTED", LocalDateTime.now())));
+
+        assertThatThrownBy(() -> userProfileService.sendFriendRequest("me", 2L))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("You are already friend with this user");
+    }
+
+    @Test
+    @DisplayName("sendFriendRequest auto-accepts when the target had already requested me")
+    void sendFriendRequest_autoAcceptsOnMutualRequest() {
+        User me = user(1L, "me", User.UserStatus.ONLINE);
+        User target = user(2L, "friend", User.UserStatus.ONLINE);
+        when(userRepository.findByUsername("me")).thenReturn(Optional.of(me));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(target));
+        when(friendshipRepository.findByUserIdAndFriendId(1L, 2L)).thenReturn(Optional.empty());
+        when(friendshipRepository.findByUserIdAndFriendId(2L, 1L))
+                .thenReturn(Optional.of(new Friendship(2L, 1L, "PENDING", LocalDateTime.now())));
+
+        userProfileService.sendFriendRequest("me", 2L);
 
         ArgumentCaptor<Friendship> captor = ArgumentCaptor.forClass(Friendship.class);
         verify(friendshipRepository, times(2)).save(captor.capture());
-        List<Friendship> savedRows = captor.getAllValues();
-
-        assertThat(savedRows)
+        assertThat(captor.getAllValues())
                 .extracting(Friendship::getUserId, Friendship::getFriendId, Friendship::getStatus)
                 .containsExactlyInAnyOrder(
-                        org.assertj.core.groups.Tuple.tuple(1L, 2L, "ACCEPTED"),
-                        org.assertj.core.groups.Tuple.tuple(2L, 1L, "ACCEPTED")
+                        org.assertj.core.groups.Tuple.tuple(2L, 1L, "ACCEPTED"),
+                        org.assertj.core.groups.Tuple.tuple(1L, 2L, "ACCEPTED")
                 );
+        verify(notificationService).send(eq(2L), eq(NotificationType.FRIEND_ACCEPTED), any());
+        verify(notificationService, never()).send(eq(2L), eq(NotificationType.FRIEND_REQUEST), any());
+    }
+
+    @Test
+    @DisplayName("acceptFriendRequest flips the row to ACCEPTED and creates the mirror row")
+    void acceptFriendRequest_flipsStatusAndMirrors() {
+        User me = user(1L, "me", User.UserStatus.ONLINE);
+        when(userRepository.findByUsername("me")).thenReturn(Optional.of(me));
+        Friendship pending = new Friendship(2L, 1L, "PENDING", LocalDateTime.now());
+        when(friendshipRepository.findByUserIdAndFriendId(2L, 1L)).thenReturn(Optional.of(pending));
+
+        userProfileService.acceptFriendRequest("me", 2L);
+
+        assertThat(pending.getStatus()).isEqualTo("ACCEPTED");
+        ArgumentCaptor<Friendship> captor = ArgumentCaptor.forClass(Friendship.class);
+        verify(friendshipRepository, times(2)).save(captor.capture());
+        assertThat(captor.getAllValues())
+                .extracting(Friendship::getUserId, Friendship::getFriendId, Friendship::getStatus)
+                .containsExactlyInAnyOrder(
+                        org.assertj.core.groups.Tuple.tuple(2L, 1L, "ACCEPTED"),
+                        org.assertj.core.groups.Tuple.tuple(1L, 2L, "ACCEPTED")
+                );
+        verify(notificationService).send(eq(2L), eq(NotificationType.FRIEND_ACCEPTED), any());
+    }
+
+    @Test
+    @DisplayName("acceptFriendRequest throws when there is no pending request from that user")
+    void acceptFriendRequest_throwsWhenNoPendingRequest() {
+        User me = user(1L, "me", User.UserStatus.ONLINE);
+        when(userRepository.findByUsername("me")).thenReturn(Optional.of(me));
+        when(friendshipRepository.findByUserIdAndFriendId(2L, 1L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userProfileService.acceptFriendRequest("me", 2L))
+                .isInstanceOf(NoSuchElementException.class)
+                .hasMessage("No pending friend request from this user");
+    }
+
+    @Test
+    @DisplayName("rejectFriendRequest deletes the pending row")
+    void rejectFriendRequest_deletesPendingRow() {
+        User me = user(1L, "me", User.UserStatus.ONLINE);
+        when(userRepository.findByUsername("me")).thenReturn(Optional.of(me));
+        Friendship pending = new Friendship(2L, 1L, "PENDING", LocalDateTime.now());
+        when(friendshipRepository.findByUserIdAndFriendId(2L, 1L)).thenReturn(Optional.of(pending));
+
+        userProfileService.rejectFriendRequest("me", 2L);
+
+        verify(friendshipRepository).delete(pending);
+    }
+
+    @Test
+    @DisplayName("rejectFriendRequest throws when there is no pending request from that user")
+    void rejectFriendRequest_throwsWhenNoPendingRequest() {
+        User me = user(1L, "me", User.UserStatus.ONLINE);
+        when(userRepository.findByUsername("me")).thenReturn(Optional.of(me));
+        when(friendshipRepository.findByUserIdAndFriendId(2L, 1L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userProfileService.rejectFriendRequest("me", 2L))
+                .isInstanceOf(NoSuchElementException.class)
+                .hasMessage("No pending friend request from this user");
     }
 
     @Test

@@ -113,7 +113,7 @@ class UserControllerTest {
         ResponseEntity<Void> response = userController.addFriend(auth, 7L);
 
         assertThat(response.getStatusCode().value()).isEqualTo(201);
-        verify(userProfileService).addFriend("player1", 7L);
+        verify(userProfileService).sendFriendRequest("player1", 7L);
     }
 
     @Test
