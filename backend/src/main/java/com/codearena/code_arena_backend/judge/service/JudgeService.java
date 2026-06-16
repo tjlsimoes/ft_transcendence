@@ -5,9 +5,11 @@ import com.codearena.code_arena_backend.judge.dto.JudgeRequest;
 import com.codearena.code_arena_backend.judge.dto.JudgeRequest.TestCaseInput;
 import com.codearena.code_arena_backend.judge.dto.JudgeResponse;
 import com.codearena.code_arena_backend.judge.dto.JudgeResponse.TestCaseResult;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -32,6 +34,7 @@ public class JudgeService {
 
     private final RestClient restClient;
     private final JudgeProperties props;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
     public JudgeService(JudgeProperties props) {
@@ -127,14 +130,28 @@ public class JudgeService {
 
         long timeoutMs = (long) (props.cpuTimeLimit() * 1000) + 1000; // small grace over CPU limit
 
+        // Serialize body to JSON string to avoid RestClient message converter issues
+        final String jsonBody;
+        try {
+            jsonBody = objectMapper.writeValueAsString(body);
+        } catch (Exception e) {
+            log.error("Failed to serialize Judge0 request body", e);
+            return new Judge0Response(
+                    null, null, null, "Internal Error: failed to serialize request",
+                    null, null, new Judge0Status(13, "Internal Error")
+            );
+        }
+
         try {
             CompletableFuture<Judge0Response> cf = CompletableFuture.supplyAsync(() -> {
                 try {
-                    return restClient.post()
+                    String responseBody = restClient.post()
                             .uri("/submissions?wait=true")
-                            .body(body)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .body(jsonBody)
                             .retrieve()
-                            .body(Judge0Response.class);
+                            .body(String.class);
+                    return objectMapper.readValue(responseBody, Judge0Response.class);
                 } catch (Exception ex) {
                     throw new RuntimeException(ex);
                 }
@@ -201,6 +218,7 @@ public class JudgeService {
     }
 
     // DTO for parsing Judge0 JSON response
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
     record Judge0Response(
             String stdout,
             String stderr,
@@ -211,6 +229,7 @@ public class JudgeService {
             Judge0Status status
     ) {}
 
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
     record Judge0Status(
             int id,
             String description
