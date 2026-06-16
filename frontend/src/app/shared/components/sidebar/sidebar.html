@@ -104,7 +104,7 @@
         }
         @for (n of notificationService.notifications(); track n.id) {
           <div class="notification-item" [class.unread]="!n.read">
-            <span class="notification-type">{{ formatType(n.type) }}</span>
+            <span class="notification-type">{{ notificationLabel(n) }}</span>
             <span class="notification-time">{{ n.createdAt | date:'HH:mm' }}</span>
           </div>
         }

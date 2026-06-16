@@ -6,6 +6,7 @@ import { UserService } from '../../../core/services/user.service';
 import type { FriendEntry } from '../../models/user-profile.model';
 import { ChatStateService } from '../../../core/services/chat-state.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import type { NotificationPayload } from '../../models/notification.model';
 import { DatePipe } from '@angular/common';
 import { statusClass } from '../../utils/status.utils';
 import { AddFriendModal } from '../add-friend-modal/add-friend-modal';
@@ -120,5 +121,15 @@ export class Sidebar implements OnInit {
   formatType(type: string): string {
     return type.replace(/_/g, ' ').toLowerCase()
       .replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  notificationLabel(n: NotificationPayload): string {
+    if (n.type === 'FRIEND_REQUEST' || n.type === 'FRIEND_ACCEPTED') {
+      const payload = n.payload as { username: string };
+      return n.type === 'FRIEND_REQUEST'
+        ? `${payload.username} sent you a friend request`
+        : `${payload.username} accepted your friend request`;
+    }
+    return this.formatType(n.type);
   }
 }
