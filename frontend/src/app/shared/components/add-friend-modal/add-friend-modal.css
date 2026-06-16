@@ -1,0 +1,102 @@
+.add-friend-modal {
+  width: 320px;
+  padding: 16px;
+  font-family: var(--font-mono);
+}
+
+.add-friend-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.add-friend-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--text);
+}
+
+.close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.close-btn:hover {
+  color: var(--text);
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  margin-bottom: 12px;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.results-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.result-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-radius: 4px;
+}
+
+.result-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.result-username {
+  font-size: 0.85rem;
+  color: var(--text);
+}
+
+.action-btn {
+  padding: 4px 10px;
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.action-btn:disabled {
+  border-color: var(--border);
+  color: var(--text-muted);
+  cursor: default;
+}
+
+.status-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.empty-state {
+  padding: 16px 0;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}

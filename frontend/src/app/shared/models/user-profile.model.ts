@@ -51,3 +51,20 @@ export interface UpdatePasswordPayload {
   currentPassword: string;
   newPassword: string;
 }
+
+
+export type RelationshipStatus = 'NONE' | 'PENDING_OUTGOING' | 'PENDING_INCOMING' | 'FRIENDS';
+
+export interface UserSearchResult {
+  id: number;
+  username: string;
+  avatarUrl: string | null;
+  relationshipStatus: RelationshipStatus;
+}
+
+export interface FriendRequest {
+  requesterId: number;
+  username: string;
+  avatarUrl: string | null;
+  requestedAt: string;
+}

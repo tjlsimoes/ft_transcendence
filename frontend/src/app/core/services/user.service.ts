@@ -2,7 +2,7 @@ import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { UserProfile, MatchHistory, FriendEntry, UpdatePasswordPayload, UpdateProfilePayload } from '../../shared/models/user-profile.model';
+import { UserProfile, MatchHistory, FriendEntry, UpdatePasswordPayload, UpdateProfilePayload, UserSearchResult, FriendRequest } from '../../shared/models/user-profile.model';
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
@@ -12,6 +12,7 @@ export class UserService {
   /** Estado partilhado do utilizador autenticado (null = ainda não carregado). */
   readonly currentUser = signal<UserProfile | null>(null);
   readonly friends = signal<FriendEntry[]>([]);
+  readonly pendingRequests = signal<FriendRequest[]>([]);
 
   /** Atalhos derivados para uso direto em componentes. */
   readonly username = computed(() => this.currentUser()?.username ?? '...');
@@ -44,6 +45,35 @@ export class UserService {
   clear(): void {
     this.currentUser.set(null);
     this.friends.set([]);
+    this.pendingRequests.set([]);
+  }
+
+  /** Searches users by username, annotated with the relationship status to the current user. */
+  searchUsers(query: string): Observable<UserSearchResult[]> {
+    return this.http.get<UserSearchResult[]>(`${this.baseUrl}/search`, { params: { q: query } });
+  }
+
+  /** Loads the incoming friend requests pending for the authenticated user. */
+  loadPendingRequests(): Observable<FriendRequest[]> {
+    return this.http.get<FriendRequest[]>(`${this.baseUrl}/me/friends/pending`).pipe(
+      tap(requests => this.pendingRequests.set(requests))
+    );
+  }
+
+  sendFriendRequest(targetId: number): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/me/friends/${targetId}`, {});
+  }
+
+  acceptFriendRequest(requesterId: number): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/me/friends/${requesterId}/accept`, {});
+  }
+
+  rejectFriendRequest(requesterId: number): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/me/friends/${requesterId}/reject`, {});
+  }
+
+  removeFriend(friendId: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/me/friends/${friendId}`);
   }
 
   updateProfile(payload: UpdateProfilePayload): Observable<UserProfile> {

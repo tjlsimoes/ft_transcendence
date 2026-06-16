@@ -1,0 +1,42 @@
+<app-modal [open]="open()" (closed)="close()">
+  <div class="add-friend-modal">
+    <div class="add-friend-header">
+      <span class="add-friend-title">Add Friend</span>
+      <button class="close-btn" (click)="close()">&times;</button>
+    </div>
+
+    <input
+      class="search-input"
+      type="text"
+      placeholder="Search by username..."
+      [value]="query"
+      (input)="onInput($event.target.value)"
+    />
+
+    <div class="results-list">
+      @for (result of results(); track result.id) {
+        <div class="result-item">
+          <span class="result-username">{{ result.username }}</span>
+          @switch (result.relationshipStatus) {
+            @case ('NONE') {
+              <button class="action-btn" (click)="sendRequest(result.id)">Add</button>
+            }
+            @case ('PENDING_OUTGOING') {
+              <button class="action-btn" disabled>Pending</button>
+            }
+            @case ('PENDING_INCOMING') {
+              <span class="status-label">Wants to be friends</span>
+            }
+            @case ('FRIENDS') {
+              <button class="action-btn" disabled>Friends</button>
+            }
+          }
+        </div>
+      } @empty {
+        @if (query.trim().length >= 2) {
+          <div class="empty-state">No users found.</div>
+        }
+      }
+    </div>
+  </div>
+</app-modal>

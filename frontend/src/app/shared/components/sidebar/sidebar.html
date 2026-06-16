@@ -35,14 +35,35 @@
     <div class="sidebar-tabs">
       <button class="tab-btn" [class.active]="activeTab() === 'friends'" (click)="setActiveTab('friends')">
         Friends
+        @if (pendingRequests().length > 0) {
+          <span class="unread-badge notification-badge">{{ pendingRequests().length }}</span>
+        }
       </button>
       <button class="tab-btn" [class.active]="activeTab() === 'notifications'" (click)="setActiveTab('notifications')">
         Notifications
       </button>
+      @if (activeTab() === 'friends') {
+        <button class="add-friend-btn" title="Add friend" (click)="openAddFriendModal()">+</button>
+      }
     </div>
+
+    <app-add-friend-modal [open]="showAddFriendModal()" (closed)="closeAddFriendModal()" />
 
     <div class="sidebar-content">
       @if (activeTab() === 'friends') {
+      @if (pendingRequests().length > 0) {
+      <div class="pending-requests">
+        @for (req of pendingRequests(); track req.requesterId) {
+          <div class="pending-item">
+            <span class="pending-username">{{ req.username }}</span>
+            <div class="pending-actions">
+              <button class="pending-accept-btn" (click)="acceptRequest(req.requesterId)">Accept</button>
+              <button class="pending-reject-btn" (click)="rejectRequest(req.requesterId)">Reject</button>
+            </div>
+          </div>
+        }
+      </div>
+      }
       <div class="friends-list">
         @for (friend of friends(); track friend.id) {
         <div class="friend-item" (click)="openChat(friend)">
@@ -59,6 +80,7 @@
           @if (getUnread(friend.id) > 0) {
             <span class="unread-badge">{{ getUnread(friend.id) }}</span>
           }
+          <button class="remove-friend-btn" title="Remove friend" (click)="removeFriend(friend.id, $event)">&times;</button>
         </div>
         }
         @empty {

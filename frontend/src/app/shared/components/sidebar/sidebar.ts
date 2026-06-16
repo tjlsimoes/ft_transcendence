@@ -8,10 +8,11 @@ import { ChatStateService } from '../../../core/services/chat-state.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { DatePipe } from '@angular/common';
 import { statusClass } from '../../utils/status.utils';
+import { AddFriendModal } from '../add-friend-modal/add-friend-modal';
 
 @Component({
   selector: 'app-sidebar',
-  imports: [DatePipe],
+  imports: [DatePipe, AddFriendModal],
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.css',
 })
@@ -26,6 +27,7 @@ export class Sidebar implements OnInit {
   username = this.userService.username;
   avatarLetter = this.userService.avatarLetter;
   friends = this.userService.friends;
+  pendingRequests = this.userService.pendingRequests;
   totalUnread = computed(() => {
     const windowTotal = this.chatStateService.windows().reduce((sum, w) => sum + w.unread, 0);
     const pendingTotal = Object.values(this.chatStateService.pendingUnread())
@@ -35,6 +37,7 @@ export class Sidebar implements OnInit {
   );
 
   activeTab = signal<'friends' | 'notifications'>('friends');
+  showAddFriendModal = signal(false);
 
   // Delegado ao serviço compartilhado para evitar duplicação de lógica de rota.
   isLobby = this.routeState.isLobby;
@@ -45,16 +48,50 @@ export class Sidebar implements OnInit {
     });
   }
 
+  private loadPendingRequests(): void {
+    this.userService.loadPendingRequests().subscribe();
+  }
+
   ngOnInit(): void {
     if (this.isLobby()) {
       this.notificationService.init();
       this.loadFriends();
+      this.loadPendingRequests();
 
-      // Refresh every 30s so online/offline status stays current
+      // Refresh every 30s so online/offline status and pending requests stay current
       interval(30_000)
         .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe(() => this.loadFriends());
+        .subscribe(() => {
+          this.loadFriends();
+          this.loadPendingRequests();
+        });
     }
+  }
+
+  openAddFriendModal(): void {
+    this.showAddFriendModal.set(true);
+  }
+
+  closeAddFriendModal(): void {
+    this.showAddFriendModal.set(false);
+  }
+
+  acceptRequest(requesterId: number): void {
+    this.userService.acceptFriendRequest(requesterId).subscribe(() => {
+      this.loadFriends();
+      this.loadPendingRequests();
+    });
+  }
+
+  rejectRequest(requesterId: number): void {
+    this.userService.rejectFriendRequest(requesterId).subscribe(() => {
+      this.loadPendingRequests();
+    });
+  }
+
+  removeFriend(friendId: number, event: Event): void {
+    event.stopPropagation();
+    this.userService.removeFriend(friendId).subscribe(() => this.loadFriends());
   }
 
   setActiveTab(tab: 'friends' | 'notifications'): void {

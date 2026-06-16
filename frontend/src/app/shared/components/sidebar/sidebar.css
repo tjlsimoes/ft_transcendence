@@ -194,6 +194,23 @@
   background: var(--accent);
 }
 
+.add-friend-btn {
+  flex: 0 0 auto;
+  width: 40px;
+  background: transparent;
+  border: none;
+  border-left: 1px solid var(--border-accent);
+  color: var(--text-muted);
+  font-size: 1.2rem;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.add-friend-btn:hover {
+  color: var(--accent);
+}
+
 /* ===== Content area ===== */
 .sidebar-content {
   flex: 1;
@@ -240,6 +257,60 @@
   color: var(--text);
   font-family: var(--font-mono);
   letter-spacing: 0.5px;
+}
+
+/* ===== Pending friend requests ===== */
+.pending-requests {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-accent);
+}
+
+.pending-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  gap: 8px;
+}
+
+.pending-username {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+  font-family: var(--font-mono);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pending-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.pending-accept-btn,
+.pending-reject-btn {
+  padding: 4px 8px;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: transparent;
+}
+
+.pending-accept-btn {
+  border: 1px solid var(--accent);
+  color: var(--accent);
+}
+
+.pending-reject-btn {
+  border: 1px solid var(--border);
+  color: var(--text-muted);
 }
 
 /* ===== Friends list ===== */
@@ -365,6 +436,28 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.remove-friend-btn {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease, color 0.2s ease;
+}
+
+.friend-item:hover .remove-friend-btn {
+  opacity: 1;
+}
+
+.remove-friend-btn:hover {
+  color: #ef4444;
 }
 
 /* ===== Notifications list ===== */
