@@ -121,7 +121,9 @@
           @if (submissionResult()?.verdict === 'success') {
             <button class="leave-btn" type="button" (click)="leaveArena()">Leave Arena</button>
           } @else {
-            <button class="run-btn" type="button" (click)="runCode()">Run Code</button>
+            <button class="run-btn" type="button" (click)="runCode()" [disabled]="runLoading() || !isDuelActive() || submissionResult()?.verdict === 'submitted' || submissionResult()?.verdict === 'evaluating'">
+              {{ runLoading() ? 'Running...' : 'Run Code' }}
+            </button>
             <button class="submit-btn" type="button" (click)="submitCode()">Submit Code</button>
           }
         </div>
@@ -146,6 +148,12 @@
             <div class="detail-row">
               <span class="detail-label">Your Output (stdout)</span>
               <pre class="detail-code">{{ runResult()!.stdout }}</pre>
+            </div>
+          }
+          @if (runResult()!.expectedOutput) {
+            <div class="detail-row">
+              <span class="detail-label">Expected Output</span>
+              <pre class="detail-code">{{ runResult()!.expectedOutput }}</pre>
             </div>
           }
           @if (runResult()!.stderr) {

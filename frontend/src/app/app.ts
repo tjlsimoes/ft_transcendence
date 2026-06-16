@@ -2,6 +2,7 @@ import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { NavigationCancel, NavigationEnd, NavigationError, NavigationSkipped, NavigationStart, Router, RouterOutlet } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { DuelService } from './core/services/duel.service';
 import { Navbar } from './shared/components/navbar/navbar';
 import { FloatingSymbols } from './shared/components/floating-symbols/floating-symbols';
 import { Sidebar } from './shared/components/sidebar/sidebar';
@@ -20,10 +21,16 @@ export class App {
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
   private http = inject(HttpClient);
+  private duelService = inject(DuelService);
 
   routeState = inject(RouteStateService);
   readonly isNavigating = signal(true);
   readonly isBackendReady = signal(false);
+  readonly isArenaNavigationLoading = signal(false);
+  readonly arenaLoadingOpponentName = signal('Opponent');
+  readonly state = {
+    opponentName: this.arenaLoadingOpponentName,
+  };
 
   constructor() {
     this.checkBackendHealth();
@@ -33,6 +40,12 @@ export class App {
       .subscribe((event) => {
         if (event instanceof NavigationStart) {
           this.isNavigating.set(true);
+          const navigatingToArena = event.url.startsWith('/arena');
+          this.isArenaNavigationLoading.set(navigatingToArena);
+
+          if (navigatingToArena) {
+            this.loadArenaOpponentName();
+          }
         }
 
         if (
@@ -42,8 +55,25 @@ export class App {
           event instanceof NavigationSkipped
         ) {
           this.isNavigating.set(false);
+          this.isArenaNavigationLoading.set(false);
         }
       });
+  }
+
+  private loadArenaOpponentName(): void {
+    this.arenaLoadingOpponentName.set('Opponent');
+
+    this.duelService.getActiveDuel().subscribe({
+      next: (activeDuel) => {
+        const opponent = activeDuel?.opponentName?.trim();
+        if (opponent) {
+          this.arenaLoadingOpponentName.set(opponent);
+        }
+      },
+      error: () => {
+        // Keep the fallback text while duel context finishes syncing.
+      },
+    });
   }
 
   private checkBackendHealth() {

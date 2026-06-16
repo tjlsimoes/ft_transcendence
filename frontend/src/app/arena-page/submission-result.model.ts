@@ -36,6 +36,8 @@ export interface RunResult {
   stderr?: string;
   /** Execution time in ms */
   executionTimeMs?: number;
+  /** Expected output from the first test case (null if custom stdin was used) */
+  expectedOutput?: string;
 }
 
 // ── Mock helpers ───────────────────────────────────────────────────────────

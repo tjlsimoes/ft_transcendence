@@ -39,7 +39,12 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-                .setAllowedOrigins(allowedOrigins.split(","));
+                .setAllowedOrigins(allowedOrigins.split(","))
+                .setAllowedOriginPatterns(
+                        "https://*.app.github.dev",
+                        "https://*.app.github.dev:[*]",
+                        "http://localhost:[*]",
+                        "https://localhost:[*]");
     }
 
     @Override
