@@ -278,6 +278,12 @@ public class DuelEvaluationService {
         int delta1 = (int) Math.round(k * (actual1 - expected1));
         int delta2 = (int) Math.round(k * (actual2 - expected2));
 
+        if (delta1 > 0) delta1 += 50;
+        else if (delta1 < 0) delta1 -= 50;
+
+        if (delta2 > 0) delta2 += 50;
+        else if (delta2 < 0) delta2 -= 50;
+
         return new int[]{delta1, delta2};
     }
 
