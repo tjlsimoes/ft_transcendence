@@ -33,7 +33,12 @@ export class Sidebar implements OnInit {
     const windowTotal = this.chatStateService.windows().reduce((sum, w) => sum + w.unread, 0);
     const pendingTotal = Object.values(this.chatStateService.pendingUnread())
                           .reduce((sum, n) => sum + n, 0);
-    return windowTotal + pendingTotal;
+    const friendRequestTotal = this.pendingRequests().length;
+    // FRIEND_REQUEST is excluded here since it's already counted via friendRequestTotal above.
+    const otherNotificationsTotal = this.notificationService.notifications()
+      .filter(n => !n.read && n.type !== 'FRIEND_REQUEST')
+      .length;
+    return windowTotal + pendingTotal + friendRequestTotal + otherNotificationsTotal;
   }
   );
 

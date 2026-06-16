@@ -83,6 +83,9 @@ export class NotificationService {
     ids.forEach(id =>
       this.http.patch(`${this.baseUrl}/${id}/read`, {}).subscribe()
     );
+    this._notifications.update(list =>
+      list.map(n => ids.includes(n.id) ? { ...n, read: true } : n)
+    );
   }
 
   reset(): void {
