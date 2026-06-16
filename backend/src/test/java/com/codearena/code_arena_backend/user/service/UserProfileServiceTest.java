@@ -24,6 +24,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -135,8 +136,8 @@ class UserProfileServiceTest {
 
         when(userRepository.findByUsername("me")).thenReturn(Optional.of(me));
         when(friendshipRepository.findByUserIdAndStatus(1L, "ACCEPTED")).thenReturn(List.of(
-                new Friendship(1L, 2L, "ACCEPTED"),
-                new Friendship(1L, 3L, "ACCEPTED")
+                new Friendship(1L, 2L, "ACCEPTED", LocalDateTime.now()),
+                new Friendship(1L, 3L, "ACCEPTED", LocalDateTime.now())
         ));
         when(userRepository.findAllById(List.of(2L, 3L))).thenReturn(List.of(onlineFriend, offlineFriend));
 

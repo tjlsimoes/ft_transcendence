@@ -71,4 +71,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
         WHERE elo >= 3000
         """, nativeQuery = true)
     void recalculateMasterLeagues();
+
+	List<User> findTop20ByUsernameContainingIgnoreCaseAndIdNot(String query, Long excludeId);
 }

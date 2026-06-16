@@ -12,6 +12,7 @@ import com.codearena.code_arena_backend.user.dto.UpdatePasswordRequest;
 import com.codearena.code_arena_backend.user.dto.UpdateUserProfileRequest;
 import com.codearena.code_arena_backend.user.dto.UserAvatarResource;
 import com.codearena.code_arena_backend.user.dto.UserProfileResponse;
+import com.codearena.code_arena_backend.user.dto.UserSearchResultResponse;
 import com.codearena.code_arena_backend.user.entity.User;
 import com.codearena.code_arena_backend.user.service.UserProfileService;
 import com.codearena.code_arena_backend.user.service.UserService;
@@ -31,6 +32,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -145,6 +147,12 @@ public class UserController {
         String username = authentication.getName();
         return ResponseEntity.ok(userProfileService.listOnlineFriends(username));
     }
+
+	@GetMapping("/search")
+	public ResponseEntity<List<UserSearchResultResponse>> searchUsers(Authentication authentication, @RequestParam String q) {
+		String username = authentication.getName();
+		return ResponseEntity.ok(userProfileService.searchUsers(username, q));
+	}
 
     // ------------------------------------------------------------------ //
     //  Match history endpoint (from duel/ranking branch)                  //

@@ -1,5 +1,7 @@
 package com.codearena.code_arena_backend.friendship.entity;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -33,4 +35,7 @@ public class Friendship {
 
     @Column(nullable = false, length = 50)
     private String status;
+
+	@Column(name = "requested_at", nullable = false)
+	private LocalDateTime requestedAt;
 }

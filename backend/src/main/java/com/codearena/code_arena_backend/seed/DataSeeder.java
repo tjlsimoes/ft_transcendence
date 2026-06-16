@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -64,8 +65,8 @@ public class DataSeeder implements ApplicationRunner {
 
     private void ensureFriendship(Long id1, Long id2) {
         if (!friendshipRepository.existsByUserIdAndFriendId(id1, id2)) {
-            friendshipRepository.save(new Friendship(id1, id2, "ACCEPTED"));
-            friendshipRepository.save(new Friendship(id2, id1, "ACCEPTED"));
+            friendshipRepository.save(new Friendship(id1, id2, "ACCEPTED", LocalDateTime.now()));
+            friendshipRepository.save(new Friendship(id2, id1, "ACCEPTED", LocalDateTime.now()));
             log.info("DataSeeder: friendship {} <-> {}", id1, id2);
         }
     }

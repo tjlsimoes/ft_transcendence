@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface FriendshipRepository extends JpaRepository<Friendship, FriendshipId> {
@@ -26,4 +27,6 @@ public interface FriendshipRepository extends JpaRepository<Friendship, Friendsh
 	@Modifying
 	@Query("DELETE FROM Friendship f WHERE f.userId = :userId OR f.friendId = :userId")
 	void deleteAllByParticipant(Long userId);
+
+	Optional<Friendship> findByUserIdAndFriendId(Long userId, Long friendId);
 }
