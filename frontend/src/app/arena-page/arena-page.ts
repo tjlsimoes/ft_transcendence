@@ -167,9 +167,12 @@ int main() {
                this.handleDuelEvent({
                   type: 'DUEL_COMPLETED',
                   winnerId: status.winnerId,
+                  challengerId: status.challengerId,
+                  opponentId: status.opponentId,
                   challengerScore: status.challengerScore,
                   opponentScore: status.opponentScore,
-                  challengerEloDelta: status.challengerEloDelta
+                  challengerEloDelta: status.challengerEloDelta,
+                  opponentEloDelta: status.opponentEloDelta
                });
             }
           }
@@ -233,10 +236,17 @@ int main() {
         if (event.reason === 'TIMEOUT' && event.winnerId !== 'DRAW') {
           headline = event.winnerId === this.myId() ? 'Won by Timeout!' : 'Lost by Timeout!';
         }
+
+        // Determine if current user is the challenger or the opponent
+        const isChallenger = event.challengerId ? (this.myId() === event.challengerId) : true;
+        const myScore = isChallenger ? event.challengerScore : event.opponentScore;
+        const opScore = isChallenger ? event.opponentScore : event.challengerScore;
+        const myEloDelta = isChallenger ? event.challengerEloDelta : event.opponentEloDelta;
+
         this.submissionResult.set({
            verdict: 'success',
            headline: headline,
-           summary: `Score: ${event.challengerScore} vs ${event.opponentScore}. Elo: ${event.challengerEloDelta > 0 ? '+' : ''}${event.challengerEloDelta}`,
+           summary: `Score: ${myScore} vs ${opScore}. Elo: ${myEloDelta > 0 ? '+' : ''}${myEloDelta}`,
            testCases: []
         });
 

@@ -115,6 +115,8 @@ public class DuelEvaluationService {
                 duelRepository.save(duel);
                 lifecycleService.broadcastEvent(duelId, "DUEL_COMPLETED", Map.of(
                     "winnerId", "DRAW",
+                    "challengerId", duel.getChallengerId(),
+                    "opponentId", duel.getOpponentId(),
                     "challengerScore", 0,
                     "opponentScore", 0,
                     "challengerEloDelta", 0,
@@ -247,6 +249,8 @@ public class DuelEvaluationService {
         // Broadcast completion
         lifecycleService.broadcastEvent(duel.getId(), "DUEL_COMPLETED", Map.of(
             "winnerId", winnerId != null ? winnerId : "DRAW",
+            "challengerId", duel.getChallengerId(),
+            "opponentId", duel.getOpponentId(),
             "challengerScore", sub1.getScore(),
             "opponentScore", sub2.getScore(),
             "challengerEloDelta", eloChanges[0],
