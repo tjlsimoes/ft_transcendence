@@ -184,6 +184,10 @@ class DuelEvaluationServiceTest {
 
         assertThat(duel.getStatus()).isEqualTo(Duel.DuelStatus.DRAW);
         assertThat(duel.getWinnerId()).isNull();
+        assertThat(duel.getChallengerEloChange()).isEqualTo(0);
+        assertThat(duel.getOpponentEloChange()).isEqualTo(0);
+        assertThat(challenger.getElo()).isEqualTo(1000);
+        assertThat(opponent.getElo()).isEqualTo(1000);
     }
 
     // -------------------------------------------------------------------------

@@ -248,19 +248,22 @@ public class DuelEvaluationService {
     }
 
     private int[] calculateEloDelta(int elo1, int elo2, Long winnerId, Long p1Id, Long p2Id) {
+        // Draw: no ELO change
+        if (winnerId == null) {
+            return new int[]{0, 0};
+        }
+
         double k = 32.0;
         double expected1 = 1.0 / (1.0 + Math.pow(10, (elo2 - elo1) / 400.0));
         double expected2 = 1.0 / (1.0 + Math.pow(10, (elo1 - elo2) / 400.0));
 
-        double actual1 = 0.5, actual2 = 0.5;
-        if (winnerId != null) {
-            if (winnerId.equals(p1Id)) {
-                actual1 = 1.0;
-                actual2 = 0.0;
-            } else {
-                actual1 = 0.0;
-                actual2 = 1.0;
-            }
+        double actual1, actual2;
+        if (winnerId.equals(p1Id)) {
+            actual1 = 1.0;
+            actual2 = 0.0;
+        } else {
+            actual1 = 0.0;
+            actual2 = 1.0;
         }
 
         int delta1 = (int) Math.round(k * (actual1 - expected1));
