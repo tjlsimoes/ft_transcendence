@@ -40,7 +40,7 @@ public class DuelEvaluationService {
     private final TransactionTemplate transactionTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper()
             .configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    
+
     @Autowired
     @Lazy
     private DuelLifecycleService lifecycleService;
@@ -48,9 +48,9 @@ public class DuelEvaluationService {
     @Transactional
     public void evaluateDuel(Long duelId) {
         Duel duel = duelRepository.findById(duelId).orElseThrow();
-        
+
         // Prevent double evaluation
-        if (duel.getStatus() == Duel.DuelStatus.EVALUATING || 
+        if (duel.getStatus() == Duel.DuelStatus.EVALUATING ||
             duel.getStatus() == Duel.DuelStatus.COMPLETED) {
             return;
         }
@@ -60,7 +60,7 @@ public class DuelEvaluationService {
 
         duel.setStatus(Duel.DuelStatus.EVALUATING);
         duelRepository.save(duel);
-        
+
         lifecycleService.broadcastEvent(duelId, "DUEL_EVALUATING", Map.of());
 
         // We run evaluation async so we don't block the calling thread (e.g. submit thread)
@@ -71,7 +71,7 @@ public class DuelEvaluationService {
         try {
             Duel duel = duelRepository.findById(duelId).orElseThrow();
             Challenge challenge = challengeRepository.findById(duel.getChallengeId()).orElseThrow();
-            
+
             // Parse test cases
             List<JudgeRequest.TestCaseInput> testCases = objectMapper.convertValue(
                     challenge.getTestCases(),
@@ -154,7 +154,7 @@ public class DuelEvaluationService {
         if (challenge.getTestHarness() != null && !challenge.getTestHarness().isBlank()) {
             sourceCode = sub.getCode() + "\n" + challenge.getTestHarness();
         }
-        
+
         JudgeRequest req = new JudgeRequest(sourceCode, sub.getLanguage(), testCases);
         return judgeService.judge(req);
     }
@@ -171,14 +171,14 @@ public class DuelEvaluationService {
         }
 
         double correctness = ((double) resp.passedTests() / resp.totalTests()) * 100.0;
-        
+
         // Time score: 0 to 100
         double timeRatio = Math.max(0.0, (double) (timeLimitSecs - sub.getTimeTakenSecs()) / timeLimitSecs);
         double time = timeRatio * 100.0;
 
         // Perf score: base 100, lose points for slow runtime
         double perf = Math.max(0.0, 100.0 - (resp.runtimeMs() / 10.0));
-        
+
         // Quality: flat 100 for now if it compiles and passes something
         double quality = 100.0;
 
@@ -230,17 +230,17 @@ public class DuelEvaluationService {
         int[] eloChanges = calculateEloDelta(challenger.getElo(), opponent.getElo(), winnerId, challenger.getId(), opponent.getId());
         duel.setChallengerEloChange(eloChanges[0]);
         duel.setOpponentEloChange(eloChanges[1]);
-        
+
         duelRepository.save(duel);
 
         // Update Users
         updateUserStats(challenger, eloChanges[0], winnerId != null && winnerId.equals(challenger.getId()), winnerId == null);
         updateUserStats(opponent, eloChanges[1], winnerId != null && winnerId.equals(opponent.getId()), winnerId == null);
-        
+
         // Reset status
         challenger.setStatus(User.UserStatus.ONLINE);
         opponent.setStatus(User.UserStatus.ONLINE);
-        
+
         userRepository.save(challenger);
         userRepository.save(opponent);
 
@@ -279,10 +279,10 @@ public class DuelEvaluationService {
         int delta2 = (int) Math.round(k * (actual2 - expected2));
 
         if (delta1 > 0) delta1 += 50;
-        else if (delta1 < 0) delta1 -= 50;
+        else if (delta1 < 0) delta1 -= 35;
 
         if (delta2 > 0) delta2 += 50;
-        else if (delta2 < 0) delta2 -= 50;
+        else if (delta2 < 0) delta2 -= 35;
 
         return new int[]{delta1, delta2};
     }
@@ -296,7 +296,7 @@ public class DuelEvaluationService {
             user.setLosses(user.getLosses() + 1);
             user.setWinStreak(0);
         }
-        
+
         // Update League
         int e = user.getElo();
         if (e >= 3000) user.setLeague(User.League.MASTER);
