@@ -49,9 +49,8 @@ public class DuelEvaluationService {
     public void evaluateDuel(Long duelId) {
         Duel duel = duelRepository.findById(duelId).orElseThrow();
 
-        // Prevent double evaluation
-        if (duel.getStatus() == Duel.DuelStatus.EVALUATING ||
-            duel.getStatus() == Duel.DuelStatus.COMPLETED) {
+        // Prevent double evaluation or evaluating finished duels
+        if (duel.getStatus() != Duel.DuelStatus.IN_PROGRESS) {
             return;
         }
 

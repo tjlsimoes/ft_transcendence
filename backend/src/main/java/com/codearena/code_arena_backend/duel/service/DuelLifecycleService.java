@@ -67,27 +67,49 @@ public class DuelLifecycleService {
     }
 
     private void scheduleTimer(Long duelId) {
-        Runnable tickTask = () -> {
-            long current = getCurrentTimeLeftSecs(duelId);
+        class TimerTask implements Runnable {
+            ScheduledFuture<?> future;
 
-            if (current <= 0) {
-                // Time's up!
-                log.info("Duel #{} timer expired", duelId);
-                broadcastEvent(duelId, "DUEL_TIMEOUT", Map.of("timeLeftSecs", 0));
+            @Override
+            public void run() {
+                try {
+                    Duel duel = duelRepository.findById(duelId).orElse(null);
+                    if (duel == null || (duel.getStatus() != Duel.DuelStatus.IN_PROGRESS && duel.getStatus() != Duel.DuelStatus.EVALUATING)) {
+                        log.info("Self-cancelling timer for duel {} as status is {}", duelId, duel != null ? duel.getStatus() : "null");
+                        if (future != null) {
+                            future.cancel(false);
+                        }
+                        activeTimers.remove(duelId, future);
+                        return;
+                    }
 
-                // Stop the timer
-                cancelTimer(duelId);
+                    long current = getCurrentTimeLeftSecs(duel);
 
-                // Trigger evaluation
-                evaluationService.evaluateDuel(duelId);
-            } else {
-                // Tick
-                broadcastEvent(duelId, "DUEL_TICK", Map.of("timeLeftSecs", current));
+                    if (current <= 0) {
+                        log.info("Duel #{} timer expired", duelId);
+                        broadcastEvent(duelId, "DUEL_TIMEOUT", Map.of("timeLeftSecs", 0));
+
+                        if (future != null) {
+                            future.cancel(false);
+                        }
+                        activeTimers.remove(duelId, future);
+
+                        evaluationService.evaluateDuel(duelId);
+                    } else {
+                        broadcastEvent(duelId, "DUEL_TICK", Map.of("timeLeftSecs", current));
+                    }
+                } catch (Exception e) {
+                    log.error("Error in duel timer tick for duel {}", duelId, e);
+                }
             }
-        };
+        }
 
-        // Run every second so all clients stay aligned with the server clock.
-        ScheduledFuture<?> future = scheduler.scheduleAtFixedRate(tickTask, 1, 1, TimeUnit.SECONDS);
+        // Clean up any existing timer to avoid duplicate/orphaned scheduler threads
+        cancelTimer(duelId);
+
+        TimerTask task = new TimerTask();
+        ScheduledFuture<?> future = scheduler.scheduleAtFixedRate(task, 1, 1, TimeUnit.SECONDS);
+        task.future = future;
         activeTimers.put(duelId, future);
     }
 
