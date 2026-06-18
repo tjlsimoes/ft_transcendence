@@ -169,11 +169,11 @@ class DuelEvaluationServiceTest {
     }
 
     @Test
-    @DisplayName("finalizeDuel: draw when scores and times are equal")
-    void finalizeDuel_equalScoreAndEqualTime_draw() {
+    @DisplayName("finalizeDuel: draw when scores are equal")
+    void finalizeDuel_equalScore_draw() {
         Duel duel = buildDuel(1L, 1L, 2L, 10L, Duel.DuelStatus.EVALUATING);
         Submission sub1 = buildSubmission(1L, 1L, "code", 60, 120);
-        Submission sub2 = buildSubmission(1L, 2L, "code", 60, 120);
+        Submission sub2 = buildSubmission(1L, 2L, "code", 60, 200);
         User challenger = buildUser(1L, 1000);
         User opponent   = buildUser(2L, 1000);
 
@@ -184,42 +184,6 @@ class DuelEvaluationServiceTest {
 
         assertThat(duel.getStatus()).isEqualTo(Duel.DuelStatus.DRAW);
         assertThat(duel.getWinnerId()).isNull();
-    }
-
-    @Test
-    @DisplayName("finalizeDuel: challenger wins tie-break when challenger submitted faster")
-    void finalizeDuel_equalScore_challengerFaster_challengerWins() {
-        Duel duel = buildDuel(1L, 1L, 2L, 10L, Duel.DuelStatus.EVALUATING);
-        Submission sub1 = buildSubmission(1L, 1L, "code", 75, 30);  // faster
-        Submission sub2 = buildSubmission(1L, 2L, "code", 75, 90);
-        User challenger = buildUser(1L, 1000);
-        User opponent   = buildUser(2L, 1000);
-
-        when(userRepository.findById(1L)).thenReturn(Optional.of(challenger));
-        when(userRepository.findById(2L)).thenReturn(Optional.of(opponent));
-
-        evaluationService.finalizeDuel(duel, sub1, sub2);
-
-        assertThat(duel.getStatus()).isEqualTo(Duel.DuelStatus.COMPLETED);
-        assertThat(duel.getWinnerId()).isEqualTo(1L);
-    }
-
-    @Test
-    @DisplayName("finalizeDuel: opponent wins tie-break when opponent submitted faster")
-    void finalizeDuel_equalScore_opponentFaster_opponentWins() {
-        Duel duel = buildDuel(1L, 1L, 2L, 10L, Duel.DuelStatus.EVALUATING);
-        Submission sub1 = buildSubmission(1L, 1L, "code", 70, 200);
-        Submission sub2 = buildSubmission(1L, 2L, "code", 70, 50);  // faster
-        User challenger = buildUser(1L, 1000);
-        User opponent   = buildUser(2L, 1000);
-
-        when(userRepository.findById(1L)).thenReturn(Optional.of(challenger));
-        when(userRepository.findById(2L)).thenReturn(Optional.of(opponent));
-
-        evaluationService.finalizeDuel(duel, sub1, sub2);
-
-        assertThat(duel.getStatus()).isEqualTo(Duel.DuelStatus.COMPLETED);
-        assertThat(duel.getWinnerId()).isEqualTo(2L);
     }
 
     // -------------------------------------------------------------------------

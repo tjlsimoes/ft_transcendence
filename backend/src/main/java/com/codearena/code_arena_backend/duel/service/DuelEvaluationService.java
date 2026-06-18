@@ -207,20 +207,9 @@ public class DuelEvaluationService {
             winnerId = opponent.getId();
             duel.setStatus(Duel.DuelStatus.COMPLETED);
         } else {
-            // Scores are equal. Tie-break by time.
-            if (sub1.getTimeTakenSecs() < sub2.getTimeTakenSecs()) {
-                winnerId = challenger.getId();
-                duel.setStatus(Duel.DuelStatus.COMPLETED);
-                log.info("Duel {} - Challenger won by speed tie-break (score={})", duel.getId(), sub1.getScore());
-            } else if (sub2.getTimeTakenSecs() < sub1.getTimeTakenSecs()) {
-                winnerId = opponent.getId();
-                duel.setStatus(Duel.DuelStatus.COMPLETED);
-                log.info("Duel {} - Opponent won by speed tie-break (score={})", duel.getId(), sub2.getScore());
-            } else {
-                // Exactly same score and same time
-                duel.setStatus(Duel.DuelStatus.DRAW);
-                log.info("Duel {} - Draw (score={}, time={})", duel.getId(), sub1.getScore(), sub1.getTimeTakenSecs());
-            }
+            // Scores are equal. Draw.
+            duel.setStatus(Duel.DuelStatus.DRAW);
+            log.info("Duel {} - Draw (score={})", duel.getId(), sub1.getScore());
         }
 
         duel.setWinnerId(winnerId);
