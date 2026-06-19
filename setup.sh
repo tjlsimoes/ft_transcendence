@@ -147,7 +147,7 @@ echo ""
 if [ $READY -eq 1 ]; then
     echo "-------------------------------------------------------"
     echo "🎉 Setup complete! Reach the platform at:"
-    echo "🔗 https://localhost"
+    echo "🔗 https://localhost:$HTTPS_PORT"
     echo "-------------------------------------------------------"
 else
     echo "-------------------------------------------------------"
