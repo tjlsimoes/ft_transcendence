@@ -35,6 +35,11 @@ export const arenaGuard: CanActivateFn = (_route, _state) => {
       return true;
     }),
     catchError((err) => {
+      if (err.status === 401) {
+        // Token inválido/expirado — forçar logout
+        authService.logout();
+        return of(router.createUrlTree(['/login']));
+      }
       if (err.status === 404) {
         // Sem duel ativo — o user não deveria estar na arena
         console.warn('[ArenaGuard] Sem duel ativo → redirect para lobby');

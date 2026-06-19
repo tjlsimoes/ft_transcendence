@@ -40,7 +40,7 @@ export class ChatWindow implements OnInit, OnDestroy {
     this.chatService.getHistory(friendId).subscribe(page => {
       this.chatState.prependHistory(friendId, page.content);
     })
-    
+
     this.subscription = this.chatService
       .subscribeToConversation(myId, friendId)
       .subscribe(msg => {
@@ -87,6 +87,17 @@ export class ChatWindow implements OnInit, OnDestroy {
 
   getAvatarLetter(username: string): string {
     return username ? username.charAt(0).toUpperCase() : '?';
+  }
+
+  hideBrokenAvatar(event: Event): void {
+    const image = event.target as HTMLImageElement | null;
+    if (!image) return;
+
+    image.style.display = 'none';
+    const fallback = image.nextElementSibling as HTMLElement | null;
+    if (fallback) {
+      fallback.hidden = false;
+    }
   }
 
   // How far the element is scrolled from the top

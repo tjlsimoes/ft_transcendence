@@ -54,7 +54,24 @@ export class AuthService {
   }
 
   isLoggedIn(): boolean {
-    return !!this.getToken();
+    const token = this.getToken();
+    if (!token) return false;
+
+    try {
+      // Decode the JWT payload (middle segment) to check expiry.
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      // `exp` is in seconds; Date.now() returns milliseconds.
+      if (payload.exp && payload.exp * 1000 < Date.now()) {
+        // Token expired — clean up silently.
+        localStorage.removeItem(this.tokenKey);
+        return false;
+      }
+      return true;
+    } catch {
+      // Malformed token — remove it.
+      localStorage.removeItem(this.tokenKey);
+      return false;
+    }
   }
 
   logout(): void {

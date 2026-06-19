@@ -318,13 +318,13 @@
 }
 
 .btn-oauth-42:hover {
-  border-color: #00babc;
-  box-shadow: 0 0 10px rgba(0, 186, 188, 0.15);
+  border-color: var(--accent);
+  box-shadow: 0 0 10px var(--accent-glow);
 }
 
 .btn-oauth-github:hover {
-  border-color: #f0f6fc;
-  box-shadow: 0 0 10px rgba(240, 246, 252, 0.1);
+  border-color: var(--accent);
+  box-shadow: 0 0 10px var(--accent-glow);
 }
 
 .oauth-icon {

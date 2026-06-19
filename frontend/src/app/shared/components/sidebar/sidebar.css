@@ -93,6 +93,10 @@
 /* ===== Avatar section (collapsed) ===== */
 .sidebar-avatar-wrapper {
   margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
 }
 
 .sidebar-avatar {
@@ -104,6 +108,10 @@
   transition: border-color 0.2s ease;
   cursor: pointer;
   position: relative;
+}
+
+.friend-avatar-clickable {
+  cursor: pointer;
 }
 
 .sidebar-avatar:hover {
@@ -127,6 +135,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.avatar-fallback[hidden] {
+  display: none;
 }
 
 .notification-badge {

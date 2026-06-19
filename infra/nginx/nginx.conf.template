@@ -72,13 +72,19 @@ http {
             proxy_set_header X-Forwarded-Proto $scheme;
 
             # Catch 502/503/504 from the frontend container
-            error_page 502 503 504 /loading.html;
+            # Return 200 so the browser doesn't treat boot-time proxy errors as failures
+            error_page 502 503 504 =200 /loading.html;
         }
 
         # Static loading page for proxy fallback
         location = /loading.html {
+            add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self'; connect-src 'self'; frame-src 'none'; worker-src 'none'; child-src 'none';";
             root /usr/share/nginx/html;
             internal;
+        }
+
+        location = /loading.js {
+            root /usr/share/nginx/html;
         }
     }
 }
