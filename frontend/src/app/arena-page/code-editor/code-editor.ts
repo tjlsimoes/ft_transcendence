@@ -69,14 +69,21 @@ export class CodeEditorComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (!this.editor || !this.monaco) return;
-
+    // Handle value changes even when Monaco isn't ready yet — buffer for later.
     if (changes['value'] && !changes['value'].firstChange) {
-      const current = this.editor.getValue();
-      if (current !== this.value) {
-        this.editor.setValue(this.value);
+      if (!this.editor) {
+        // Monaco not ready yet — buffer the value for later.
+        this.pendingValue = this.value;
+      } else {
+        const current = this.editor.getValue();
+        if (current !== this.value) {
+          this.editor.setValue(this.value);
+        }
       }
     }
+
+    // Language and theme changes require the editor to be ready.
+    if (!this.editor || !this.monaco) return;
 
     if (changes['language'] && !changes['language'].firstChange) {
       const model = this.editor.getModel();
@@ -144,29 +151,6 @@ export class CodeEditorComponent implements OnInit, OnChanges, OnDestroy {
     });
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    // Handle value changes even when Monaco isn't ready yet — buffer for later.
-    if (changes['value'] && !changes['value'].firstChange) {
-      if (!this.editor) {
-        // Monaco not ready yet — buffer the value for later.
-        this.pendingValue = this.value;
-      } else {
-        const current = this.editor.getValue();
-        if (current !== this.value) {
-          this.editor.setValue(this.value);
-        }
-      }
-    }
-
-    // Language and theme changes require the editor to be ready.
-    if (!this.editor || !this.monaco) return;
-
-    if (changes['language'] && !changes['language'].firstChange) {
-      const model = this.editor.getModel();
-      if (model) {
-        this.monaco.editor.setModelLanguage(model, LANGUAGE_MAP[this.language] ?? 'plaintext');
-      }
-    }
   private resolveTheme(): string {
     return this.theme === 'Light' ? 'arena-light' : 'arena-dark';
   }
