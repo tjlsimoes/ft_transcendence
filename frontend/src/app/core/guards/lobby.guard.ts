@@ -37,6 +37,11 @@ export const lobbyGuard: CanActivateFn = (_route, _state) => {
       return true;
     }),
     catchError((err) => {
+      if (err.status === 401) {
+        // Token inválido/expirado — forçar logout + redirect para login
+        authService.logout();
+        return of(router.createUrlTree(['/login']));
+      }
       if (err.status === 404) {
         // Nenhum duel ativo → permitir
         return of(true);
@@ -47,3 +52,4 @@ export const lobbyGuard: CanActivateFn = (_route, _state) => {
     })
   );
 };
+
