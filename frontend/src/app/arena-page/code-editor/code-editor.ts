@@ -59,7 +59,40 @@ export class CodeEditorComponent implements OnInit, OnChanges, OnDestroy {
   ngOnInit(): void {
     loader.config({ paths: { vs: 'assets/monaco/vs' } });
 
-    loader.init().then((monaco) => {
+    void this.initializeMonaco();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (!this.editor || !this.monaco) return;
+
+    if (changes['value'] && !changes['value'].firstChange) {
+      const current = this.editor.getValue();
+      if (current !== this.value) {
+        this.editor.setValue(this.value);
+      }
+    }
+
+    if (changes['language'] && !changes['language'].firstChange) {
+      const model = this.editor.getModel();
+      if (model) {
+        this.monaco.editor.setModelLanguage(model, LANGUAGE_MAP[this.language] ?? 'plaintext');
+      }
+    }
+
+    if (changes['theme'] && !changes['theme'].firstChange) {
+      this.monaco.editor.setTheme(this.resolveTheme());
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.editor?.dispose();
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────────────
+
+  private async initializeMonaco(): Promise<void> {
+    await this.withDefinePropertyCompatibility(async () => {
+      const monaco = await loader.init();
       this.monaco = monaco;
       this.defineCustomThemes(monaco);
 
@@ -99,36 +132,30 @@ export class CodeEditorComponent implements OnInit, OnChanges, OnDestroy {
     });
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (!this.editor || !this.monaco) return;
-
-    if (changes['value'] && !changes['value'].firstChange) {
-      const current = this.editor.getValue();
-      if (current !== this.value) {
-        this.editor.setValue(this.value);
-      }
-    }
-
-    if (changes['language'] && !changes['language'].firstChange) {
-      const model = this.editor.getModel();
-      if (model) {
-        this.monaco.editor.setModelLanguage(model, LANGUAGE_MAP[this.language] ?? 'plaintext');
-      }
-    }
-
-    if (changes['theme'] && !changes['theme'].firstChange) {
-      this.monaco.editor.setTheme(this.resolveTheme());
-    }
-  }
-
-  ngOnDestroy(): void {
-    this.editor?.dispose();
-  }
-
-  // ── Helpers ────────────────────────────────────────────────────────────
-
   private resolveTheme(): string {
     return this.theme === 'Light' ? 'arena-light' : 'arena-dark';
+  }
+
+  private async withDefinePropertyCompatibility<T>(callback: () => Promise<T>): Promise<T> {
+    const originalDefineProperty = Object.defineProperty;
+
+    if (typeof originalDefineProperty !== 'function') {
+      return callback();
+    }
+
+    Object.defineProperty = function(obj: any, prop: PropertyKey, descriptor: PropertyDescriptor) {
+      if (descriptor === undefined) {
+        return obj;
+      }
+
+      return originalDefineProperty(obj, prop, descriptor);
+    };
+
+    try {
+      return await callback();
+    } finally {
+      Object.defineProperty = originalDefineProperty;
+    }
   }
 
   private defineCustomThemes(monaco: typeof Monaco): void {
