@@ -100,12 +100,18 @@ export class WebSocketService implements OnDestroy {
           });
 
           // Cleanup: unsubscribe from STOMP when the RxJS Observable is destroyed
-          // Cleanup: unsubscribe from STOMP when the RxJS Observable is destroyed
           return () => {
-            try {
-              subscription?.unsubscribe();
-            } catch {
-              // Ignore any transmission errors on closed/closing sockets
+            if (
+              activeClient &&
+              activeClient === this.client &&
+              activeClient.connected &&
+              activeWebSocket?.readyState === 1
+            ) {
+              try {
+                subscription?.unsubscribe();
+              } catch {
+                // Ignore any transmission errors on closed/closing sockets
+              }
             }
           };
         });
