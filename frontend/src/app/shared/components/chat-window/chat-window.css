@@ -64,6 +64,10 @@
   justify-content: center;
 }
 
+.chat-avatar .avatar-fallback[hidden] {
+  display: none;
+}
+
 .status-dot {
   position: absolute;
   bottom: 0;

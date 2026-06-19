@@ -71,6 +71,17 @@ export class Sidebar implements OnInit {
     return username ? username.charAt(0).toUpperCase() : '?';
   }
 
+  hideBrokenAvatar(event: Event): void {
+    const image = event.target as HTMLImageElement | null;
+    if (!image) return;
+
+    image.style.display = 'none';
+    const fallback = image.nextElementSibling as HTMLElement | null;
+    if (fallback) {
+      fallback.hidden = false;
+    }
+  }
+
   openChat(friend: FriendEntry): void {
     this.chatStateService.openConversation(friend);
     this.notificationService.markChatRead(friend.id);

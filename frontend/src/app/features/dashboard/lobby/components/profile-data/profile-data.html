@@ -26,10 +26,9 @@
 					<span>PROGRESS TO {{ nextLeague() }}</span>
 					<span>{{ currentLp() }} / {{ targetLp() }} LP</span>
 				</div>
-				<div class="progress-track" role="progressbar" aria-label="Progresso de rank"
-					[attr.aria-valuenow]="currentLp()" [attr.aria-valuemax]="targetLp()" aria-valuemin="0">
-					<div class="progress-fill" [style.width.%]="lpProgress()"></div>
-				</div>
+				<progress class="progress-track" [value]="lpProgress()" max="100"
+					role="progressbar" aria-label="Progresso de rank"
+					[attr.aria-valuenow]="lpProgress()" aria-valuemin="0" aria-valuemax="100"></progress>
 			}
 
 			<!-- Master: show current LP + Legend threshold -->
@@ -38,10 +37,9 @@
 					<span>LEGEND THRESHOLD</span>
 					<span>{{ currentLp() }} / {{ legendThresholdLp() ?? '—' }} LP</span>
 				</div>
-				<div class="progress-track" role="progressbar" aria-label="Progresso para Legend"
-					[attr.aria-valuenow]="currentLp()" [attr.aria-valuemax]="legendThresholdLp() ?? currentLp()" aria-valuemin="0">
-					<div class="progress-fill" [style.width.%]="lpProgress()"></div>
-				</div>
+				<progress class="progress-track" [value]="lpProgress()" max="100"
+					role="progressbar" aria-label="Progresso para Legend"
+					[attr.aria-valuenow]="lpProgress()" aria-valuemin="0" aria-valuemax="100"></progress>
 			}
 
 			<!-- Legend: show rank position + highest LP -->

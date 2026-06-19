@@ -23,8 +23,19 @@ http {
         ssl_certificate /etc/nginx/ssl/localhost.crt;
         ssl_certificate_key /etc/nginx/ssl/localhost.key;
 
-        # Content Security Policy (allows unsafe-eval for Monaco Editor and unsafe-inline for Angular)
-        add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; worker-src 'self' blob:; child-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://avatars.githubusercontent.com https://*.githubusercontent.com https://cdn.intra.42.fr https://*.42.fr; connect-src 'self' ws: wss:; frame-src 'self';";
+        # Content Security Policy for the main app shell and loading page.
+        add_header Content-Security-Policy "default-src 'self'; script-src 'self'; worker-src 'self' blob:; child-src 'self' blob:; style-src 'self' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://avatars.githubusercontent.com https://*.githubusercontent.com https://cdn.intra.42.fr https://*.42.fr; connect-src 'self' ws: wss:; frame-src 'self';";
+
+        location = /arena {
+            add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-eval'; worker-src 'self' blob:; child-src 'self' blob:; style-src 'self' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://avatars.githubusercontent.com https://*.githubusercontent.com https://cdn.intra.42.fr https://*.42.fr; connect-src 'self' ws: wss:; frame-src 'self';";
+            proxy_pass http://frontend:${FRONTEND_PORT};
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+
+            error_page 502 503 504 =200 /loading.html;
+        }
 
         # WebSocket support (Matchmaking, PvP, Chat)
         location /ws {
@@ -74,11 +85,17 @@ http {
             # Catch 502/503/504 from the frontend container
             # Return 200 so the browser doesn't treat boot-time proxy errors as failures
             error_page 502 503 504 =200 /loading.html;
+        }
 
         # Static loading page for proxy fallback
         location = /loading.html {
+            add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self'; connect-src 'self'; frame-src 'none'; worker-src 'none'; child-src 'none';";
             root /usr/share/nginx/html;
             internal;
+        }
+
+        location = /loading.js {
+            root /usr/share/nginx/html;
         }
     }
 }
