@@ -49,6 +49,22 @@
 
     <app-add-friend-modal [open]="showAddFriendModal()" (closed)="closeAddFriendModal()" />
 
+    <app-modal [open]="showRemoveConfirmModal()" (closed)="closeRemoveConfirmModal()">
+      <div class="confirm-modal">
+        <div class="confirm-modal-header">
+          <span class="confirm-modal-title">Remove Friend</span>
+          <button class="close-btn" (click)="closeRemoveConfirmModal()">&times;</button>
+        </div>
+        <div class="confirm-modal-body">
+          <p>Are you sure you want to remove <strong>{{ friendToRemove()?.username }}</strong> from your friends list?</p>
+        </div>
+        <div class="confirm-modal-actions">
+          <button class="btn-cancel" (click)="closeRemoveConfirmModal()">Cancel</button>
+          <button class="btn-confirm-remove" (click)="executeRemoveFriend()">Remove</button>
+        </div>
+      </div>
+    </app-modal>
+
     <div class="sidebar-content">
       @if (activeTab() === 'friends') {
       @if (pendingRequests().length > 0) {
@@ -80,7 +96,7 @@
           @if (getUnread(friend.id) > 0) {
             <span class="unread-badge">{{ getUnread(friend.id) }}</span>
           }
-          <button class="remove-friend-btn" title="Remove friend" (click)="removeFriend(friend.id, $event)">&times;</button>
+          <button class="remove-friend-btn" title="Remove friend" (click)="confirmRemoveFriend(friend, $event)">&times;</button>
         </div>
         }
         @empty {

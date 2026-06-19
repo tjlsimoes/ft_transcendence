@@ -10,10 +10,11 @@ import type { NotificationPayload } from '../../models/notification.model';
 import { DatePipe } from '@angular/common';
 import { statusClass } from '../../utils/status.utils';
 import { AddFriendModal } from '../add-friend-modal/add-friend-modal';
+import { Modal } from '../modal/modal';
 
 @Component({
   selector: 'app-sidebar',
-  imports: [DatePipe, AddFriendModal],
+  imports: [DatePipe, AddFriendModal, Modal],
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.css',
 })
@@ -44,6 +45,8 @@ export class Sidebar implements OnInit {
 
   activeTab = signal<'friends' | 'notifications'>('friends');
   showAddFriendModal = signal(false);
+  showRemoveConfirmModal = signal(false);
+  friendToRemove = signal<FriendEntry | null>(null);
 
   // Delegado ao serviço compartilhado para evitar duplicação de lógica de rota.
   isLobby = this.routeState.isLobby;
@@ -95,11 +98,24 @@ export class Sidebar implements OnInit {
     });
   }
 
-  removeFriend(friendId: number, event: Event): void {
+  confirmRemoveFriend(friend: FriendEntry, event: Event): void {
     event.stopPropagation();
-    this.userService.removeFriend(friendId).subscribe(() => {
+    this.friendToRemove.set(friend);
+    this.showRemoveConfirmModal.set(true);
+  }
+
+  closeRemoveConfirmModal(): void {
+    this.showRemoveConfirmModal.set(false);
+    this.friendToRemove.set(null);
+  }
+
+  executeRemoveFriend(): void {
+    const friend = this.friendToRemove();
+    if (!friend) return;
+    this.userService.removeFriend(friend.id).subscribe(() => {
       this.loadFriends();
-      this.chatStateService.closeConversation(friendId);
+      this.chatStateService.closeConversation(friend.id);
+      this.closeRemoveConfirmModal();
     });
   }
 
