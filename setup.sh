@@ -152,7 +152,7 @@ if [ $READY -eq 1 ]; then
 else
     echo "-------------------------------------------------------"
     echo "⚠️ Setup script completed, but containers are still starting."
-    echo "🔗 Reach the platform at: https://localhost"
+    echo "🔗 Reach the platform at: https://localhost:$HTTPS_PORT"
     echo "💡 Monitor initialization progress with: docker compose ps"
     echo "-------------------------------------------------------"
 fi
