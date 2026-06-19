@@ -16,7 +16,7 @@ import {
   RunResult,
 } from './submission-result.model';
 
-export type PanelTab = 'Problem' | 'Submissions';
+export type PanelTab = 'Problem';
 
 @Component({
   selector: 'app-arena-page',
@@ -55,11 +55,35 @@ export class ArenaPage implements OnInit, OnDestroy {
   readonly challengeTitle = signal<string>('Loading challenge...');
   readonly challengeDescription = signal<string>('Please wait while we fetch the problem details...');
   readonly formattedDescription = computed(() => {
-    // Replace literal '\n' string with HTML line breaks
-    return this.challengeDescription().replace(/\\n/g, '<br>');
+    const raw = this.challengeDescription();
+    // Handle both literal '\n' strings and real newline characters
+    const text = raw.replace(/\\n/g, '\n');
+    // Convert to structured HTML
+    return text
+      .split('\n')
+      .map(line => {
+        const trimmed = line.trim();
+        if (!trimmed) return '';
+        // Bullet points: lines starting with -
+        if (trimmed.startsWith('- ')) {
+          return `<li>${trimmed.substring(2)}</li>`;
+        }
+        // Function signatures and code-like lines
+        if (/^(void|int|char|unsigned|float|double|long|short|typedef|struct)\s/.test(trimmed)) {
+          return `<code>${trimmed}</code>`;
+        }
+        // Section headers (e.g. "Requirements:", "Rules:", "Function signature:")
+        if (/^[A-Z][\w\s]+:$/.test(trimmed)) {
+          return `<strong>${trimmed}</strong>`;
+        }
+        return `<p>${trimmed}</p>`;
+      })
+      .join('\n')
+      // Wrap consecutive <li> elements in <ul>
+      .replace(/(<li>.*?<\/li>\n?)+/gs, (match) => `<ul>${match}</ul>`);
   });
 
-  readonly panelTabs: PanelTab[] = ['Problem', 'Submissions'];
+  readonly panelTabs: PanelTab[] = ['Problem'];
   activeTab = signal<PanelTab>('Problem');
 
   readonly languages = ['C', 'C++', 'Java', 'Python 3', 'JavaScript'];
