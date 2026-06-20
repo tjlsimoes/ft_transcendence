@@ -23,12 +23,12 @@ public class DuelService {
     private final DuelRepository duelRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
-    
+
     @Transactional
     public void completeDuel(Long duelId, Long winnerId, boolean isDraw) {
         Duel duel = duelRepository.findById(duelId)
             .orElseThrow(() -> new RuntimeException("Duel not found"));
-        
+
         if (duel.getStartedAt() == null) {
             throw new RuntimeException("Duel not started");
         }
@@ -77,7 +77,7 @@ public class DuelService {
         // Apply Elo changes
         challenger.setElo(challenger.getElo() + challengerDelta);
         opponent.setElo(opponent.getElo() + opponentDelta);
-        
+
         // Sync Leagues
         challenger.setLeague(User.League.valueOf(rankingService.getLeagueFromElo(challenger.getElo())));
         opponent.setLeague(User.League.valueOf(rankingService.getLeagueFromElo(opponent.getElo())));
@@ -90,7 +90,7 @@ public class DuelService {
         duelRepository.save(duel);
         userRepository.save(challenger);
         userRepository.save(opponent);
-        
+
         userRepository.recalculateMasterLeagues();
 
         // Send duel result notifications

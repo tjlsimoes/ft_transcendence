@@ -234,6 +234,9 @@ public class DuelEvaluationService {
 
         log.info("Duel {} completed. Winner: {}", duel.getId(), winnerId);
 
+        // Recalculate LEGEND league for top 1% of MASTER+ players
+        recalculateMasterLeagues();
+
         // Broadcast completion
         lifecycleService.broadcastEvent(duel.getId(), "DUEL_COMPLETED", Map.of(
             "winnerId", winnerId != null ? winnerId : "DRAW",
@@ -276,6 +279,10 @@ public class DuelEvaluationService {
         else if (delta2 < 0) delta2 -= 35;
 
         return new int[]{delta1, delta2};
+    }
+
+    private void recalculateMasterLeagues() {
+        userRepository.recalculateMasterLeagues();
     }
 
     private void updateUserStats(User user, int eloDelta, boolean won, boolean draw) {
