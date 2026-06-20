@@ -42,9 +42,7 @@
       <button class="tab-btn" [class.active]="activeTab() === 'notifications'" (click)="setActiveTab('notifications')">
         Notifications
       </button>
-      @if (activeTab() === 'friends') {
-        <button class="add-friend-btn" title="Add friend" (click)="openAddFriendModal()">+</button>
-      }
+      <button class="add-friend-btn" title="Add friend" (click)="openAddFriendModal()">+</button>
     </div>
 
     <app-add-friend-modal [open]="showAddFriendModal()" (closed)="closeAddFriendModal()" />
